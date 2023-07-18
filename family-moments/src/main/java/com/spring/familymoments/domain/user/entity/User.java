@@ -41,8 +41,8 @@ public class User extends BaseTime {
     @Column(nullable = false, length = 20)
     private String nickname;
 
-    @Column(nullable = false, length = 10)
-    private String birthDate;
+    @Column(nullable = false)
+    private LocalDateTime birthDate;
 
     @Column(columnDefinition = "TEXT")
     private String profileImg;
