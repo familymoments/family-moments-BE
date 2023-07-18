@@ -28,10 +28,12 @@ public class ValidationRegex {
         Matcher matcher = pattern.matcher(target);
         return matcher.find();
     }
+    /*
+    //User birth타입 LocalDate로 변경되면서 다시 작성해야 함.
     public static boolean isRegexBirth(String target) {
         String regex = "^[0-9]{8}$";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(target);
         return matcher.find();
-    }
+    }*/
 }

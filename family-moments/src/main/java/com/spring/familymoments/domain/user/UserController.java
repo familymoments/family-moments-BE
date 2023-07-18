@@ -48,9 +48,9 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
         //생년월일
-        if(!isRegexBirth(postUserReq.getBirthDate())) {
+        /*if(!isRegexBirth(postUserReq.getBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
-        }
+        }*/
         //닉네임
         if(postUserReq.getNickname() == null) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
