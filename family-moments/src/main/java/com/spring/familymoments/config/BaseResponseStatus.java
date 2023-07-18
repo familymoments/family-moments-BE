@@ -25,13 +25,17 @@ public enum BaseResponseStatus {
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
     RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
 
-    // users
-    USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "유저 아이디 값을 확인해주세요."),
-
     // [POST] /users
+    USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "유저 아이디 값을 확인해주세요."),
+    POST_USERS_INVALID_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디 형식을 확인해주세요."),
+    POST_USERS_INVALID_PW(false, HttpStatus.BAD_REQUEST.value(), "비밀번호 형식을 확인해주세요."),
+    POST_USERS_EMPTY_NAME(false, HttpStatus.BAD_REQUEST.value(), "이름을 입력해주세요."),
     POST_USERS_EMPTY_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일을 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
     POST_USERS_EXISTS_EMAIL(false,HttpStatus.BAD_REQUEST.value(),"중복된 이메일입니다."),
+    POST_USERS_INVALID_BIRTH(false, HttpStatus.BAD_REQUEST.value(), "생년월일 형식을 확인해주세요."),
+    POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
+    POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
 
 
