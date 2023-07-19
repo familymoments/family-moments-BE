@@ -5,8 +5,8 @@ import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -20,25 +20,31 @@ import javax.persistence.*;
 @DynamicUpdate
 public class Family extends BaseEntity {
 
+
     @Id
+    @NotBlank
     @Column(name = "familyId", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long familyId;
 
+    @NotBlank
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
+    @NotBlank
     @Column(nullable = false, length = 20)
     private String familyName;
 
     @Column(columnDefinition = "int unsigned")
-    private String uploadCycle;
+    private int uploadCycle;
 
+    @NotBlank
     @Column(nullable = false, length = 10)
     private String inviteCode;
 
-    @Column(columnDefinition = "TEXT")
+    @NotBlank
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
 }
 
