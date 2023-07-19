@@ -22,6 +22,7 @@ public class UserService {
     }
 
     public User getUser(Long userId) throws BaseException {
+        System.out.println(userRepository.findUserByUserId(userId));
         return userRepository.findUserByUserId(userId).orElseThrow(()-> new BaseException(DATABASE_ERROR));
     }
 }
