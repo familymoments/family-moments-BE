@@ -8,7 +8,6 @@ build/
 ### Project Files ###
 *.properties
 *.yml
-/src/main/java/com/spring/familymoments/config/secret/
 
 ### STS ###
 .apt_generated
