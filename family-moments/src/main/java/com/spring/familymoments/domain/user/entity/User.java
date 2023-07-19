@@ -7,7 +7,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import javax.validation.constraints.Email;
 import java.time.LocalDateTime;
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -29,9 +28,6 @@ public class User extends BaseTime {
     // 아이디
     @Column(nullable = false, length = 45)
     private String id;
-
-    @Column(nullable = false)
-    private String uuid;
 
     @Column(nullable = false, length = 45)
     private String email;
