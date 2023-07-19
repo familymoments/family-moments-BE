@@ -23,7 +23,7 @@ public class FamilyController {
     public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId, @RequestBody PostFamilyReq postFamilyReq) throws BaseException {
 //        String uuid = jwtService.resolveToken();
         System.out.println("여기는 가족 post");
-        User owner = userService.getUser(userId);
+        User owner = userService.getUserMinjeong(userId);
 
         PostFamilyRes postFamilyRes = familyService.createFamily(owner, postFamilyReq);
         return new BaseResponse<>(postFamilyRes);

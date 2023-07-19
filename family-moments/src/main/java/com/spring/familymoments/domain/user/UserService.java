@@ -21,7 +21,7 @@ public class UserService {
         return new PostUserRes(saveUser.getId(), saveUser.getPassword());
     }
 
-    public User getUser(Long userId) throws BaseException {
+    public User getUserMinjeong(Long userId) throws BaseException {
         System.out.println(userRepository.findUserByUserId(userId));
         return userRepository.findUserByUserId(userId).orElseThrow(()-> new BaseException(DATABASE_ERROR));
     }
