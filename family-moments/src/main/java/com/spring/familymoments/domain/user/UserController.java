@@ -1,17 +1,18 @@
 package com.spring.familymoments.domain.user;
 
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.user.model.PostUserReq;
 import com.spring.familymoments.domain.user.model.PostUserRes;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class UserController {
@@ -24,7 +25,8 @@ public class UserController {
      */
     @ResponseBody
     @PostMapping("/users/sign-up")
-    public BaseResponse<PostUserRes> createUser(@RequestBody PostUserReq postUserReq) {
+    public BaseResponse<PostUserRes> createUser(@RequestPart("newUser") PostUserReq.joinUser postUserReq,
+                                                @RequestPart("profileImg") MultipartFile profileImage) throws BaseException {
         //아이디
         if(postUserReq.getId() == null) {
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
@@ -48,9 +50,9 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
         //생년월일
-        /*if(!isRegexBirth(postUserReq.getBirthDate())) {
+        if(!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
-        }*/
+        }
         //닉네임
         if(postUserReq.getNickname() == null) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
@@ -59,7 +61,8 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
 
-        PostUserRes postUserRes = userService.createUser(postUserReq);
+        PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
+        log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>(postUserRes);
     }
 }
