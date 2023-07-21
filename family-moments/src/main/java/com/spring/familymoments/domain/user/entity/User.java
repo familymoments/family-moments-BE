@@ -55,12 +55,25 @@ public class User extends BaseTime {
     @Column(name = "status", nullable = false, length = 10)
     protected Status status = Status.ACTIVE;
 
-    private enum Status {
+    public enum Status {
         ACTIVE, INACTIVE, BLACK;
     }
 
     @Column(columnDefinition = "int unsigned")
     @ColumnDefault("0")
     private int reported;
+
+    @Builder
+    public User(String id, String uuid, String email, String password, String name, String nickname,
+                LocalDateTime birthDate, String profileImg, Status status){
+        this.id = id;
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.nickname = nickname;
+        this.birthDate = birthDate;
+        this.profileImg = profileImg;
+        this.status = status;
+    }
 
 }
