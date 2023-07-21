@@ -29,12 +29,17 @@ public class UserService {
 
     private final JwtService jwtService;
 
+    /**
+     * createUser
+     * [POST]
+     * @return PostUserRes
+     */
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
     public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
 
         // TODO: 아이디 중복 체크
-        Optional<User> checkUserId = userRepository.findByEmail(postUserReq.getEmail());
+        Optional<User> checkUserId = userRepository.findById(postUserReq.getId());
         if(checkUserId.isPresent()){
             log.info("[createUser]: 이미 존재하는 아이디입니다!");
             throw new BaseException(POST_USERS_EXISTS_ID);
@@ -84,5 +89,14 @@ public class UserService {
         String testToken = jwtService.createToken(user.getUuid());
 
         return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg(), testToken);
+    }
+
+    /**
+     * 회원 정보를 받아오는 함수 -> 임시로 만든 함수라 로그인 구현 후 수정 필요!
+     * [GET]
+     * @return User 객체
+     */
+    public User getUser(String uuid) throws BaseException {
+        return userRepository.findUserByUuid(uuid).orElseThrow(()-> new BaseException(FIND_FAIL_USERNAME));
     }
 }

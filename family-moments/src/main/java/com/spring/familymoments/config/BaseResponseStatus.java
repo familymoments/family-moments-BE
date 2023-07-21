@@ -48,6 +48,9 @@ public enum BaseResponseStatus {
     DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
     SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
 
+    //[GET] /users
+    FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
+
     //[PATCH] /users/{userIdx}
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
 
