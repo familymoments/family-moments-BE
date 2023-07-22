@@ -2,10 +2,7 @@ package com.spring.familymoments.domain.family.model;
 
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.user.entity.User;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
