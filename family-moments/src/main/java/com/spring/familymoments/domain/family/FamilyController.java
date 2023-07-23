@@ -14,9 +14,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.NoSuchElementException;
 
-import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FAMILY;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -56,7 +57,7 @@ public class FamilyController {
 
     /**
      * 초대코드로 가족 정보 조회 API
-     * [GET] /familyId
+     * [GET] /{inviteCode}/inviteCode
      * @return BaseResponse<FamilyDto>
      */
     @GetMapping("/{inviteCode}/inviteCode")
@@ -67,6 +68,40 @@ public class FamilyController {
             return new BaseResponse<>(familyDto);
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }
+    }
+
+    /**
+     * 초대 API
+     * [GET] /familyId
+     * @return BaseResponse<String>
+     */
+    @PostMapping("/{familyId}")
+    public BaseResponse<String> inviteUser(@PathVariable Long familyId,
+                                           @RequestParam List<Long> userIds) throws BaseException{
+        try {
+            familyService.inviteUser(userIds, familyId);
+            return new BaseResponse<>("초대 요청이 완료되었습니다.");
+        } catch (IllegalAccessException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.CONFLICT.value());
+        } catch (NoSuchElementException e){
+            return new BaseResponse<>(FIND_FAIL_USERNAME);
+        }
+    }
+
+    /**
+     * 초대 승락 API
+     * [GET] /{familyId}/users/{userId}/invite-accept
+     * @return BaseResponse<String>
+     */
+    @PatchMapping("/{familyId}/users/{userId}/invite-accept")
+    public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
+                                             @PathVariable Long userId) throws BaseException{
+        try {
+            familyService.acceptFamily(userId, familyId);
+            return new BaseResponse<>("초대가 수락되었습니다.");
+        }catch (NoSuchElementException e){
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
     }
 }

@@ -23,12 +23,10 @@ public class Family extends BaseEntity {
 
 
     @Id
-    @NotBlank
     @Column(name = "familyId", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long familyId;
 
-    @NotBlank
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
