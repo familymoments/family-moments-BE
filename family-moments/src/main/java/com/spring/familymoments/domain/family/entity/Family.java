@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.family.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
@@ -22,13 +23,11 @@ public class Family extends BaseEntity {
 
 
     @Id
-    @NotBlank
     @Column(name = "familyId", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long familyId;
 
-    @NotBlank
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
