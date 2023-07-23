@@ -1,23 +1,18 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
-import com.spring.familymoments.domain.user.model.PostLoginReq;
-import com.spring.familymoments.domain.user.model.PostLoginRes;
 import com.spring.familymoments.domain.user.model.PostUserReq;
 import com.spring.familymoments.domain.user.model.PostUserRes;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.utils.SHA256;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,8 +29,6 @@ public class UserService {
 
     private final JwtService jwtService;
 
-    private final PasswordEncoder passwordEncoder;
-
     /**
      * createUser
      * [POST]
@@ -46,8 +39,7 @@ public class UserService {
     public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
 
         // TODO: 아이디 중복 체크
-        Optional<User> checkUserId = userRepository.findById(postUserReq.getId());
-        if(checkUserId.isPresent()){
+        if(checkDuplicateId(postUserReq.getId())){
             log.info("[createUser]: 이미 존재하는 아이디입니다!");
             throw new BaseException(POST_USERS_EXISTS_ID);
         }
@@ -63,13 +55,13 @@ public class UserService {
         String uuid = UuidUtils.generateUUID();
 
         // TODO: 비밀번호 저장
-        /*String encryptPwd;
+        String encryptPwd;
         try {
             encryptPwd = SHA256.encrypt(postUserReq.getPassword());
             postUserReq.setPassword(encryptPwd);
         } catch (Exception exception) {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
-        }*/
+        }
 
         // TODO: BirthDate -> String에서 LocalDateTime으로 변환
         String strBirthDate = postUserReq.getStrBirthDate();
@@ -78,11 +70,13 @@ public class UserService {
         LocalDateTime parsedBirthDate = null;
         parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
 
+        // User saveUser = userRepository.save(saveUser);
+
         User user = User.builder()
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
-                .password(passwordEncoder.encode(postUserReq.getPassword()))
+                .password(encryptPwd)
                 .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
                 .birthDate(parsedBirthDate)
@@ -91,7 +85,9 @@ public class UserService {
                 .build();
         userRepository.save(user);
 
-        return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg());
+        String testToken = jwtService.createToken(user.getUuid());
+
+        return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg(), testToken);
     }
 
     /**
@@ -104,36 +100,11 @@ public class UserService {
     }
 
     /**
-     * 로그인
-     * [POST]
-     * @return ok
+     * 아이디 중복 확인
+     * [GET]
+     * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
      */
-    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        // TODO: 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
-        User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
-        if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new InternalServerErrorException("비밀번호가 일치하지 않습니다.");
-        }
-        // TODO: 로그인 시 토큰 생성해서 header에 붙임.
-        String token = jwtService.createToken(user.getUuid());
-        response.setHeader("X-AUTH-TOKEN", token);
-
-        // TODO: 클라이언트에 cookie로 토큰도 보냄
-        Cookie cookie = new Cookie("X-AUTH-TOKEN", token);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        response.addCookie(cookie);
-
-        return new PostLoginRes(postLoginReq.getId());
+    public boolean checkDuplicateId(String UserId) throws BaseException {
+        return userRepository.existsById(UserId);
     }
-
-    /**
-     * 로그아웃
-     * [POST]
-     * @return ok
-     *
-     * controller 부분에만 작성함.
-     */
 }

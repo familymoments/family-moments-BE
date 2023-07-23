@@ -2,19 +2,13 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
-import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.domain.user.model.PostLoginReq;
-import com.spring.familymoments.domain.user.model.PostLoginRes;
 import com.spring.familymoments.domain.user.model.PostUserReq;
 import com.spring.familymoments.domain.user.model.PostUserRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
@@ -28,7 +22,7 @@ public class UserController {
     /**
      * 회원 가입 API
      * [POST] /users/sign-up
-     * @return BaseResponse<UserSaveRequestDto>
+     * @return BaseResponse<PostUserRes>
      */
     @ResponseBody
     @PostMapping("/users/sign-up")
@@ -72,29 +66,14 @@ public class UserController {
         log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>(postUserRes);
     }
-    /**
-     * 로그인 API
-     * [POST] /users/log-in
-     * @return BaseResponse<>(postLoginRes)
-     */
-    @PostMapping("/users/log-in")
-    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
-        return new BaseResponse<>(postLoginRes);
-    }
 
     /**
-     * 로그아웃 API
-     * [POST] /users/log-out
-     * @return
+     * 아이디 중복 확인 API
+     * [GET] /users/sign-up
+     * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
      */
-    @PostMapping("/users/log-out")
-    public BaseResponse logout(HttpServletResponse response) throws BaseException {
-        Cookie cookie = new Cookie("X-AUTH-TOKEN", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        return new BaseResponse("로그아웃 했습니다.");
+    @GetMapping("/users/check-id")
+    public ResponseEntity<Boolean> checkDuplicateId(@RequestParam String id) throws BaseException {
+        return ResponseEntity.ok(userService.checkDuplicateId(id));
     }
 }
