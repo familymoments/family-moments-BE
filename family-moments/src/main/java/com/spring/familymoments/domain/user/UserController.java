@@ -6,6 +6,7 @@ import com.spring.familymoments.domain.user.model.PostUserReq;
 import com.spring.familymoments.domain.user.model.PostUserRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,7 +22,7 @@ public class UserController {
     /**
      * 회원 가입 API
      * [POST] /users/sign-up
-     * @return BaseResponse<UserSaveRequestDto>
+     * @return BaseResponse<PostUserRes>
      */
     @ResponseBody
     @PostMapping("/users/sign-up")
@@ -64,5 +65,15 @@ public class UserController {
         PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
         log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>(postUserRes);
+    }
+
+    /**
+     * 아이디 중복 확인 API
+     * [GET] /users/sign-up
+     * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
+     */
+    @GetMapping("/users/check-id")
+    public ResponseEntity<Boolean> checkDuplicateId(@RequestParam String id) throws BaseException {
+        return ResponseEntity.ok(userService.checkDuplicateId(id));
     }
 }
