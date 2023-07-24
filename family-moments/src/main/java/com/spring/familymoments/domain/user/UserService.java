@@ -45,8 +45,8 @@ public class UserService {
         }
 
         // TODO: 이메일 중복 체크
-        Optional<User> checkUserEmail = userRepository.findByEmail(postUserReq.getEmail());
-        if(checkUserEmail.isPresent()){
+        // Optional<User> checkUserEmail = userRepository.findByEmail(postUserReq.getEmail());
+        if(checkDuplicateEmail(postUserReq.getEmail())){
             log.info("[createUser]: 이미 존재하는 이메일입니다!");
             throw new BaseException(POST_USERS_EXISTS_EMAIL);
         }
@@ -106,5 +106,14 @@ public class UserService {
      */
     public boolean checkDuplicateId(String UserId) throws BaseException {
         return userRepository.existsById(UserId);
+    }
+
+    /**
+     * 이메일 중복 확인
+     * [GET]
+     * @return 이미 가입된 이메일이면 -> true, 그렇지 않으면 -> false
+     */
+    public boolean checkDuplicateEmail(String email) throws BaseException {
+        return userRepository.existsByEmail(email);
     }
 }
