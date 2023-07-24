@@ -69,11 +69,21 @@ public class UserController {
 
     /**
      * 아이디 중복 확인 API
-     * [GET] /users/sign-up
+     * [GET] /users/check-id
      * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
      */
     @GetMapping("/users/check-id")
     public ResponseEntity<Boolean> checkDuplicateId(@RequestParam String id) throws BaseException {
         return ResponseEntity.ok(userService.checkDuplicateId(id));
+    }
+
+    /**
+     * 이메일 중복 확인 API
+     * [GET] /users/check-email
+     * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
+     */
+    @GetMapping("/users/check-email")
+    public ResponseEntity<Boolean> checkDuplicateEmail(@RequestParam String email) throws BaseException {
+        return ResponseEntity.ok(userService.checkDuplicateEmail(email));
     }
 }
