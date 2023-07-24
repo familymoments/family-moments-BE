@@ -39,8 +39,7 @@ public class UserService {
     public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
 
         // TODO: 아이디 중복 체크
-        Optional<User> checkUserId = userRepository.findById(postUserReq.getId());
-        if(checkUserId.isPresent()){
+        if(checkDuplicateId(postUserReq.getId())){
             log.info("[createUser]: 이미 존재하는 아이디입니다!");
             throw new BaseException(POST_USERS_EXISTS_ID);
         }
@@ -98,5 +97,14 @@ public class UserService {
      */
     public User getUser(String uuid) throws BaseException {
         return userRepository.findUserByUuid(uuid).orElseThrow(()-> new BaseException(FIND_FAIL_USERNAME));
+    }
+
+    /**
+     * 아이디 중복 확인
+     * [GET]
+     * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
+     */
+    public boolean checkDuplicateId(String UserId) throws BaseException {
+        return userRepository.existsById(UserId);
     }
 }
