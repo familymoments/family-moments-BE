@@ -1,21 +1,19 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
 import com.spring.familymoments.domain.user.model.PostLoginRes;
 import com.spring.familymoments.domain.user.model.PostUserReq;
 import com.spring.familymoments.domain.user.model.PostUserRes;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.utils.SHA256;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
@@ -110,12 +108,12 @@ public class UserService {
      * [POST]
      * @return ok
      */
-    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws BaseException {
+    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
         // TODO: 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
         User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new BaseException(FAILED_TO_LOGIN);
+            throw new InternalServerErrorException("비밀번호가 일치하지 않습니다.");
         }
         // TODO: 로그인 시 토큰 생성해서 header에 붙임.
         String token = jwtService.createToken(user.getUuid());
@@ -135,9 +133,7 @@ public class UserService {
      * 로그아웃
      * [POST]
      * @return ok
+     *
+     * controller 부분에만 작성함.
      */
-    /*@PostMapping("/users/log-out")
-    public void createLogout(HttpServletResponse response) {
-
-    }*/
 }

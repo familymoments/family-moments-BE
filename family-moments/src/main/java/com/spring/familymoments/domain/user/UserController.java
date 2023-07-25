@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
 import com.spring.familymoments.domain.user.model.PostLoginRes;
@@ -77,9 +78,8 @@ public class UserController {
      * @return BaseResponse<>(postLoginRes)
      */
     @PostMapping("/users/log-in")
-    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) throws BaseException {
+    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
         PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
-        log.info("[createLogin]: PostLoginRes 생성 완료!");
         return new BaseResponse<>(postLoginRes);
     }
 
