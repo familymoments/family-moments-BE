@@ -5,9 +5,16 @@ import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "User")
@@ -17,7 +24,7 @@ import java.time.LocalDateTime;
 @Builder
 @DynamicInsert
 @DynamicUpdate
-public class User extends BaseTime {
+public class User extends BaseTime implements UserDetails {
 
     //유저 인덱스
     @Id
@@ -73,6 +80,40 @@ public class User extends BaseTime {
         this.birthDate = birthDate;
         this.profileImg = profileImg;
         this.status = status;
+    }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+        return authorities;
+    }
+    @Override
+    public String getPassword() {
+        return password;
+    }
+    @Override
+    public String getUsername() {
+        return id; //uuid?
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return false;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return false;
     }
 
 }
