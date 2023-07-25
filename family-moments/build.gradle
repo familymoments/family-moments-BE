@@ -40,7 +40,10 @@ dependencies {
 	// spring security
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-
+	// Mail
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	// Random Code
+	implementation 'org.apache.commons:commons-lang3:3.0'
 }
 
 tasks.named('test') {
