@@ -31,18 +31,15 @@ public class Family extends BaseEntity {
     @JoinColumn(name = "owner", nullable = false)
     private User owner;
 
-    @NotBlank
     @Column(nullable = false, length = 20)
     private String familyName;
 
     @Column(columnDefinition = "int unsigned")
     private int uploadCycle;
 
-    @NotBlank
     @Column(nullable = false, length = 10)
     private String inviteCode;
 
-    @NotBlank
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
 }
