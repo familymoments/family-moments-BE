@@ -2,18 +2,15 @@ package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.family.model.FamilyDto;
 import com.spring.familymoments.domain.family.model.PostFamilyReq;
 import com.spring.familymoments.domain.family.model.PostFamilyRes;
 import com.spring.familymoments.domain.user.UserService;
-import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -25,18 +22,21 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class FamilyController {
 
     private final FamilyService familyService;
-    private final UserService userService;
+    private final JwtService jwtService;
 
-//    @ResponseBody
-//    @PostMapping("/{userId}")
-//    public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId, @RequestBody PostFamilyReq postFamilyReq) throws BaseException {
-////        String uuid = jwtService.resolveToken();
-//        System.out.println("여기는 가족 post");
-//        User owner = userService.getUserMinjeong(userId);
-//
-//        PostFamilyRes postFamilyRes = familyService.createFamily(owner, postFamilyReq);
-//        return new BaseResponse<>(postFamilyRes);
-//    }
+    @ResponseBody
+    @PostMapping("/{userId}")
+    public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId, @RequestBody PostFamilyReq postFamilyReq) throws BaseException {
+
+        try{
+//        int owner = jwtService.getUserIdx();
+            PostFamilyRes postFamilyRes = familyService.createFamily(userId, postFamilyReq);
+            return new BaseResponse<>(postFamilyRes);
+        }catch(NoSuchElementException e){
+            return new BaseResponse<>(FIND_FAIL_USERNAME);
+        }
+
+    }
 
     /**
      * 가족 정보 조회 API
@@ -76,7 +76,7 @@ public class FamilyController {
      * [GET] /familyId
      * @return BaseResponse<String>
      */
-    @PostMapping("/{familyId}")
+    @PostMapping("/ab/{familyId}")
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<Long> userIds) throws BaseException{
         try {
