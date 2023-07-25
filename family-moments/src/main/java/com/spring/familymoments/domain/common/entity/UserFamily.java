@@ -15,7 +15,7 @@ import javax.persistence.*;
 @Getter
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @DynamicInsert
 @DynamicUpdate
 public class UserFamily extends BaseTime {
@@ -37,7 +37,7 @@ public class UserFamily extends BaseTime {
     @Column(name = "status", nullable = false, length = 10)
     protected Status status = Status.DEACCEPT;
 
-    private enum Status {
+    public enum Status {
         ACTIVE, INACTIVE, DEACCEPT, REJECT;
     }
 
