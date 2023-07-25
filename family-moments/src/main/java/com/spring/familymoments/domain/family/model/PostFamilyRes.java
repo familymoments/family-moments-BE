@@ -13,8 +13,4 @@ import java.time.LocalDateTime;
 public class PostFamilyRes {
     private Long familyId;
     private String ownerNickName;
-    private String inviteCode;
-    private String ownerProfileImg;
-    private String representImg;
-    private LocalDateTime createdAt;
 }
