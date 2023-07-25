@@ -33,24 +33,23 @@ public class FamilyService {
     private final UserRepository userRepository;
 
     public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
-        Optional<User> userOptional = userRepository.findById(userId);
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
-        if (userOptional.isPresent()){
-            User owner = userOptional.get();
+        Family family = Family.builder()
+                .owner(owner)
+                .familyName(postFamilyReq.getFamilyName())
+                .uploadCycle(postFamilyReq.getUploadCycle())
+                .inviteCode("1111111")
+                .representImg(postFamilyReq.getRepresentImg())
+                .build();
 
-            Family family = Family.builder()
-                    .owner(owner)
-                    .familyName(postFamilyReq.getFamilyName())
-                    .uploadCycle(postFamilyReq.getUploadCycle())
-                    .inviteCode("1111111")
-                    .representImg(postFamilyReq.getRepresentImg())
-                    .build();
-            Family saveFamily = familyRepository.save(family);
+        Family savedFamily = familyRepository.save(family);
 
-            return new PostFamilyRes(saveFamily.getFamilyId(), owner.getNickname(), saveFamily.getInviteCode(), owner.getProfileImg(), saveFamily.getRepresentImg(), saveFamily.getCreatedAt());
-        }else {
-            throw new NoSuchElementException("존재하지 않는 사용자입니다.");
-        }
+        return new PostFamilyRes(
+                savedFamily.getFamilyId(),
+                owner.getNickname()
+        );
 
     }
 

@@ -25,7 +25,7 @@ public class FamilyController {
     private final JwtService jwtService;
 
     @ResponseBody
-    @PostMapping("/{userId}")
+    @PostMapping("/family/{userId}")
     public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId, @RequestBody PostFamilyReq postFamilyReq) throws BaseException {
 
         try{
