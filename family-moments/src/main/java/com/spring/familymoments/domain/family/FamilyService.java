@@ -32,7 +32,10 @@ public class FamilyService {
     private final UserFamilyRepository userFamilyRepository;
     private final UserRepository userRepository;
 
-    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq) {
+    public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+
         Family family = Family.builder()
                 .owner(owner)
                 .familyName(postFamilyReq.getFamilyName())
@@ -40,9 +43,14 @@ public class FamilyService {
                 .inviteCode("1111111")
                 .representImg(postFamilyReq.getRepresentImg())
                 .build();
-        Family saveFamily = familyRepository.save(family);
 
-        return new PostFamilyRes(saveFamily.getFamilyId(), owner.getNickname(), saveFamily.getInviteCode(), owner.getProfileImg(), saveFamily.getRepresentImg(), saveFamily.getCreatedAt());
+        Family savedFamily = familyRepository.save(family);
+
+        return new PostFamilyRes(
+                savedFamily.getFamilyId(),
+                owner.getNickname()
+        );
+
     }
 
 
