@@ -33,7 +33,6 @@ public class UserService {
      * PostRepository 생성 후 추가 예정
      * Long countByWriterId(User user);
      */
-
     private final JwtService jwtService;
 
     private final PasswordEncoder passwordEncoder;
