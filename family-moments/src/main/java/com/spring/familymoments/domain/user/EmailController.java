@@ -19,8 +19,8 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping("/users/auth/send-email")
-    public String sendVerificationEmail(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq,
-                                        @RequestParam String email) throws MessagingException, BaseException {
-        return emailService.sendEmail(email);
+    public String sendVerificationEmail(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws MessagingException, BaseException {
+        return emailService.sendEmail(sendEmailReq.getName(), sendEmailReq.getEmail());
     }
 }

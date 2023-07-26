@@ -8,15 +8,13 @@ import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-
-import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
@@ -26,6 +24,7 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final EmailService emailService;
 
     /**
      * 회원 가입 API
@@ -120,6 +119,7 @@ public class UserController {
         response.addCookie(cookie);
         return new BaseResponse("로그아웃 했습니다.");
     }
+
     /**
      * 회원정보 조회 API
      * [GET] /users/profile
@@ -132,15 +132,16 @@ public class UserController {
     }
 
     /**
-     * 유저 검색 API / 가족원 추가 API
-     * [GET] /users
-     * @param keyword null 가능
-     * @param familyId null 가능
-     * @return BaseResponse<List<GetSearchUserRes>>
+     * 아이디 찾기 API
+     * [POST] /users/auth/find-id
+     * @return BaseResponse<GetUserIdRes>
      */
-    @GetMapping("/users")
-    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
-        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
-        return new BaseResponse<>(getSearchUserRes);
+    @PostMapping("/users/auth/find-id")
+    public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws InternalServerErrorException, MessagingException, BaseException {
+
+        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+
+        return new BaseResponse<>(getUserIdRes);
     }
 }
