@@ -4,13 +4,11 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.domain.user.model.PostLoginReq;
-import com.spring.familymoments.domain.user.model.PostLoginRes;
-import com.spring.familymoments.domain.user.model.PostUserReq;
-import com.spring.familymoments.domain.user.model.PostUserRes;
+import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -118,5 +116,15 @@ public class UserController {
         cookie.setPath("/");
         response.addCookie(cookie);
         return new BaseResponse("로그아웃 했습니다.");
+    }
+    /**
+     * 회원정보 조회 API
+     * [GET] /users/profile
+     * @return BaseResponse<GetProfileRes>
+     */
+    @RequestMapping("/users/profile")
+    public BaseResponse<GetProfileRes> readProfile(@AuthenticationPrincipal User user) {
+       GetProfileRes getProfileRes = userService.readProfile(user);
+       return new BaseResponse<>(getProfileRes);
     }
 }

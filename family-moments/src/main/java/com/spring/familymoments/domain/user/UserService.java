@@ -3,10 +3,7 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
-import com.spring.familymoments.domain.user.model.PostLoginReq;
-import com.spring.familymoments.domain.user.model.PostLoginRes;
-import com.spring.familymoments.domain.user.model.PostUserReq;
-import com.spring.familymoments.domain.user.model.PostUserRes;
+import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -31,6 +28,11 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    //private final PostRepository postRepository;
+    /**
+     * PostRepository 생성 후 추가 예정
+     * Long countByWriterId(User user);
+     */
 
     private final JwtService jwtService;
 
@@ -153,4 +155,22 @@ public class UserService {
      *
      * controller 부분에만 작성함.
      */
+
+    /**
+     * 회원정보 조회 API
+     * [GET]
+     * @return
+     */
+    public GetProfileRes readProfile(User user) {
+        User member = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new InternalServerErrorException("token에서 user를 불러오지 못했습니다."));
+
+        //Long totalUpload = postRepository.countByWriterId(user);
+        Long totalUpload = new Long(0);
+
+        LocalDateTime targetDate = member.getCreatedAt();
+        LocalDateTime currentDate = LocalDateTime.now();
+        Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
+
+        return new GetProfileRes(user.getNickname(), user.getEmail(), totalUpload, duration);
+    }
 }
