@@ -1,22 +1,24 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
-import com.spring.familymoments.domain.user.model.PostUserReq;
-import com.spring.familymoments.domain.user.model.PostUserRes;
+import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.utils.SHA256;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -26,8 +28,15 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class UserService {
 
     private final UserRepository userRepository;
+    //private final PostRepository postRepository;
+    /**
+     * PostRepository 생성 후 추가 예정
+     * Long countByWriterId(User user);
+     */
 
     private final JwtService jwtService;
+
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * createUser
@@ -55,13 +64,13 @@ public class UserService {
         String uuid = UuidUtils.generateUUID();
 
         // TODO: 비밀번호 저장
-        String encryptPwd;
+        /*String encryptPwd;
         try {
             encryptPwd = SHA256.encrypt(postUserReq.getPassword());
             postUserReq.setPassword(encryptPwd);
         } catch (Exception exception) {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
-        }
+        }*/
 
         // TODO: BirthDate -> String에서 LocalDateTime으로 변환
         String strBirthDate = postUserReq.getStrBirthDate();
@@ -70,13 +79,11 @@ public class UserService {
         LocalDateTime parsedBirthDate = null;
         parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
 
-        // User saveUser = userRepository.save(saveUser);
-
         User user = User.builder()
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
-                .password(encryptPwd)
+                .password(passwordEncoder.encode(postUserReq.getPassword()))
                 .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
                 .birthDate(parsedBirthDate)
@@ -85,9 +92,7 @@ public class UserService {
                 .build();
         userRepository.save(user);
 
-        String testToken = jwtService.createToken(user.getUuid());
-
-        return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg(), testToken);
+        return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg());
     }
 
     /**
@@ -115,5 +120,57 @@ public class UserService {
      */
     public boolean checkDuplicateEmail(String email) throws BaseException {
         return userRepository.existsByEmail(email);
+    }
+
+    /**
+     * 로그인
+     * [POST]
+     * @return ok
+     */
+    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
+        // TODO: 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
+        User user = userRepository.findById(postLoginReq.getId())
+                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+        if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
+            throw new InternalServerErrorException("비밀번호가 일치하지 않습니다.");
+        }
+        // TODO: 로그인 시 토큰 생성해서 header에 붙임.
+        String token = jwtService.createToken(user.getUuid());
+        response.setHeader("X-AUTH-TOKEN", token);
+
+        // TODO: 클라이언트에 cookie로 토큰도 보냄
+        Cookie cookie = new Cookie("X-AUTH-TOKEN", token);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        response.addCookie(cookie);
+
+        return new PostLoginRes(postLoginReq.getId());
+    }
+
+    /**
+     * 로그아웃
+     * [POST]
+     * @return ok
+     *
+     * controller 부분에만 작성함.
+     */
+
+    /**
+     * 회원정보 조회 API
+     * [GET]
+     * @return
+     */
+    public GetProfileRes readProfile(User user) {
+        User member = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new InternalServerErrorException("token에서 user를 불러오지 못했습니다."));
+
+        //Long totalUpload = postRepository.countByWriterId(user);
+        Long totalUpload = new Long(0);
+
+        LocalDateTime targetDate = member.getCreatedAt();
+        LocalDateTime currentDate = LocalDateTime.now();
+        Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
+
+        return new GetProfileRes(user.getNickname(), user.getEmail(), totalUpload, duration);
     }
 }
