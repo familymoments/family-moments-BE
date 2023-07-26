@@ -17,6 +17,7 @@ public class PostEmailReq {
         private String name;
         @NotBlank(message = "인증 코드를 받으실 이메일을 입력해주세요.")
         private String email;
+        @NotBlank(message = "받은 인증 코드를 입력해주세요.")
+        private String code;
     }
-
 }
