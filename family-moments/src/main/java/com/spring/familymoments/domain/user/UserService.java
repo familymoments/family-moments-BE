@@ -169,16 +169,14 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user) {
-        User member = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new InternalServerErrorException("token에서 user를 불러오지 못했습니다."));
-
         //Long totalUpload = postRepository.countByWriterId(user);
         Long totalUpload = new Long(0);
 
-        LocalDateTime targetDate = member.getCreatedAt();
+        LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
      * 유저 검색 API
