@@ -3,11 +3,14 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +22,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
+import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
+import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DEACCEPT;
 
 @Slf4j
 @Service
@@ -161,15 +168,49 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user) {
-        User member = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new InternalServerErrorException("token에서 user를 불러오지 못했습니다."));
-
         //Long totalUpload = postRepository.countByWriterId(user);
         Long totalUpload = new Long(0);
 
-        LocalDateTime targetDate = member.getCreatedAt();
+        LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+    }
+    /**
+     * 유저 검색 API
+     * [GET] /users
+     * @return
+     */
+    public List<GetSearchUserRes> searchUserById(String keyword, Long familyId, User loginUser) {
+        List<GetSearchUserRes> getSearchUserResList = new ArrayList<>();
+
+        PageRequest pageRequest = PageRequest.of(0, 5);
+        Page<User> keywordUserList = userRepository.findTop5ByIdContainingKeywordOrderByIdAsc(keyword, pageRequest);
+
+        for(User keywordUser: keywordUserList) {
+            int appear = 1;
+            if(loginUser.getUserId() == keywordUser.getUserId()) {
+                log.info("[로그인 유저이면 리스트에 추가 X]");
+                continue;
+            }
+            List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, keywordUser.getUserId());
+            for(Object[] result : results) {
+                UserFamily userFamily = (UserFamily) result[1];
+                if (userFamily == null) {
+                    System.out.println("UserFamily is null. Skipping...");
+                    continue;
+                }
+                if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT) {
+                    log.info("[이미 다른 가족에 초대 대기 중이거나 초대 당한 사람이니까 비활성화]");
+                    appear = 0;
+                    break;
+                }
+            }
+            GetSearchUserRes getSearchUserRes = new GetSearchUserRes(keywordUser.getId(), keywordUser.getProfileImg(), appear);
+            getSearchUserResList.add(getSearchUserRes);
+        }
+        return getSearchUserResList;
     }
 }
+
