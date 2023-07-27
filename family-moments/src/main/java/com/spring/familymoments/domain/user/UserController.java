@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
+import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +29,13 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
+    private final AwsS3Service awsS3Service;
 
     /**
      * 회원 가입 API
      * [POST] /users/sign-up
+     * @param postUserReq 프로필 이미지 URL 저장
+     * @param profileImage 프로필 이미지 원본 저장
      * @return BaseResponse<PostUserRes>
      */
     @ResponseBody
@@ -71,6 +75,14 @@ public class UserController {
         if(!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
+
+        String fileUrl = null;
+
+        if(postUserReq.getProfileImg() != null){
+            fileUrl = awsS3Service.uploadImage(profileImage);
+        }
+
+        postUserReq.setProfileImg(fileUrl);
 
         PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
         log.info("[createUser]: PostUserRes 생성 완료!");
