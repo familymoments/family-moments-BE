@@ -8,12 +8,15 @@ import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+
+import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
@@ -126,5 +129,18 @@ public class UserController {
     public BaseResponse<GetProfileRes> readProfile(@AuthenticationPrincipal User user) {
        GetProfileRes getProfileRes = userService.readProfile(user);
        return new BaseResponse<>(getProfileRes);
+    }
+
+    /**
+     * 유저 검색 API / 가족원 추가 API
+     * [GET] /users
+     * @param keyword null 가능
+     * @param familyId null 가능
+     * @return BaseResponse<List<GetSearchUserRes>>
+     */
+    @GetMapping("/users")
+    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+        return new BaseResponse<>(getSearchUserRes);
     }
 }
