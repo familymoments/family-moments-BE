@@ -21,8 +21,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findById(String id);
     Optional<User> findByEmail(String email);
     Optional<User> findByPassword(String password);
+
     boolean existsById(String id);
+    boolean existsByName(String name);
     boolean existsByEmail(String email);
+    boolean existsByNameAndEmail(String name, String email);
 
     //유저 검색
     @Query("SELECT u FROM User u WHERE u.id LIKE :keyword% ORDER BY u.id ASC")

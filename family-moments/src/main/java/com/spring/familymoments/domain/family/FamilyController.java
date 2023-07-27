@@ -3,13 +3,16 @@ package com.spring.familymoments.domain.family;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.FamilyDto;
 import com.spring.familymoments.domain.family.model.PostFamilyReq;
 import com.spring.familymoments.domain.family.model.PostFamilyRes;
 import com.spring.familymoments.domain.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -23,19 +26,27 @@ public class FamilyController {
 
     private final FamilyService familyService;
     private final JwtService jwtService;
+    @Autowired
+    private final AwsS3Service awsS3Service;
+
 
     @ResponseBody
     @PostMapping("/family/{userId}")
-    public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId, @RequestBody PostFamilyReq postFamilyReq) throws BaseException {
+    public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId,
+                                                    @RequestParam(name = "representImg") MultipartFile representImg,
+                                                    @RequestPart PostFamilyReq postFamilyReq) throws BaseException {
 
         try{
 //        int owner = jwtService.getUserIdx();
+            // 대표 이미지 넣기
+            String fileUrl = awsS3Service.uploadImage(representImg);
+            postFamilyReq.setRepresentImg(fileUrl);             // 이미지 파일 객체에 추가
+
             PostFamilyRes postFamilyRes = familyService.createFamily(userId, postFamilyReq);
             return new BaseResponse<>(postFamilyRes);
         }catch(NoSuchElementException e){
             return new BaseResponse<>(FIND_FAIL_USERNAME);
         }
-
     }
 
     /**

@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,6 +27,7 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final EmailService emailService;
 
     /**
      * 회원 가입 API
@@ -121,6 +123,20 @@ public class UserController {
         return new BaseResponse("로그아웃 했습니다.");
     }
     /**
+     * 아이디 찾기 API
+     * [POST] /users/auth/find-id
+     * @return BaseResponse<GetUserIdRes>
+     */
+    @PostMapping("/users/auth/find-id")
+    public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws InternalServerErrorException, MessagingException, BaseException {
+
+        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+
+        return new BaseResponse<>(getUserIdRes);
+    }
+
+    /**
      * 회원정보 조회 API
      * [GET] /users/profile
      * @return BaseResponse<GetProfileRes>
@@ -143,4 +159,5 @@ public class UserController {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
+
 }
