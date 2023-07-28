@@ -177,11 +177,11 @@ public class UserController {
      * @return BaseResponse<PatchProfileReqRes>
      */
     @PatchMapping("/users")
-    public BaseResponse<PatchProfileReqRes> updateUser(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
+    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
         String fileUrl = awsS3Service.uploadImage(profileImg);
         patchProfileReqRes.setProfileImg(fileUrl);
 
-        PatchProfileReqRes updatedUser = userService.updateUser(patchProfileReqRes, user);
+        PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
         return new BaseResponse<>(updatedUser);
     }
 }

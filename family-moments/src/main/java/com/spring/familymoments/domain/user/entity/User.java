@@ -122,7 +122,7 @@ public class User extends BaseTime implements UserDetails {
     /**
      * 회원 정보 수정 API 관련 메소드
      */
-    public void update(PatchProfileReqRes req) {
+    public void updateProfile(PatchProfileReqRes req) {
         if(req.getName() != null) {
             this.name = req.getName();
         }
