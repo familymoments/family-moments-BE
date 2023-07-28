@@ -24,6 +24,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
@@ -226,6 +227,17 @@ public class UserService {
         String updateUserBirth = updatedUser.getBirthDate().format(formatter);
 
         return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());
+    }
+    /**
+     * 비밀번호 인증 API
+     * [GET]
+     * @return true || false
+     */
+    public boolean authenticate(GetPwdReq getPwdReq, User user) {
+        if(getPwdReq.getPassword() == null || getPwdReq.getPassword() == "") {
+            throw new NoSuchElementException("비밀번호를 입력하세요.");
+        }
+        return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
     }
 }
 

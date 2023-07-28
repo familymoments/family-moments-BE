@@ -8,6 +8,7 @@ import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
@@ -125,13 +127,13 @@ public class UserController {
      * @return
      */
     @PostMapping("/users/log-out")
-    public BaseResponse logout(HttpServletResponse response) throws BaseException {
+    public BaseResponse<String> logout(HttpServletResponse response) throws BaseException {
         Cookie cookie = new Cookie("X-AUTH-TOKEN", null);
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
         response.addCookie(cookie);
-        return new BaseResponse("로그아웃 했습니다.");
+        return new BaseResponse<>("로그아웃 했습니다.");
     }
     /**
      * 아이디 찾기 API
@@ -183,5 +185,24 @@ public class UserController {
 
         PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
         return new BaseResponse<>(updatedUser);
+    }
+    /**
+     * 비밀번호 인증 API
+     * [GET] /users/auth/compare-pwd
+     * @return BaseResponse<String>
+     */
+    @GetMapping("/users/auth/compare-pwd")
+    public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq, @AuthenticationPrincipal User user) {
+        try {
+            if(userService.authenticate(getPwdReq, user)) {
+                return new BaseResponse<>("비밀번호가 일치합니다.");
+            }
+            else {
+                return new BaseResponse<>(FAILED_AUTHENTICATION);
+            }
+        } catch(NoSuchElementException e) {
+            System.out.println(e.getMessage());
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
     }
 }
