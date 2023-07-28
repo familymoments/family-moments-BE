@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.user.entity;
 
 import com.spring.familymoments.domain.common.BaseTime;
+import com.spring.familymoments.domain.user.model.PatchProfileReqRes;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
@@ -10,7 +11,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -116,4 +119,26 @@ public class User extends BaseTime implements UserDetails {
         return false;
     }
 
+    /**
+     * 회원 정보 수정 API 관련 메소드
+     */
+    public void update(PatchProfileReqRes req) {
+        if(req.getName() != null) {
+            this.name = req.getName();
+        }
+        if(req.getNickname() != null) {
+            this.nickname = req.getNickname();
+        }
+        if(req.getBirthdate() != null) {
+            String strBirthDate = req.getBirthdate();
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
+            LocalDateTime parsedBirthDate = null;
+            parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
+            this.birthDate = parsedBirthDate;
+        }
+        if(req.getProfileImg() != null) {
+            this.profileImg = req.getProfileImg();
+        }
+    }
 }

@@ -17,6 +17,8 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.List;
+
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
 
@@ -131,6 +133,19 @@ public class UserController {
         response.addCookie(cookie);
         return new BaseResponse("로그아웃 했습니다.");
     }
+    /**
+     * 아이디 찾기 API
+     * [POST] /users/auth/find-id
+     * @return BaseResponse<GetUserIdRes>
+     */
+    @PostMapping("/users/auth/find-id")
+    public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws InternalServerErrorException, MessagingException, BaseException {
+
+        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+
+        return new BaseResponse<>(getUserIdRes);
+    }
 
     /**
      * 회원정보 조회 API
@@ -144,16 +159,29 @@ public class UserController {
     }
 
     /**
-     * 아이디 찾기 API
-     * [POST] /users/auth/find-id
-     * @return BaseResponse<GetUserIdRes>
+     * 유저 검색 API / 가족원 추가 API
+     * [GET] /users
+     * @param keyword null 가능
+     * @param familyId null 가능
+     * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @PostMapping("/users/auth/find-id")
-    public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+    @GetMapping("/users")
+    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+        return new BaseResponse<>(getSearchUserRes);
+    }
+    /**
+     * 회원 정보 수정 API
+     * [PATCH] /users
+     * @param profileImg
+     * @return BaseResponse<PatchProfileReqRes>
+     */
+    @PatchMapping("/users")
+    public BaseResponse<PatchProfileReqRes> updateUser(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
+        String fileUrl = awsS3Service.uploadImage(profileImg);
+        patchProfileReqRes.setProfileImg(fileUrl);
 
-        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
-
-        return new BaseResponse<>(getUserIdRes);
+        PatchProfileReqRes updatedUser = userService.updateUser(patchProfileReqRes, user);
+        return new BaseResponse<>(updatedUser);
     }
 }
