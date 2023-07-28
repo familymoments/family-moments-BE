@@ -217,8 +217,8 @@ public class UserService {
      * [PATCH]
      * @return
      */
-    public PatchProfileReqRes updateUser(PatchProfileReqRes patchProfileReqRes, User user) {
-        user.update(patchProfileReqRes);
+    public PatchProfileReqRes updateProfile(PatchProfileReqRes patchProfileReqRes, User user) {
+        user.updateProfile(patchProfileReqRes);
         User updatedUser = userRepository.save(user);
 
         String formatPattern = "yyyyMMdd";
