@@ -212,5 +212,20 @@ public class UserService {
         }
         return getSearchUserResList;
     }
+    /**
+     * 회원 정보 수정 API
+     * [PATCH]
+     * @return
+     */
+    public PatchProfileReqRes updateProfile(PatchProfileReqRes patchProfileReqRes, User user) {
+        user.updateProfile(patchProfileReqRes);
+        User updatedUser = userRepository.save(user);
+
+        String formatPattern = "yyyyMMdd";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        String updateUserBirth = updatedUser.getBirthDate().format(formatter);
+
+        return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());
+    }
 }
 

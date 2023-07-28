@@ -9,7 +9,6 @@ import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.lang.Nullable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -171,5 +170,18 @@ public class UserController {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
+    /**
+     * 회원 정보 수정 API
+     * [PATCH] /users
+     * @param profileImg
+     * @return BaseResponse<PatchProfileReqRes>
+     */
+    @PatchMapping("/users")
+    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
+        String fileUrl = awsS3Service.uploadImage(profileImg);
+        patchProfileReqRes.setProfileImg(fileUrl);
 
+        PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
+        return new BaseResponse<>(updatedUser);
+    }
 }
