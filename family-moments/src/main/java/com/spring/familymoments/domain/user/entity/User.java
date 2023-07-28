@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.user.entity;
 
 import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.user.model.PatchProfileReqRes;
+import com.spring.familymoments.domain.user.model.PatchPwdReq;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
@@ -140,5 +141,11 @@ public class User extends BaseTime implements UserDetails {
         if(req.getProfileImg() != null) {
             this.profileImg = req.getProfileImg();
         }
+    }
+    /**
+     * 비밀번호 변경(마이페이지) API 관련 메소드
+     */
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
     }
 }

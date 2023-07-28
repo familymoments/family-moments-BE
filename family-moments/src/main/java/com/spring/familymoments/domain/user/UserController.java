@@ -8,8 +8,11 @@ import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.parameters.P;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,6 +21,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.*;
@@ -125,13 +129,13 @@ public class UserController {
      * @return
      */
     @PostMapping("/users/log-out")
-    public BaseResponse logout(HttpServletResponse response) throws BaseException {
+    public BaseResponse<String> logout(HttpServletResponse response) throws BaseException {
         Cookie cookie = new Cookie("X-AUTH-TOKEN", null);
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
         response.addCookie(cookie);
-        return new BaseResponse("로그아웃 했습니다.");
+        return new BaseResponse<>("로그아웃 했습니다.");
     }
     /**
      * 아이디 찾기 API
@@ -183,5 +187,56 @@ public class UserController {
 
         PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
         return new BaseResponse<>(updatedUser);
+    }
+    /**
+     * 비밀번호 인증 API
+     * [GET] /users/auth/compare-pwd
+     * @return BaseResponse<String>
+     */
+    @GetMapping("/users/auth/compare-pwd")
+    public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq, @AuthenticationPrincipal User user) {
+        try {
+            if(userService.authenticate(getPwdReq, user)) {
+                return new BaseResponse<>("비밀번호가 일치합니다.");
+            }
+            else {
+                return new BaseResponse<>(FAILED_AUTHENTICATION);
+            }
+        } catch(NoSuchElementException e) {
+            System.out.println(e.getMessage());
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+    }
+    /**
+     * 비밀번호 변경 API
+     * [PATCH] /users/modify-pwd
+     * @return BaseResponse<String>
+     */
+    @Transactional
+    @PatchMapping("/users/modify-pwd")
+    public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq, @AuthenticationPrincipal User user, HttpServletResponse response) {
+        //1. 비밀번호 변경
+        if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user).getIsSuccess()) { //비밀번호 인증
+            return new BaseResponse<>(FAILED_AUTHENTICATION);
+        }
+        if(patchPwdReq.getPassword().equals(patchPwdReq.getNewPassword())) { //newPassword와 password 일치시
+            return new BaseResponse<>(EQUAL_NEW_PASSWORD);
+        }
+        if(patchPwdReq.getNewPassword() == null || patchPwdReq.getNewPassword() == "") { //새 비밀번호 빈 입력
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+        if(!isRegexPw(patchPwdReq.getNewPassword())) { //새 비밀번호 형식
+            return new BaseResponse<>(POST_USERS_INVALID_PW);
+        }
+        userService.updatePassword(patchPwdReq, user);
+
+        //2. 보안을 위해 로그아웃
+        try {
+            logout(response);
+        } catch (BaseException e) {
+            System.out.println(e.getMessage());
+            throw new RuntimeException(e);
+        }
+        return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
 }
