@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
+import javax.sound.midi.Patch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -238,6 +239,15 @@ public class UserService {
             throw new NoSuchElementException("비밀번호를 입력하세요.");
         }
         return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
+    }
+    /**
+     * 비밀번호 변경(마이페이지) API
+     * [PATCH]
+     * @return
+     */
+    public void updatePassword(PatchPwdReq patchPwdReq, User user) {
+        user.updatePassword(passwordEncoder.encode(patchPwdReq.getNewPassword()));
+        userRepository.save(user);
     }
 }
 
