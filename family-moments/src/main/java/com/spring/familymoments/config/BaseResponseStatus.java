@@ -44,6 +44,7 @@ public enum BaseResponseStatus {
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
+    EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
 
     /**
      * 500 : Database, Server 오류
