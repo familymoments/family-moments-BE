@@ -3,7 +3,12 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.comment.CommentWithUserRepository;
+import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.common.entity.UserFamily;
+import com.spring.familymoments.domain.family.FamilyRepository;
+import com.spring.familymoments.domain.post.PostWithUserRepository;
+import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -18,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.sound.midi.Patch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -37,11 +41,13 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DE
 public class UserService {
 
     private final UserRepository userRepository;
-    //private final PostRepository postRepository;
+    private final PostWithUserRepository postWithUserRepository;
     /**
      * PostRepository 생성 후 추가 예정
      * Long countByWriterId(User user);
      */
+    private final FamilyRepository familyRepository;
+    private final CommentWithUserRepository commentWithUserRepository;
     private final JwtService jwtService;
 
     private final PasswordEncoder passwordEncoder;
@@ -257,6 +263,27 @@ public class UserService {
     public List<User> getAllUser() {
         List<User> userList = userRepository.findAll();
         return userList;
+    }
+
+    /**
+     * 회원 탈퇴 API
+     * [DELETE] /users
+     * @return
+     */
+    @Transactional
+    public void deleteUser(Long userId) {
+        //1. 로그인 유저의 댓글 일괄 삭제
+        List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
+        if(comments != null) {
+            commentWithUserRepository.deleteAll(comments);
+        }
+        //2. 로그인 유저의 게시글 일괄 삭제
+        List<Post> posts = postWithUserRepository.findPostByUserId(userId);
+        if(posts != null) {
+            postWithUserRepository.deleteAll(posts);
+        }
+        //3. 로그인 유저 삭제
+        userRepository.deleteById(userId);
     }
 }
 
