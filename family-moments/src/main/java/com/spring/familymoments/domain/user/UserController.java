@@ -239,4 +239,15 @@ public class UserController {
         }
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
+
+    /**
+     * 전체 회원정보 조회 API / 화면 외 API
+     * [GET] /users/all
+     */
+    @GetMapping("/users/all")
+    public BaseResponse<List<User>> getAllUser() {
+        List<User> userList = userService.getAllUser();
+        return new BaseResponse<>(userList);
+    }
+
 }

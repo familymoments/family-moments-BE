@@ -249,5 +249,14 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(patchPwdReq.getNewPassword()));
         userRepository.save(user);
     }
+    /**
+     * 전체 회원정보 조회 API / 화면 외 API
+     * [GET]
+     * @return
+     */
+    public List<User> getAllUser() {
+        List<User> userList = userRepository.findAll();
+        return userList;
+    }
 }
 
