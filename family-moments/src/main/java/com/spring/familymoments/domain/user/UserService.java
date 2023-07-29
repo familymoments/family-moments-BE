@@ -42,10 +42,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
-    /**
-     * PostRepository 생성 후 추가 예정
-     * Long countByWriterId(User user);
-     */
     private final FamilyRepository familyRepository;
     private final CommentWithUserRepository commentWithUserRepository;
     private final JwtService jwtService;
@@ -176,8 +172,7 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user) {
-        //Long totalUpload = postRepository.countByWriterId(user);
-        Long totalUpload = new Long(0);
+        Long totalUpload = postWithUserRepository.countByWriterId(user);
 
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
