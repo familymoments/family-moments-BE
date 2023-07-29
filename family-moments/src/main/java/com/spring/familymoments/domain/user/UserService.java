@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
@@ -37,6 +38,7 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DE
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserFamilyRepository userFamilyRepository;
     //private final PostRepository postRepository;
     /**
      * PostRepository 생성 후 추가 예정
@@ -213,6 +215,31 @@ public class UserService {
             getSearchUserResList.add(getSearchUserRes);
         }
         return getSearchUserResList;
+    }
+    /**
+     * 초대 리스트 확인 API
+     * [GET] /users/invitation
+     * @return List<GetInvitationRes>: 회원이 받은 초대 요청 리스트
+     */
+    @Transactional
+    public List<GetInvitationRes> getInvitationList(User loginUser){
+        List<GetInvitationRes> getInvitationResList = new ArrayList<>();
+        List<UserFamily> userFamilyList = userFamilyRepository.findAllByUserIdOrderByCreatedAtDesc(loginUser);
+
+        // TODO: 받은 초대가 없을 경우 예외처리
+        if (userFamilyList.isEmpty()) {
+            throw new InternalServerErrorException("초대 요청이 존재하지 않습니다.");
+        } else {
+            for (UserFamily invitation : userFamilyList) {
+                GetInvitationRes getInvitationRes = new GetInvitationRes(invitation.getFamilyId().getFamilyName(),
+                        invitation.getFamilyId().getOwner().getNickname(),
+                        invitation.getFamilyId().getOwner().getProfileImg());
+
+                getInvitationResList.add(getInvitationRes);
+            }
+        }
+
+        return getInvitationResList;
     }
     /**
      * 회원 정보 수정 API

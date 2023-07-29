@@ -81,7 +81,7 @@ public class UserController {
 
         String fileUrl = null;
 
-        if(postUserReq.getProfileImg() != null){
+        if(postUserReq.getProfileImg() == null){
             fileUrl = awsS3Service.uploadImage(profileImage);
         }
 
@@ -173,6 +173,16 @@ public class UserController {
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
+    }
+    /**
+     * 초대 리스트 확인 API
+     * [GET] /users/invitation
+     * @return BaseResponse<List<GetInvitationRes>>
+     */
+    @GetMapping("/users/invitation")
+    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
+        List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
+        return new BaseResponse<>(getInvitationRes);
     }
     /**
      * 회원 정보 수정 API
