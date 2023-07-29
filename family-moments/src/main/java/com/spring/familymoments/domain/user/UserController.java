@@ -243,6 +243,7 @@ public class UserController {
     /**
      * 전체 회원정보 조회 API / 화면 외 API
      * [GET] /users/all
+     * @return BaseResponse<List<User>>
      */
     @GetMapping("/users/all")
     public BaseResponse<List<User>> getAllUser() {
@@ -250,4 +251,15 @@ public class UserController {
         return new BaseResponse<>(userList);
     }
 
+    /**
+     * 회원 탈퇴 API
+     * [DELETE] /users
+     * @return BaseResponse<String>
+     */
+    @Transactional
+    @DeleteMapping("/users")
+    public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user) {
+        userService.deleteUser(user.getUserId());
+        return new BaseResponse<>("계정을 삭제했습니다.");
+    }
 }
