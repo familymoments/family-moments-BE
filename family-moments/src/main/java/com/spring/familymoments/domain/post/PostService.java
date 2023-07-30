@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
@@ -76,6 +77,10 @@ public class PostService {
     public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
         Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
 
+        if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
+            throw new BaseException(minnie_POSTS_EMPTY_POST);
+        }
+
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
             throw new BaseException(minnie_POSTS_INVALIED_USER);
         }
@@ -118,6 +123,10 @@ public class PostService {
     @Transactional
     public void deletePost(User user, long postId) throws BaseException {
         Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
+
+        if(deletedPost.getStatus() == BaseEntity.Status.INACTIVE) {
+            throw new BaseException(minnie_POSTS_EMPTY_POST);
+        }
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
             throw new BaseException(minnie_POSTS_INVALIED_USER);
