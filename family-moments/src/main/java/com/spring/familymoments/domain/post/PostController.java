@@ -104,4 +104,21 @@ public class PostController {
             return new BaseResponse<>(e.getStatus());
         }
     }
+
+    /**
+     * 특정 게시글 조회 API
+     * [GET] /posts?{postId}
+     * @return BaseResponse<SinglePostRes>
+     */
+    @ResponseBody
+    @GetMapping("/{postId}")
+    public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal User user, @PathVariable long postId) {
+        try {
+            SinglePostRes singlePostRes = postService.getPost(user.getUserId(), postId);
+
+            return new BaseResponse<>(singlePostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
 }

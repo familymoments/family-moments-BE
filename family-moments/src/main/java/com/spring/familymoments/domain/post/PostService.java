@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_EMPTY_POST;
+import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_WRONG_POST_ID;
 
 @Slf4j
 @Service
@@ -93,5 +94,21 @@ public class PostService {
         }
 
         return multiPostReses;
+    }
+
+    // 특정 post 조회
+    @Transactional
+    public SinglePostRes getPost(long userId, long postId) throws BaseException {
+        // countLove 칼럼 갱신
+        postRepository.updateCountLove(postId);
+
+        // post 정보 받아오기
+        SinglePostRes singlePostRes = postRepository.findByPostId(userId, postId);
+
+        if(singlePostRes == null) {
+            throw new BaseException(minnie_POSTS_WRONG_POST_ID);
+        }
+
+        return singlePostRes;
     }
 }

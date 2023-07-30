@@ -4,6 +4,7 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.post.PostRepository;
 import com.spring.familymoments.domain.post.PostService;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
+import com.spring.familymoments.domain.post.model.SinglePostRes;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,17 +18,17 @@ public class PostServiceTest {
     @Autowired
     PostService postService;
 
-//    @Test
-//    void findOne() {
-//        SinglePostRes post = postRepository.findByPostId(1, 5);
-//
-//        System.out.println(post.toString());
-//    }
-//
-//    @Test
-//    void countPostLove() {
-//        postRepository.updateCountLove(5);
-//    }
+    @Test
+    void findOne() {
+        SinglePostRes post = postRepository.findByPostId(1, 5);
+
+        System.out.println(post.toString());
+    }
+
+    @Test
+    void countPostLove() {
+        postRepository.updateCountLove(5);
+    }
 
     @Test
     void multiplePost() throws BaseException {
