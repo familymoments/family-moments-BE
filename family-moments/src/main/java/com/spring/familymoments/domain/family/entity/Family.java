@@ -37,7 +37,7 @@ public class Family extends BaseEntity {
     @Column(columnDefinition = "int unsigned")
     private int uploadCycle;
 
-    @Column(nullable = false, length = 10)
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String inviteCode;
 
     @Column(nullable = false, columnDefinition = "TEXT")
