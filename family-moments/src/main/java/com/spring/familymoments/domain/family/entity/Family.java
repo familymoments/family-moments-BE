@@ -1,13 +1,11 @@
 package com.spring.familymoments.domain.family.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
-import javax.validation.constraints.*;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -20,8 +18,6 @@ import javax.validation.constraints.*;
 @DynamicInsert
 @DynamicUpdate
 public class Family extends BaseEntity {
-
-
     @Id
     @Column(name = "familyId", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +33,14 @@ public class Family extends BaseEntity {
     @Column(columnDefinition = "int unsigned")
     private int uploadCycle;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(nullable = false, length = 10)
     private String inviteCode;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
+
+    public Family(Long familyId) {
+        this.familyId = familyId;
+    }
 }
 
