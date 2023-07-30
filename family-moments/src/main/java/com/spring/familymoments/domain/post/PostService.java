@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Objects;
+
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
@@ -69,12 +71,12 @@ public class PostService {
         return singlePostRes;
     }
 
-    // post정보 update
+    // post update
     @Transactional
     public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
         Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
 
-        if(editedPost.getWriter().getUserId().equals(user.getUserId())) {
+        if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
             throw new BaseException(minnie_POSTS_INVALIED_USER);
         }
 
@@ -110,6 +112,18 @@ public class PostService {
         }
 
         return singlePostRes;
+    }
+
+    // post delete
+    @Transactional
+    public void deletePost(User user, long postId) throws BaseException {
+        Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
+
+        if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
+            throw new BaseException(minnie_POSTS_INVALIED_USER);
+        }
+
+        deletedPost.delete();
     }
 
     // 현재 가족의 모든 게시물 중 최근 10개를 조회

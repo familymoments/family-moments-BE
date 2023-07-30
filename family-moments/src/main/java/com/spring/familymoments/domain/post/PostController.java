@@ -75,7 +75,7 @@ public class PostController {
 
     /**
      * 게시글 수정 API
-     * [GET] /posts?{postId}
+     * [PATCH] /posts?{postId}
      * @return BaseResponse<SinglePostRes>
      */
     @ResponseBody
@@ -103,6 +103,22 @@ public class PostController {
         try {
             SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
             return new BaseResponse<>(singlePostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
+     * 게시글 삭제 API
+     * [DELETE] /posts?{postId}
+     * @return BaseResponse<null>
+     */
+    @ResponseBody
+    @DeleteMapping("/{postId}")
+    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user, @PathVariable long postId) {
+        try {
+            postService.deletePost(user, postId);
+            return new BaseResponse<>(SUCCESS);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
