@@ -276,5 +276,16 @@ public class UserService {
         user.updatePassword(passwordEncoder.encode(patchPwdReq.getNewPassword()));
         userRepository.save(user);
     }
-}
+    /**
+     * 비밀번호 변경(비밀번호 찾기) API
+     * [PATCH]
+     * @return
+     */
+    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdReq) {
+        User user = userRepository.findByEmail(patchPwdReq.getEmail())
+                .orElseThrow(() -> new InternalServerErrorException("가입되지 않은 이메일입니다."));
 
+        user.updatePassword(passwordEncoder.encode(patchPwdReq.getNewPassword()));
+        userRepository.save(user);
+    }
+}

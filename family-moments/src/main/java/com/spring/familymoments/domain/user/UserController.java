@@ -138,8 +138,8 @@ public class UserController {
         return new BaseResponse<>("로그아웃 했습니다.");
     }
     /**
-     * 아이디 찾기 API
-     * [POST] /users/auth/find-id
+     * 아이디 찾기 API, 비밀번호 찾기 API - 이메일 인증 확인
+     * [POST] /users/auth/find-id, /users/auth/find-pwd
      * @return BaseResponse<GetUserIdRes>
      */
     @PostMapping("/users/auth/find-id")
@@ -150,7 +150,25 @@ public class UserController {
 
         return new BaseResponse<>(getUserIdRes);
     }
+    /**
+     * 비밀번호 찾기 - 아이디 존재 여부 확인
+     * [POST] /users/auth/check-id
+     * @return BaseResponse<GetUserIdRes>
+     */
+    @RequestMapping("/users/auth/check-id")
+    public BaseResponse<GetUserIdRes> findUserIdBeforeUpdatePwd(@RequestParam String id)
+            throws InternalServerErrorException, MessagingException, BaseException {
 
+        GetUserIdRes getUserIdRes;
+
+        if (userService.checkDuplicateId(id)) {
+            getUserIdRes = new GetUserIdRes(id);
+        } else {
+            throw new InternalServerErrorException("입력한 아이디와 일치하는 회원정보가 없습니다.");
+        }
+
+        return new BaseResponse<>(getUserIdRes);
+    }
     /**
      * 회원정보 조회 API
      * [GET] /users/profile
