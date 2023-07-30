@@ -3,10 +3,7 @@ package com.spring.familymoments.domain.family;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.family.model.FamilyDto;
-import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
-import com.spring.familymoments.domain.family.model.PostFamilyReq;
-import com.spring.familymoments.domain.family.model.PostFamilyRes;
+import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.UserService;
 import com.spring.familymoments.domain.user.entity.User;
@@ -24,6 +21,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DEACCEPT;
@@ -37,6 +35,7 @@ public class FamilyService {
     private final UserFamilyRepository userFamilyRepository;
     private final UserRepository userRepository;
 
+    // 가족 생성하기
     public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
 
         // 1. 가족 튜플 생성
@@ -120,6 +119,29 @@ public class FamilyService {
         String daysSinceCreation = String.valueOf(period.getDays()+1);
 
         return new GetFamilyCreatedNicknameRes(user.getNickname(), daysSinceCreation);
+    }
+
+    // 가족원 전체 조회
+    public List<GetFamilyAllRes> getFamilyAll(Long familyId){
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new NoSuchElementException("가족을 찾을 수 없습니다."));
+
+        List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
+
+        List<GetFamilyAllRes> getFamilyAllResList = activeUsers.stream()
+                .map(user -> new GetFamilyAllRes(user.getUserId(), user.getNickname(), user.getProfileImg()))
+                .collect(Collectors.toList());
+
+        return getFamilyAllResList;
+
+//        return FamilyDto.builder()
+//                .owner(family.get().getOwner().getNickname())
+//                .familyName(family.get().getFamilyName())
+//                .uploadCycle(family.get().getUploadCycle())
+//                .inviteCode(family.get().getInviteCode())
+//                .representImg(family.get().getRepresentImg())
+//                .build();
+
     }
 
     public FamilyDto getFamilyByInviteCode(String inviteCode){

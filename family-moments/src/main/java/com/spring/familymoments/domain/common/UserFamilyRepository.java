@@ -5,6 +5,7 @@ import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -18,4 +19,11 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
     @Query(value = "SELECT uf FROM UserFamily uf WHERE uf.userId = ?1 "
             + "ORDER BY uf.createdAt DESC")
     List<UserFamily> findAllByUserIdOrderByCreatedAtDesc(User userId);
+
+    @Query("SELECT u FROM User u " +
+            "INNER JOIN UserFamily m ON u.userId = m.userId.userId " +
+            "INNER JOIN Family f ON m.familyId.familyId = f.familyId " +
+            "WHERE m.status = 'ACTIVE' " +
+            "AND f.familyId = :familyId")
+    List<User> findActiveUsersByFamilyId(@Param("familyId") Long familyId);
 }
