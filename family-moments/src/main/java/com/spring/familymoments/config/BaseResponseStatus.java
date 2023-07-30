@@ -45,6 +45,7 @@ public enum BaseResponseStatus {
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
+    FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
 
     /**
      * 500 : Database, Server 오류

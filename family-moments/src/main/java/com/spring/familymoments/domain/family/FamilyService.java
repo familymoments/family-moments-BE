@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.family;
 
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
@@ -23,8 +24,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
-import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DEACCEPT;
+import static com.spring.familymoments.config.BaseResponseStatus.FAILED_USERSS_UNATHORIZED;
+import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
 
 @Service
 @RequiredArgsConstructor
@@ -133,15 +134,6 @@ public class FamilyService {
                 .collect(Collectors.toList());
 
         return getFamilyAllResList;
-
-//        return FamilyDto.builder()
-//                .owner(family.get().getOwner().getNickname())
-//                .familyName(family.get().getFamilyName())
-//                .uploadCycle(family.get().getUploadCycle())
-//                .inviteCode(family.get().getInviteCode())
-//                .representImg(family.get().getRepresentImg())
-//                .build();
-
     }
 
     public FamilyDto getFamilyByInviteCode(String inviteCode){
@@ -218,6 +210,27 @@ public class FamilyService {
         } else {
             throw new NoSuchElementException("존재하지 않는 사용자 또는 가족입니다.");
         }
+    }
+
+    // 가족 삭제
+    public void deleteFamily(Long familyId, Long userId) throws BaseException{
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+
+        System.out.println("-------------------");
+        System.out.println("family.getOwner().getId()" + family.getOwner().getUserId());
+        System.out.println("userId" + userId);
+        System.out.println("user.getUserId()"+user.getUserId());
+
+        if (!family.getOwner().getUserId().equals(userId)) {
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+
+        family.updateStatus();
+        familyRepository.save(family);
     }
 
 }

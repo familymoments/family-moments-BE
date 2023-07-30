@@ -150,4 +150,21 @@ public class FamilyController {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
     }
+
+    /**
+     * 가족 삭제 API
+     * [DELETE] /:familyId/:userId
+     * @return BaseResponse<String>
+     */
+    @DeleteMapping("/{familyId}/{userId}")
+    public BaseResponse<String> deleteFamily(@PathVariable Long familyId, @PathVariable Long userId) throws BaseException{
+        try {
+            familyService.deleteFamily(familyId, userId);
+            return new BaseResponse<>("가족이 삭제되었습니다.");
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
 }
