@@ -20,8 +20,6 @@ import javax.validation.constraints.*;
 @DynamicInsert
 @DynamicUpdate
 public class Family extends BaseEntity {
-
-
     @Id
     @Column(name = "familyId", nullable = false, updatable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,5 +40,12 @@ public class Family extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
+
+    /**
+     * 가족 삭제 API 관련 메소드
+     */
+    public void updateStatus() {
+        this.status = Status.INACTIVE;
+    }
 }
 
