@@ -4,11 +4,9 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
-import com.spring.familymoments.domain.family.model.FamilyDto;
-import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
-import com.spring.familymoments.domain.family.model.PostFamilyReq;
-import com.spring.familymoments.domain.family.model.PostFamilyRes;
+import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.UserService;
+import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -80,10 +78,24 @@ public class FamilyController {
     @GetMapping("/{familyId}/created/{userId}")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@PathVariable Long familyId,
                                                                               @PathVariable Long userId) throws BaseException{
-        //return new BaseResponse<>(familyService.getFamily(familyId));
         try {
             GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(familyId, userId);
             return new BaseResponse<>(getFamilyCreatedNicknameRes);
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }
+    }
+
+    /**
+     * 가족원 전체 조회 API
+     * [GET] /:familyId/users
+     * @return BaseResponse<FamilyDto>
+     */
+    @GetMapping("/{familyId}/users")
+    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId) throws BaseException{
+        try {
+            List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
+            return new BaseResponse<>(getFamilyAllRes);
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
         }
