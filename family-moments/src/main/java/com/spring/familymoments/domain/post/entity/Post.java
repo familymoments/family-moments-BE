@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.post.entity;
 
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
@@ -10,6 +9,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -28,8 +30,8 @@ public class Post extends BaseEntity {
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private User writerId;
+    @JoinColumn(name = "user", nullable = false)
+    private User writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "familyId", nullable = false)
@@ -58,4 +60,16 @@ public class Post extends BaseEntity {
     @ColumnDefault("0")
     private int countLove;
 
+    @Transient
+    private List<String> imgs;
+
+    public List<String> getImgs() {
+        imgs = new ArrayList<>();
+
+        Stream.of(img1, img2, img3, img4)
+                .filter(img -> img != null)
+                .forEach(img -> imgs.add(img));
+
+        return imgs;
+    }
 }
