@@ -5,6 +5,7 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.FamilyDto;
+import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
 import com.spring.familymoments.domain.family.model.PostFamilyReq;
 import com.spring.familymoments.domain.family.model.PostFamilyRes;
 import com.spring.familymoments.domain.user.UserService;
@@ -65,6 +66,24 @@ public class FamilyController {
         try {
             FamilyDto familyDto = familyService.getFamily(familyId);
             return new BaseResponse<>(familyDto);
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }
+    }
+
+    /**
+     * 닉네임 및 가족 생성일 조회 API
+     * [GET] /:familyId/created/:userId
+     * @return BaseResponse<FamilyDto>
+     */
+    @ResponseBody
+    @GetMapping("/{familyId}/created/{userId}")
+    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@PathVariable Long familyId,
+                                                                              @PathVariable Long userId) throws BaseException{
+        //return new BaseResponse<>(familyService.getFamily(familyId));
+        try {
+            GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(familyId, userId);
+            return new BaseResponse<>(getFamilyCreatedNicknameRes);
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
         }
