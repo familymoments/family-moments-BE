@@ -30,12 +30,16 @@ public class FamilyController {
     private final AwsS3Service awsS3Service;
 
 
+    /**
+     * 가족 생성 API
+     * [POST] /family/:familyId
+     * @return BaseResponse<PostFamilyRes>
+     */
     @ResponseBody
     @PostMapping("/family/{userId}")
     public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId,
                                                     @RequestParam(name = "representImg") MultipartFile representImg,
                                                     @RequestPart PostFamilyReq postFamilyReq) throws BaseException {
-
         try{
 //        int owner = jwtService.getUserIdx();
             // 대표 이미지 넣기

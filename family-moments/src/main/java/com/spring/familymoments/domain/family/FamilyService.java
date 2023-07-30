@@ -28,11 +28,11 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DE
 public class FamilyService {
 
     private final FamilyRepository familyRepository;
-    private final UserService userService;
     private final UserFamilyRepository userFamilyRepository;
     private final UserRepository userRepository;
 
     public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
+        // 가족 튜플 생성
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
@@ -45,6 +45,18 @@ public class FamilyService {
                 .build();
 
         Family savedFamily = familyRepository.save(family);
+
+
+        // 유저 가족 매핑 튜플 생성
+        Family preFamily = familyRepository.findById(savedFamily.getFamilyId())
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+
+        UserFamily userFamily = UserFamily.builder()
+                .userId(owner)
+                .familyId(preFamily)
+                .status(ACTIVE)
+                .build();
+        userFamilyRepository.save(userFamily);
 
         return new PostFamilyRes(
                 savedFamily.getFamilyId(),
