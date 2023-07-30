@@ -18,6 +18,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DEACCEPT;
@@ -32,32 +33,45 @@ public class FamilyService {
     private final UserRepository userRepository;
 
     public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
-        // 가족 튜플 생성
+
+        // 1. 가족 튜플 생성
+        // 유저 외래키 생성
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
+        // 초대 링크 생성
+        String invitationCode = UUID.randomUUID().toString();
+        String inviteLink = "https://family-moments.com/invite/"+ invitationCode;
+
+        // 가족 입력 객체 생성
         Family family = Family.builder()
                 .owner(owner)
                 .familyName(postFamilyReq.getFamilyName())
                 .uploadCycle(postFamilyReq.getUploadCycle())
-                .inviteCode("1111111")
+                .inviteCode(inviteLink)
                 .representImg(postFamilyReq.getRepresentImg())
                 .build();
 
+        // 가족 저장
         Family savedFamily = familyRepository.save(family);
 
 
-        // 유저 가족 매핑 튜플 생성
+        // 2. 유저 가족 매핑 튜플 생성
+        // 가족 외래키 생성
         Family preFamily = familyRepository.findById(savedFamily.getFamilyId())
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
+        // 유저가족 입력 객체 생성
         UserFamily userFamily = UserFamily.builder()
                 .userId(owner)
                 .familyId(preFamily)
                 .status(ACTIVE)
                 .build();
+
+        // 유저 가족 저장
         userFamilyRepository.save(userFamily);
 
+        // 반환
         return new PostFamilyRes(
                 savedFamily.getFamilyId(),
                 owner.getNickname()
