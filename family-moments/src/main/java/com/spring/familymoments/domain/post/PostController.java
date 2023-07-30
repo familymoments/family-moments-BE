@@ -59,7 +59,7 @@ public class PostController {
 
         System.out.println(user.getUserId());
 
-        PostReq postReq = PostReq.builder().userId(user.getUserId())
+        PostReq postReq = PostReq.builder()
                 .familyId(familyId)
                 .imgs(imgs)
                 .content(postInfoReq.getContent())
@@ -67,6 +67,41 @@ public class PostController {
 
         try {
             SinglePostRes singlePostRes = postService.createPosts(user, postReq);
+            return new BaseResponse<>(singlePostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
+     * 게시글 수정 API
+     * [GET] /posts?{postId}
+     * @return BaseResponse<SinglePostRes>
+     */
+    @ResponseBody
+    @PatchMapping("/{postId}")
+    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user, @PathVariable long postId,
+                                                @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
+                                                @RequestPart(name = "img1", required = false)MultipartFile img1,
+                                                @RequestPart(name = "img2", required = false)MultipartFile img2,
+                                                @RequestPart(name = "img3", required = false)MultipartFile img3,
+                                                @RequestPart(name = "img4", required = false)MultipartFile img4) {
+        if(postInfoReq == null && img1 == null && img2 == null && img3 == null && img4 == null) {
+            return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
+        }
+
+        List<MultipartFile> imgs = new ArrayList<>();
+
+        Stream.of(img1, img2, img3, img4)
+                .forEach(img -> imgs.add(img));
+
+        PostReq postReq = PostReq.builder()
+                .content((postInfoReq != null) ? postInfoReq.getContent() : null)
+                .imgs(imgs)
+                .build();
+
+        try {
+            SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());

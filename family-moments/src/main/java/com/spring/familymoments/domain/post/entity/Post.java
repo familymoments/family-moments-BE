@@ -72,4 +72,24 @@ public class Post extends BaseEntity {
 
         return imgs;
     }
+
+    public void updateContent(String newContent) {
+        this.content = newContent;
+    }
+
+    public void updateImg1(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg2(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg3(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg4(String newImg) {
+        this.img1 = newImg;
+    }
 }

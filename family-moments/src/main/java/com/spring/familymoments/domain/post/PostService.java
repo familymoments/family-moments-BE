@@ -14,12 +14,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-
-import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_EMPTY_POST;
-import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_WRONG_POST_ID;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
@@ -55,7 +53,6 @@ public class PostService {
                 default:
                     break;
             }
-
         }
         Post params = postBuilder.build();
 
@@ -68,6 +65,49 @@ public class PostService {
                 .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt())
                 .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
                 .build();
+
+        return singlePostRes;
+    }
+
+    // post정보 update
+    @Transactional
+    public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
+        Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
+
+        if(editedPost.getWriter().getUserId().equals(user.getUserId())) {
+            throw new BaseException(minnie_POSTS_INVALIED_USER);
+        }
+
+        SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
+
+        if(postReq.getContent() != null) {
+            singlePostRes.setContent(postReq.getContent());
+            editedPost.updateContent(singlePostRes.getContent());
+        }
+
+        for(int i = 0 ; i < postReq.getImgs().size(); i++) {
+            if(postReq.getImgs().get(i) != null) {
+                MultipartFile img = postReq.getImgs().get(i);
+                String url = awsS3Service.uploadImage(img);
+                singlePostRes.getImgs().set(i, url);
+                switch(i) {
+                    case 0:
+                        editedPost.updateImg1(url);
+                        break;
+                    case 1:
+                        editedPost.updateImg2(url);
+                        break;
+                    case 2:
+                        editedPost.updateImg3(url);
+                        break;
+                    case 3:
+                        editedPost.updateImg4(url);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
 
         return singlePostRes;
     }

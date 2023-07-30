@@ -11,7 +11,6 @@ import java.util.List;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class PostReq{
-    private Long userId;
     private Long familyId;
     private List<MultipartFile> imgs;
     private String content;
