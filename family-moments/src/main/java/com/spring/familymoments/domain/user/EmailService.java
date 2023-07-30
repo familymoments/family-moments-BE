@@ -1,10 +1,11 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.domain.user.model.GetEmailRes;
 import com.spring.familymoments.domain.user.model.GetUserIdRes;
+import com.spring.familymoments.domain.user.model.PatchPwdWithoutLoginReq;
 import com.spring.familymoments.domain.user.model.PostEmailReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -113,4 +114,7 @@ public class EmailService {
         return new GetUserIdRes(userId);
     }
 
+    public GetEmailRes updateUserPwd(PostEmailReq.sendVerificationEmail req){
+        return new GetEmailRes(req.getEmail());
+    }
 }
