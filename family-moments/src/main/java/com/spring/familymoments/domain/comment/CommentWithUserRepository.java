@@ -12,4 +12,7 @@ public interface CommentWithUserRepository extends JpaRepository<Comment, Long> 
     //유저가 쓴 모든 댓글들 조회
     @Query("SELECT c FROM Comment c WHERE c.writer.userId = :userId")
     List<Comment> findCommentsByUserId(Long userId);
+
+    @Query("SELECT c FROM Comment c WHERE c.postId IN (SELECT p FROM Post p WHERE p.writerId.userId = :userId)")
+    List<Comment> findByPostUserID(Long userId);
 }

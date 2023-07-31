@@ -3,8 +3,14 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.comment.CommentWithUserRepository;
+import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
+import com.spring.familymoments.domain.family.FamilyRepository;
+import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.post.PostWithUserRepository;
+import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -19,7 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.sound.midi.Patch;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -38,12 +43,10 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DE
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PostWithUserRepository postWithUserRepository;
+    private final FamilyRepository familyRepository;
+    private final CommentWithUserRepository commentWithUserRepository;
     private final UserFamilyRepository userFamilyRepository;
-    //private final PostRepository postRepository;
-    /**
-     * PostRepository 생성 후 추가 예정
-     * Long countByWriterId(User user);
-     */
     private final JwtService jwtService;
 
     private final PasswordEncoder passwordEncoder;
@@ -172,8 +175,7 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user) {
-        //Long totalUpload = postRepository.countByWriterId(user);
-        Long totalUpload = new Long(0);
+        Long totalUpload = postWithUserRepository.countByWriterId(user);
 
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
@@ -277,6 +279,57 @@ public class UserService {
     public void updatePassword(PatchPwdReq patchPwdReq, User user) {
         user.updatePassword(passwordEncoder.encode(patchPwdReq.getNewPassword()));
         userRepository.save(user);
+    }
+    /**
+     * 전체 회원정보 조회 API / 화면 외 API
+     * [GET]
+     * @return
+     */
+    public List<User> getAllUser() {
+        List<User> userList = userRepository.findAll();
+        return userList;
+    }
+
+    /**
+     * 회원 탈퇴 API
+     * [DELETE] /users
+     * @return
+     */
+    @Transactional
+    public void deleteUser(User user) throws IllegalAccessException {
+        Long userId = user.getUserId();
+        //1. 로그인 유저의 댓글 일괄 삭제
+        List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
+        if(comments != null) {
+            for(Comment c : comments) {
+                log.info("코멘츠 좀 보자"+c.toString());
+            }
+            commentWithUserRepository.deleteAll(comments);
+        }
+        //2. 로그인 유저의 게시글 일괄 삭제
+        //2-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 일괄 삭제
+        List<Comment> commentsInPosts = commentWithUserRepository.findByPostUserID(userId);
+        if(commentsInPosts != null) {
+            commentWithUserRepository.deleteAll(commentsInPosts);
+        }
+        List<Post> posts = postWithUserRepository.findPostByUserId(userId);
+        if(posts != null) {
+            postWithUserRepository.deleteAll(posts);
+        }
+        //3. 가족 생성자면 예외처리
+        List<Family> ownerFamilies = familyRepository.findByOwner(user);
+        if(ownerFamilies != null) {
+            for(Family f : ownerFamilies) {
+                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
+            }
+        }
+        //4. 로그인 유저의 참여한 유저가족매핑 삭제
+        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(userId);
+        if(userFamilyList != null) {
+            userFamilyRepository.deleteAll(userFamilyList);
+        }
+        //5. 로그인 유저 삭제
+        userRepository.deleteById(userId);
     }
 }
 
