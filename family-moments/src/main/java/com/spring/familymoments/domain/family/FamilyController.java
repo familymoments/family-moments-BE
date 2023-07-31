@@ -153,7 +153,7 @@ public class FamilyController {
 
     /**
      * 업로드 주기 수정 API
-     * [PATCH] /:familyId/:userId?uploadCycle=1
+     * [PATCH] /:familyId/:userId?uploadCycle={업로드주기}
      * @return BaseResponse<String>
      */
     @PatchMapping("/{familyId}/{userId}")
