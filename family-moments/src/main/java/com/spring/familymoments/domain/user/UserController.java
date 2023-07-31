@@ -282,7 +282,11 @@ public class UserController {
     @Transactional
     @DeleteMapping("/users")
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user) {
-        userService.deleteUser(user.getUserId());
-        return new BaseResponse<>("계정을 삭제했습니다.");
+        try {
+            userService.deleteUser(user);
+            return new BaseResponse<>("계정을 삭제했습니다.");
+        } catch (IllegalAccessException e) {
+            return new BaseResponse(false, e.getMessage(), 500);
+        }
     }
 }

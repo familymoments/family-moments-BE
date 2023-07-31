@@ -8,6 +8,7 @@ import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.model.*;
@@ -295,18 +296,39 @@ public class UserService {
      * @return
      */
     @Transactional
-    public void deleteUser(Long userId) {
+    public void deleteUser(User user) throws IllegalAccessException {
+        Long userId = user.getUserId();
         //1. 로그인 유저의 댓글 일괄 삭제
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
         if(comments != null) {
+            for(Comment c : comments) {
+                log.info("코멘츠 좀 보자"+c.toString());
+            }
             commentWithUserRepository.deleteAll(comments);
         }
         //2. 로그인 유저의 게시글 일괄 삭제
+        //2-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 일괄 삭제
+        List<Comment> commentsInPosts = commentWithUserRepository.findByPostUserID(userId);
+        if(commentsInPosts != null) {
+            commentWithUserRepository.deleteAll(commentsInPosts);
+        }
         List<Post> posts = postWithUserRepository.findPostByUserId(userId);
         if(posts != null) {
             postWithUserRepository.deleteAll(posts);
         }
-        //3. 로그인 유저 삭제
+        //3. 가족 생성자면 예외처리
+        List<Family> ownerFamilies = familyRepository.findByOwner(user);
+        if(ownerFamilies != null) {
+            for(Family f : ownerFamilies) {
+                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
+            }
+        }
+        //4. 로그인 유저의 참여한 유저가족매핑 삭제
+        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(userId);
+        if(userFamilyList != null) {
+            userFamilyRepository.deleteAll(userFamilyList);
+        }
+        //5. 로그인 유저 삭제
         userRepository.deleteById(userId);
     }
 }
