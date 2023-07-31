@@ -152,6 +152,25 @@ public class FamilyController {
     }
 
     /**
+     * 업로드 주기 수정 API
+     * [PATCH] /:familyId/:userId?uploadCycle=1
+     * @return BaseResponse<String>
+     */
+    @PatchMapping("/{familyId}/{userId}")
+    public BaseResponse<String> updateUploadCycle(@PathVariable Long familyId,
+                                                  @PathVariable Long userId,
+                                                  @RequestParam("uploadCycle") int uploadCycle) throws BaseException{
+        try {
+            familyService.updateUploadCycle(familyId, userId, uploadCycle);
+            return new BaseResponse<>("업로드 주기가 수정되었습니다.");
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /**
      * 가족 삭제 API
      * [DELETE] /:familyId/:userId
      * @return BaseResponse<String>

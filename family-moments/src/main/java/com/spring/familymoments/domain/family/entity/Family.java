@@ -48,5 +48,12 @@ public class Family extends BaseEntity {
         this.status = status;
     }
 
+    /**
+     * 가족 업로드 주기 수정 API 관련 메소드
+     */
+    public void updateUploadCycle(int uploadCycle) {
+        this.uploadCycle = uploadCycle;
+    }
+
 }
 
