@@ -29,8 +29,6 @@ public class CommentController {
         try{
             commentService.createComment(userId, postId, postCommentReq);
             return new BaseResponse<>("댓글이 업로드되었습니다.");
-        }catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
         }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }

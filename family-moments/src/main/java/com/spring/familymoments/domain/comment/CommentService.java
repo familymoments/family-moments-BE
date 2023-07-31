@@ -14,9 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.NoSuchElementException;
 
-import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,20 +30,26 @@ public class CommentService {
 
         // 사용자
         User writer = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
 
         // 게시글
         Post post = postWithUserRepository.findById(postId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 게시글입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_POST));
 
-        // 댓글 생성
-        Comment comment = Comment.builder()
-                .writer(writer)
-                .postId(post)
-                .content(postCommentReq.getContent())
-                .build();
+        // 게시글 상태 확인
+        if (post.getStatus() == Post.Status.ACTIVE) {
+            // 댓글 생성
+            Comment comment = Comment.builder()
+                    .writer(writer)
+                    .postId(post)
+                    .content(postCommentReq.getContent())
+                    .build();
 
-        // 댓글 저장
-        commentWithUserRepository.save(comment);
+            // 댓글 저장
+            commentWithUserRepository.save(comment);
+        } else {
+            // 게시글이 INACTIVE일 경우
+            throw new BaseException(FIND_FAIL_POST);
+        }
     }
 }
