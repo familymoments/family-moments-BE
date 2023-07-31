@@ -47,6 +47,7 @@ public enum BaseResponseStatus {
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
     FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
     FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
+    NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
 
     /**
      * 500 : Database, Server 오류

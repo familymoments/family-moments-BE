@@ -150,7 +150,38 @@ public class UserController {
 
         return new BaseResponse<>(getUserIdRes);
     }
+    /**
+     * 비밀번호 찾기 - 아이디 존재 여부 확인
+     * [POST] /users/auth/check-id
+     * @return BaseResponse<GetUserIdRes>
+     */
+    @RequestMapping("/users/auth/check-id")
+    public BaseResponse<GetUserIdRes> findUserIdBeforeUpdatePwd(@RequestParam String id)
+            throws InternalServerErrorException, MessagingException, BaseException {
 
+        GetUserIdRes getUserIdRes;
+
+        if (userService.checkDuplicateId(id)) {
+            getUserIdRes = new GetUserIdRes(id);
+        } else {
+            throw new InternalServerErrorException("입력한 아이디와 일치하는 회원정보가 없습니다.");
+        }
+
+        return new BaseResponse<>(getUserIdRes);
+    }
+    /**
+     * 비밀번호 찾기 API - 이메일 인증 확인
+     * [POST] /users/auth/find-pwd
+     * @return BaseResponse<String>
+     */
+    @PostMapping("/users/auth/find-pwd")
+    public BaseResponse<String> findUserPwd(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws InternalServerErrorException, MessagingException, BaseException {
+
+        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+
+        return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
+    }
     /**
      * 회원정보 조회 API
      * [GET] /users/profile
@@ -248,6 +279,32 @@ public class UserController {
             throw new RuntimeException(e);
         }
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
+    }
+    /**
+     * 비밀번호 찾기 - 재설정
+     * [POST] /users/auth/modify-pwd
+     * @return BaseResponse<String>
+     */
+    @Transactional
+    @PatchMapping("/users/auth/modify-pwd")
+    public BaseResponse<String> updatePasswordWithoutLogin(@RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
+                                                           @RequestParam String id) {
+
+        String memberEmail = emailService.getUserId(id);
+
+        //1. 비밀번호 변경
+        if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) { //newPassword와 password 일치시
+            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+        }
+        if(patchPwdWithoutLoginReq.getPasswordB() == "") { //새 비밀번호 빈 입력
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+        if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) { //새 비밀번호 형식
+            return new BaseResponse<>(POST_USERS_INVALID_PW);
+        }
+        userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberEmail);
+
+        return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
     }
 
     /**
