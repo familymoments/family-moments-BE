@@ -219,8 +219,22 @@ public class FamilyService {
         }
     }
 
+    // 업로드 주기 수정
+    public void updateUploadCycle(Long familyId, Long userId, int uploadCycle) throws BaseException{
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+
+        // 생성자 권한 확인
+        if (!family.getOwner().getUserId().equals(userId)) {
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+
+        family.updateUploadCycle(uploadCycle);
+        familyRepository.save(family);
+    }
+
     // 가족 삭제
-    public void deleteFamily(Long familyId, Long userId) throws BaseException{
+    public void deleteFamily(Long familyId,  Long userId) throws BaseException{
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
 
