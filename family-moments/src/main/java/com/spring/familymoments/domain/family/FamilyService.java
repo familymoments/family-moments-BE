@@ -1,10 +1,15 @@
 package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.domain.comment.CommentWithUserRepository;
+import com.spring.familymoments.domain.comment.entity.Comment;
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.family.model.*;
+import com.spring.familymoments.domain.post.PostWithUserRepository;
+import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.UserService;
 import com.spring.familymoments.domain.user.entity.User;
@@ -35,6 +40,8 @@ public class FamilyService {
     private final FamilyRepository familyRepository;
     private final UserFamilyRepository userFamilyRepository;
     private final UserRepository userRepository;
+    private final PostWithUserRepository postWithUserRepository;
+    private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
     public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
@@ -220,16 +227,26 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
 
-        System.out.println("-------------------");
-        System.out.println("family.getOwner().getId()" + family.getOwner().getUserId());
-        System.out.println("userId" + userId);
-        System.out.println("user.getUserId()"+user.getUserId());
-
-        if (!family.getOwner().getUserId().equals(userId)) {
-            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        // 1. 가족 내 게시글의 댓글 일괄 삭제
+        List<Post> postsToDelete = postWithUserRepository.findByFamilyId(family);
+        for (Post post : postsToDelete) {
+            // 해당 게시글의 댓글들의 상태를 일괄적으로 INACTIVE로 변경
+            List<Comment> commentsToDelete = commentWithUserRepository.findByPostId(post);
+            for (Comment comment : commentsToDelete) {
+                comment.updateStatus(Comment.Status.INACTIVE);
+            }
         }
 
-        family.updateStatus();
+        // 2. 가족 내 게시글 일괄 삭제
+        for (Post post : postsToDelete) {
+            post.updateStatus(BaseEntity.Status.INACTIVE);
+        }
+
+        // 3. 가족 삭제
+        if (!family.getOwner().getUserId().equals(userId)) {        // 생성자 권한 확인
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+        family.updateStatus(BaseEntity.Status.INACTIVE);
         familyRepository.save(family);
     }
 

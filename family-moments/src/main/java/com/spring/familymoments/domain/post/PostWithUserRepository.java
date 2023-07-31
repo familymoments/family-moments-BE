@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.post;
 
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,7 @@ public interface PostWithUserRepository extends JpaRepository<Post, Long> {
     //유저가 작성한 모든 게시글 조회
     @Query("SELECT p FROM Post p JOIN FETCH p.writerId u WHERE u.userId = :userId")
     List<Post> findPostByUserId(Long userId);
+
+    // 가족 내에 속한 모든 게시글 조회
+    List<Post> findByFamilyId(Family family);
 }

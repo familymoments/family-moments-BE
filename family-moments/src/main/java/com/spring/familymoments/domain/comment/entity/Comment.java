@@ -43,5 +43,12 @@ public class Comment extends BaseEntity {
     @Column(name = "countLove", columnDefinition = "int unsigned")
     @ColumnDefault("0")
     private int countLove;
+
+    /**
+     * 가족 삭제 API 관련 메소드
+     */
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }
 
