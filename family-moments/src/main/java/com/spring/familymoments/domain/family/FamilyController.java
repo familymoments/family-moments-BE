@@ -165,7 +165,9 @@ public class FamilyController {
             return new BaseResponse<>("업로드 주기가 수정되었습니다.");
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }catch (BaseException e) {
+        }catch (IllegalArgumentException e){
+            return new BaseResponse<>(FIND_FAIL_POST);
+        } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
     }
