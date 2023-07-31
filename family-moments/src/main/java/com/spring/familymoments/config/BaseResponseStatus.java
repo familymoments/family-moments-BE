@@ -38,15 +38,14 @@ public enum BaseResponseStatus {
     POST_USERS_INVALID_BIRTH(false, HttpStatus.BAD_REQUEST.value(), "생년월일 형식을 확인해주세요."),
     POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
     POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
-    FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디와 비밀번호가 일치하지 않습니다."),
+    FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"없는 아이디거나 비밀번호가 틀렸습니다."),
 
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
-    FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
-    FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
+    NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
 
     /**
      * 500 : Database, Server 오류
