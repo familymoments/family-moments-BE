@@ -118,9 +118,13 @@ public class UserController {
      * @return BaseResponse<>(postLoginRes)
      */
     @PostMapping("/users/log-in")
-    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
-        return new BaseResponse<>(postLoginRes);
+    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) {
+        try{
+            PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
+            return new BaseResponse<>(postLoginRes);
+        } catch(NoSuchElementException e){
+            return new BaseResponse<>(FAILED_TO_LOGIN);
+        }
     }
 
     /**
@@ -202,8 +206,13 @@ public class UserController {
      */
     @GetMapping("/users")
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
-        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
-        return new BaseResponse<>(getSearchUserRes);
+        if(familyId != null) {
+            List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+            return new BaseResponse<>(getSearchUserRes);
+        }
+        else {
+            return new BaseResponse<>(false, "familyId 값이 없습니다", 400);
+        }
     }
     /**
      * 초대 리스트 확인 API
@@ -212,8 +221,12 @@ public class UserController {
      */
     @GetMapping("/users/invitation")
     public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
-        List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
-        return new BaseResponse<>(getInvitationRes);
+        try {
+            List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
+            return new BaseResponse<>(getInvitationRes);
+        } catch(NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), 400);
+        }
     }
     /**
      * 회원 정보 수정 API
@@ -326,7 +339,11 @@ public class UserController {
     @Transactional
     @DeleteMapping("/users")
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user) {
-        userService.deleteUser(user.getUserId());
-        return new BaseResponse<>("계정을 삭제했습니다.");
+        try {
+            userService.deleteUser(user);
+            return new BaseResponse<>("계정을 삭제했습니다.");
+        } catch (IllegalAccessException e) {
+            return new BaseResponse(false, e.getMessage(), 500);
+        }
     }
 }

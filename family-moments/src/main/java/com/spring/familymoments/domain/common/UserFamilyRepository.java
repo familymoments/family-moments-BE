@@ -20,6 +20,10 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
             + "ORDER BY uf.createdAt DESC")
     List<UserFamily> findAllByUserIdOrderByCreatedAtDesc(User userId);
 
+    //회원 탈퇴 시, UserFamily 매핑 테이블 해제를 위한 조회
+    @Query("SELECT uf FROM UserFamily uf WHERE uf.userId.userId = :userId")
+    List<UserFamily> findUserFamilyByUserId(Long userId);
+
     @Query("SELECT u FROM User u " +
             "INNER JOIN UserFamily m ON u.userId = m.userId.userId " +
             "INNER JOIN Family f ON m.familyId.familyId = f.familyId " +

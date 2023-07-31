@@ -15,7 +15,7 @@ public interface PostWithUserRepository extends JpaRepository<Post, Long> {
     //게시글 업로드 수 조회
     Long countByWriterId(User user);
     //유저가 작성한 모든 게시글 조회
-    @Query("SELECT p FROM Post p JOIN FETCH p.writerId u WHERE u.userId = :userId")
+    @Query("SELECT p FROM Post p WHERE p.writerId.userId = :userId")
     List<Post> findPostByUserId(Long userId);
 
     // 가족 내에 속한 모든 게시글 조회
