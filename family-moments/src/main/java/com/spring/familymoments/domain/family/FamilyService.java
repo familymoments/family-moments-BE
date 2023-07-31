@@ -11,17 +11,12 @@ import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
-import com.spring.familymoments.domain.user.UserService;
 import com.spring.familymoments.domain.user.entity.User;
-import com.sun.xml.bind.v2.TODO;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.List;
 import java.util.NoSuchElementException;
