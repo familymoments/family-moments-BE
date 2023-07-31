@@ -137,18 +137,18 @@ public class UserService {
      * [POST]
      * @return ok
      */
-    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        // TODO: 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
+    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) {
+        // 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
         User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new InternalServerErrorException("비밀번호가 일치하지 않습니다.");
+            throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
         }
-        // TODO: 로그인 시 토큰 생성해서 header에 붙임.
+        // 로그인 시 토큰 생성해서 header에 붙이기
         String token = jwtService.createToken(user.getUuid());
         response.setHeader("X-AUTH-TOKEN", token);
 
-        // TODO: 클라이언트에 cookie로 토큰도 보냄
+        // 클라이언트에 cookie로 토큰도 보내기
         Cookie cookie = new Cookie("X-AUTH-TOKEN", token);
         cookie.setPath("/");
         cookie.setHttpOnly(true);

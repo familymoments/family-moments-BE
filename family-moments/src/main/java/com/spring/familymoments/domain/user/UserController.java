@@ -118,9 +118,13 @@ public class UserController {
      * @return BaseResponse<>(postLoginRes)
      */
     @PostMapping("/users/log-in")
-    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
-        return new BaseResponse<>(postLoginRes);
+    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) {
+        try{
+            PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
+            return new BaseResponse<>(postLoginRes);
+        } catch(NoSuchElementException e){
+            return new BaseResponse<>(FAILED_TO_LOGIN);
+        }
     }
 
     /**
