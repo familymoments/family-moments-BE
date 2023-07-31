@@ -44,8 +44,9 @@ public class Family extends BaseEntity {
     /**
      * 가족 삭제 API 관련 메소드
      */
-    public void updateStatus() {
-        this.status = Status.INACTIVE;
+    public void updateStatus(Status status) {
+        this.status = status;
     }
+
 }
 
