@@ -8,12 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PatchPwdWithoutLoginReq {
-    private String email;
-    private String password;
-    private String newPassword;
-
-    public void setEmail(String email) {
-        this.email = this.email;
-    }
+    // private String email;
+    private String passwordA;
+    private String passwordB;
 
 }
