@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.spring.familymoments.config.BaseResponseStatus.FAILED_USERSS_UNATHORIZED;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
 
 @Service
@@ -39,12 +39,12 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
-    public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) {
+    public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) throws BaseException{
 
         // 1. 가족 튜플 생성
         // 유저 외래키 생성
         User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
@@ -66,7 +66,7 @@ public class FamilyService {
         // 2. 유저 가족 매핑 튜플 생성
         // 가족 외래키 생성
         Family preFamily = familyRepository.findById(savedFamily.getFamilyId())
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 유저가족 입력 객체 생성
         UserFamily userFamily = UserFamily.builder()
@@ -106,13 +106,13 @@ public class FamilyService {
     }
 
     // 닉네임 및 가족 생성일 조회
-    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(Long familyId, Long userId){
+    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(Long familyId, Long userId) throws BaseException{
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         LocalDate createdAt = family.getCreatedAt().toLocalDate();
         LocalDate now = LocalDate.now();
@@ -125,9 +125,9 @@ public class FamilyService {
     }
 
     // 가족원 전체 조회
-    public List<GetFamilyAllRes> getFamilyAll(Long familyId){
+    public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
         Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("가족을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
 
@@ -217,7 +217,7 @@ public class FamilyService {
     // 업로드 주기 수정
     public void updateUploadCycle(Long familyId, Long userId, int uploadCycle) throws BaseException{
         Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 생성자 권한 확인
         if (!family.getOwner().getUserId().equals(userId)) {
@@ -231,10 +231,10 @@ public class FamilyService {
     // 가족 삭제
     public void deleteFamily(Long familyId,  Long userId) throws BaseException{
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 가족입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 1. 가족 내 게시글의 댓글 일괄 삭제
         List<Post> postsToDelete = postWithUserRepository.findByFamilyId(family);

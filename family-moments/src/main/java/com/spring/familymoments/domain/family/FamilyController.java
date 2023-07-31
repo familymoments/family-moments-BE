@@ -5,8 +5,6 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
-import com.spring.familymoments.domain.user.UserService;
-import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,7 +36,7 @@ public class FamilyController {
     @PostMapping("/family/{userId}")
     public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId,
                                                     @RequestParam(name = "representImg") MultipartFile representImg,
-                                                    @RequestPart PostFamilyReq postFamilyReq) throws BaseException {
+                                                    @RequestPart PostFamilyReq postFamilyReq) {
         try{
 //        int owner = jwtService.getUserIdx();
             // 대표 이미지 넣기
@@ -47,8 +45,8 @@ public class FamilyController {
 
             PostFamilyRes postFamilyRes = familyService.createFamily(userId, postFamilyReq);
             return new BaseResponse<>(postFamilyRes);
-        }catch(NoSuchElementException e){
-            return new BaseResponse<>(FIND_FAIL_USERNAME);
+        }catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 
@@ -77,12 +75,12 @@ public class FamilyController {
     @ResponseBody
     @GetMapping("/{familyId}/created/{userId}")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@PathVariable Long familyId,
-                                                                              @PathVariable Long userId) throws BaseException{
+                                                                              @PathVariable Long userId){
         try {
             GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(familyId, userId);
             return new BaseResponse<>(getFamilyCreatedNicknameRes);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 
@@ -92,12 +90,12 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @GetMapping("/{familyId}/users")
-    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId) throws BaseException{
+    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId){
         try {
             List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
             return new BaseResponse<>(getFamilyAllRes);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 
@@ -159,14 +157,10 @@ public class FamilyController {
     @PatchMapping("/{familyId}/{userId}")
     public BaseResponse<String> updateUploadCycle(@PathVariable Long familyId,
                                                   @PathVariable Long userId,
-                                                  @RequestParam("uploadCycle") int uploadCycle) throws BaseException{
+                                                  @RequestParam("uploadCycle") int uploadCycle){
         try {
             familyService.updateUploadCycle(familyId, userId, uploadCycle);
             return new BaseResponse<>("업로드 주기가 수정되었습니다.");
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }catch (IllegalArgumentException e){
-            return new BaseResponse<>(FIND_FAIL_POST);
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
@@ -178,13 +172,11 @@ public class FamilyController {
      * @return BaseResponse<String>
      */
     @DeleteMapping("/{familyId}/{userId}")
-    public BaseResponse<String> deleteFamily(@PathVariable Long familyId, @PathVariable Long userId) throws BaseException{
+    public BaseResponse<String> deleteFamily(@PathVariable Long familyId, @PathVariable Long userId) {
         try {
             familyService.deleteFamily(familyId, userId);
             return new BaseResponse<>("가족이 삭제되었습니다.");
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }catch (BaseException e) {
+        } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
     }
