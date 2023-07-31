@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     //유저 검색
     @Query("SELECT u FROM User u WHERE u.id LIKE :keyword% ORDER BY u.id ASC")
     Page<User> findTop5ByIdContainingKeywordOrderByIdAsc(String keyword, Pageable pageable);
-    @Query("SELECT u, uf FROM User u LEFT JOIN UserFamily uf ON u.id = uf.userId " +
-            "WHERE (:familyId IS NULL OR uf.familyId = :familyId) AND (u.userId = :userId)")
+    @Query("SELECT u, uf FROM User u LEFT JOIN UserFamily uf ON u.userId = uf.userId.userId " +
+            "WHERE (uf.familyId.familyId = :familyId) AND (u.userId = :userId)")
     List<Object[]> findUsersByFamilyIdAndUserId(Long familyId, Long userId);
 }
