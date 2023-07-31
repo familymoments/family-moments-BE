@@ -6,9 +6,6 @@ import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.NoSuchElementException;
-
-import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FAMILY;
 
 @RestController
 @RequiredArgsConstructor
