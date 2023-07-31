@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.GetUserIdRes;
@@ -106,6 +105,8 @@ public class EmailService {
                     .orElseThrow(() -> new InternalServerErrorException("가입되지 않은 이메일입니다."));
 
             userId = member.getId();
+
+            getUserId(userId);
         } else {
             throw new InternalServerErrorException("인증코드가 일치하지 않습니다.");
         }
@@ -113,4 +114,7 @@ public class EmailService {
         return new GetUserIdRes(userId);
     }
 
+    public String getUserId(String userId){
+        return userId;
+    }
 }
