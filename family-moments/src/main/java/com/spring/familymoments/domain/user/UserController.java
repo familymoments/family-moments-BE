@@ -175,8 +175,13 @@ public class UserController {
      */
     @GetMapping("/users")
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
-        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
-        return new BaseResponse<>(getSearchUserRes);
+        if(familyId != null) {
+            List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+            return new BaseResponse<>(getSearchUserRes);
+        }
+        else {
+            return new BaseResponse<>(false, "familyId 값이 없습니다", 400);
+        }
     }
     /**
      * 초대 리스트 확인 API
@@ -185,8 +190,12 @@ public class UserController {
      */
     @GetMapping("/users/invitation")
     public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
-        List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
-        return new BaseResponse<>(getInvitationRes);
+        try {
+            List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
+            return new BaseResponse<>(getInvitationRes);
+        } catch(NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), 400);
+        }
     }
     /**
      * 회원 정보 수정 API

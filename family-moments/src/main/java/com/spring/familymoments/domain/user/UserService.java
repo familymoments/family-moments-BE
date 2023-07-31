@@ -186,6 +186,7 @@ public class UserService {
      * [GET] /users
      * @return
      */
+    @Transactional
     public List<GetSearchUserRes> searchUserById(String keyword, Long familyId, User loginUser) {
         List<GetSearchUserRes> getSearchUserResList = new ArrayList<>();
 
@@ -193,12 +194,13 @@ public class UserService {
         Page<User> keywordUserList = userRepository.findTop5ByIdContainingKeywordOrderByIdAsc(keyword, pageRequest);
 
         for(User keywordUser: keywordUserList) {
+            Long checkUserId = keywordUser.getUserId();
             int appear = 1;
-            if(loginUser.getUserId() == keywordUser.getUserId()) {
+            if(loginUser.getUserId() == checkUserId) {
                 log.info("[로그인 유저이면 리스트에 추가 X]");
                 continue;
             }
-            List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, keywordUser.getUserId());
+            List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, checkUserId);
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
