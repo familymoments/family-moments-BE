@@ -281,6 +281,18 @@ public class UserService {
         userRepository.save(user);
     }
     /**
+     * 비밀번호 재설정 API
+     * [PATCH]
+     * @return
+     */
+    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+
+        user.updatePassword(passwordEncoder.encode(patchPwdWithoutLoginReq.getPasswordA()));
+        userRepository.save(user);
+    }
+    /**
      * 전체 회원정보 조회 API / 화면 외 API
      * [GET]
      * @return
@@ -301,9 +313,6 @@ public class UserService {
         //1. 로그인 유저의 댓글 일괄 삭제
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
         if(comments != null) {
-            for(Comment c : comments) {
-                log.info("코멘츠 좀 보자"+c.toString());
-            }
             commentWithUserRepository.deleteAll(comments);
         }
         //2. 로그인 유저의 게시글 일괄 삭제
@@ -332,4 +341,3 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 }
-

@@ -4,10 +4,7 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
-import com.spring.familymoments.domain.family.model.FamilyDto;
-import com.spring.familymoments.domain.family.model.PostFamilyReq;
-import com.spring.familymoments.domain.family.model.PostFamilyRes;
-import com.spring.familymoments.domain.user.UserService;
+import com.spring.familymoments.domain.family.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,7 +36,7 @@ public class FamilyController {
     @PostMapping("/family/{userId}")
     public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId,
                                                     @RequestParam(name = "representImg") MultipartFile representImg,
-                                                    @RequestPart PostFamilyReq postFamilyReq) throws BaseException {
+                                                    @RequestPart PostFamilyReq postFamilyReq) {
         try{
 //        int owner = jwtService.getUserIdx();
             // 대표 이미지 넣기
@@ -48,8 +45,8 @@ public class FamilyController {
 
             PostFamilyRes postFamilyRes = familyService.createFamily(userId, postFamilyReq);
             return new BaseResponse<>(postFamilyRes);
-        }catch(NoSuchElementException e){
-            return new BaseResponse<>(FIND_FAIL_USERNAME);
+        }catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 
@@ -67,6 +64,38 @@ public class FamilyController {
             return new BaseResponse<>(familyDto);
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }
+    }
+
+    /**
+     * 닉네임 및 가족 생성일 조회 API
+     * [GET] /:familyId/created/:userId
+     * @return BaseResponse<FamilyDto>
+     */
+    @ResponseBody
+    @GetMapping("/{familyId}/created/{userId}")
+    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@PathVariable Long familyId,
+                                                                              @PathVariable Long userId){
+        try {
+            GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(familyId, userId);
+            return new BaseResponse<>(getFamilyCreatedNicknameRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /**
+     * 가족원 전체 조회 API
+     * [GET] /:familyId/users
+     * @return BaseResponse<FamilyDto>
+     */
+    @GetMapping("/{familyId}/users")
+    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId){
+        try {
+            List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
+            return new BaseResponse<>(getFamilyAllRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 
@@ -117,6 +146,38 @@ public class FamilyController {
             return new BaseResponse<>("초대가 수락되었습니다.");
         }catch (NoSuchElementException e){
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }
+    }
+
+    /**
+     * 업로드 주기 수정 API
+     * [PATCH] /:familyId/:userId?uploadCycle={업로드주기}
+     * @return BaseResponse<String>
+     */
+    @PatchMapping("/{familyId}/{userId}")
+    public BaseResponse<String> updateUploadCycle(@PathVariable Long familyId,
+                                                  @PathVariable Long userId,
+                                                  @RequestParam("uploadCycle") int uploadCycle){
+        try {
+            familyService.updateUploadCycle(familyId, userId, uploadCycle);
+            return new BaseResponse<>("업로드 주기가 수정되었습니다.");
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /**
+     * 가족 삭제 API
+     * [DELETE] /:familyId/:userId
+     * @return BaseResponse<String>
+     */
+    @DeleteMapping("/{familyId}/{userId}")
+    public BaseResponse<String> deleteFamily(@PathVariable Long familyId, @PathVariable Long userId) {
+        try {
+            familyService.deleteFamily(familyId, userId);
+            return new BaseResponse<>("가족이 삭제되었습니다.");
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
         }
     }
 }
