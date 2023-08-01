@@ -71,15 +71,15 @@ public class FamilyController {
 
     /**
      * 닉네임 및 가족 생성일 조회 API
-     * [GET] /:familyId/created/:userId
+     * [GET] /:familyId/created
      * @return BaseResponse<FamilyDto>
      */
     @ResponseBody
-    @GetMapping("/{familyId}/created/{userId}")
-    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@PathVariable Long familyId,
-                                                                              @PathVariable Long userId){
+    @GetMapping("/{familyId}/created")
+    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@AuthenticationPrincipal User user,
+                                                                              @PathVariable Long familyId){
         try {
-            GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(familyId, userId);
+            GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
             return new BaseResponse<>(getFamilyCreatedNicknameRes);
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));

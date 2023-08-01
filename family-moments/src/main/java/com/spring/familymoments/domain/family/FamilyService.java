@@ -106,10 +106,10 @@ public class FamilyService {
     }
 
     // 닉네임 및 가족 생성일 조회
-    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(Long familyId, Long userId) throws BaseException{
+    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) throws BaseException{
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
