@@ -1,18 +1,26 @@
 package com.spring.familymoments.domain.postLove;
 
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
+import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.post.PostRepository;
 import com.spring.familymoments.domain.post.PostWithLoveRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.postLove.model.PostLoveReq;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.domain.user.model.CommentRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
+
+import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTLOVES_NON_EXISTS_LOVE;
+import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_WRONG_POST_ID;
 
 @Slf4j
 @Service
@@ -22,6 +30,7 @@ public class PostLoveService {
     private final PostLoveRepository postLoveRepository;
     private final UserRepository userRepository;
     private final PostWithLoveRepository postWithLoveRepository;
+    private final PostRepository postRepository;
 
     /**
      * createLove
@@ -71,5 +80,23 @@ public class PostLoveService {
                 .orElseThrow(() -> new NoSuchElementException("좋아요를 누르지 않아 취소할 수 없습니다."));
 
         postLoveRepository.delete(postLove);
+    }
+
+    // 좋아요한 user의 nickName 및 profileImg return
+    @Transactional
+    public List<CommentRes> getHeartList(long postId) throws BaseException {
+        Post post = postRepository.findByPostIdAndStatus(postId, BaseEntity.Status.ACTIVE);
+
+        if(post == null) {
+            throw new BaseException(minnie_POSTS_WRONG_POST_ID);
+        }
+
+        List<CommentRes> users = postLoveRepository.findByPost(post);
+
+        if(users.isEmpty()) {
+            throw new BaseException(minnie_POSTLOVES_NON_EXISTS_LOVE);
+        }
+
+        return users;
     }
 }

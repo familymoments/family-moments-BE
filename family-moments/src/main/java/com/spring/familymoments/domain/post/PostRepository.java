@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.post;
 
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
@@ -48,4 +49,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
             "WHERE p.postId = :postId")
     SinglePostRes findByPostId(@Param("userId") long userId, @Param("postId") long postId);
+
+    Post findByPostIdAndStatus(long postId, BaseEntity.Status status);
 }
