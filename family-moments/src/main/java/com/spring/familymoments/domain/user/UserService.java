@@ -32,6 +32,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
@@ -174,8 +175,11 @@ public class UserService {
      * [GET]
      * @return
      */
-    public GetProfileRes readProfile(User user) {
-        Long totalUpload = postWithUserRepository.countByWriterId(user);
+    public GetProfileRes readProfile(User user, Long familyId) {
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
+
+        Long totalUpload = postWithUserRepository.countByWriterIdAndFamilyId(user, family);
 
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();

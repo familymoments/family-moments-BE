@@ -188,13 +188,17 @@ public class UserController {
     }
     /**
      * 회원정보 조회 API
-     * [GET] /users/profile
+     * [GET] /users/profile/families/{familyId}
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile")
-    public BaseResponse<GetProfileRes> readProfile(@AuthenticationPrincipal User user) {
-       GetProfileRes getProfileRes = userService.readProfile(user);
-       return new BaseResponse<>(getProfileRes);
+    @RequestMapping("/users/profile/families/{familyId}")
+    public BaseResponse<GetProfileRes> readProfile(@PathVariable Long familyId, @AuthenticationPrincipal User user) {
+        try {
+            GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+            return new BaseResponse<>(getProfileRes);
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }
     }
 
     /**
