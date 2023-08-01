@@ -8,6 +8,7 @@ import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.model.*;
@@ -139,18 +140,19 @@ public class UserService {
      * [POST]
      * @return ok
      */
-    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) throws InternalServerErrorException {
-        // TODO: 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
+
+    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) {
+        // 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
         User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new InternalServerErrorException("비밀번호가 일치하지 않습니다.");
+            throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
         }
-        // TODO: 로그인 시 토큰 생성해서 header에 붙임.
+        // 로그인 시 토큰 생성해서 header에 붙이기
         String token = jwtService.createToken(user.getUuid());
         response.setHeader("X-AUTH-TOKEN", token);
 
-        // TODO: 클라이언트에 cookie로 토큰도 보냄
+        // 클라이언트에 cookie로 토큰도 보내기
         Cookie cookie = new Cookie("X-AUTH-TOKEN", token);
         cookie.setPath("/");
         cookie.setHttpOnly(true);
@@ -187,6 +189,8 @@ public class UserService {
      * [GET] /users
      * @return
      */
+
+    @Transactional
     public List<GetSearchUserRes> searchUserById(String keyword, Long familyId, User loginUser) {
         List<GetSearchUserRes> getSearchUserResList = new ArrayList<>();
 
@@ -194,12 +198,13 @@ public class UserService {
         Page<User> keywordUserList = userRepository.findTop5ByIdContainingKeywordOrderByIdAsc(keyword, pageRequest);
 
         for(User keywordUser: keywordUserList) {
+            Long checkUserId = keywordUser.getUserId();
             int appear = 1;
-            if(loginUser.getUserId() == keywordUser.getUserId()) {
+            if(loginUser.getUserId() == checkUserId) {
                 log.info("[로그인 유저이면 리스트에 추가 X]");
                 continue;
             }
-            List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, keywordUser.getUserId());
+            List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, checkUserId);
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
@@ -305,18 +310,39 @@ public class UserService {
      * @return
      */
     @Transactional
-    public void deleteUser(Long userId) {
+    public void deleteUser(User user) throws IllegalAccessException {
+        Long userId = user.getUserId();
         //1. 로그인 유저의 댓글 일괄 삭제
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
         if(comments != null) {
             commentWithUserRepository.deleteAll(comments);
         }
         //2. 로그인 유저의 게시글 일괄 삭제
+
+        //2-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 일괄 삭제
+        List<Comment> commentsInPosts = commentWithUserRepository.findByPostUserID(userId);
+        if(commentsInPosts != null) {
+            commentWithUserRepository.deleteAll(commentsInPosts);
+        }
+
         List<Post> posts = postWithUserRepository.findPostByUserId(userId);
         if(posts != null) {
             postWithUserRepository.deleteAll(posts);
         }
-        //3. 로그인 유저 삭제
+
+        //3. 가족 생성자면 예외처리
+        List<Family> ownerFamilies = familyRepository.findByOwner(user);
+        if(ownerFamilies != null) {
+            for(Family f : ownerFamilies) {
+                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
+            }
+        }
+        //4. 로그인 유저의 참여한 유저가족매핑 삭제
+        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(userId);
+        if(userFamilyList != null) {
+            userFamilyRepository.deleteAll(userFamilyList);
+        }
+        //5. 로그인 유저 삭제
         userRepository.deleteById(userId);
     }
 }
