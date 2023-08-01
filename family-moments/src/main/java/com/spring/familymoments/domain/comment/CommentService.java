@@ -26,11 +26,11 @@ public class CommentService {
     private final PostWithUserRepository postWithUserRepository;
 
     // 댓글 생성하기
-    public void createComment(Long userId, Long postId, PostCommentReq postCommentReq) throws BaseException {
+    public void createComment(User user, Long postId, PostCommentReq postCommentReq) throws BaseException {
 
-        // 사용자
-        User writer = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
+//        // 사용자
+//        User writer = userRepository.findById(userId)
+//                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
 
         // 게시글
         Post post = postWithUserRepository.findById(postId)
@@ -40,7 +40,7 @@ public class CommentService {
         if (post.getStatus() == Post.Status.ACTIVE) {
             // 댓글 생성
             Comment comment = Comment.builder()
-                    .writer(writer)
+                    .writer(user)
                     .postId(post)
                     .content(postCommentReq.getContent())
                     .build();
