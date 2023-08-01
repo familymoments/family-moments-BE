@@ -5,9 +5,11 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
+import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,8 +35,8 @@ public class FamilyController {
      * @return BaseResponse<PostFamilyRes>
      */
     @ResponseBody
-    @PostMapping("/family/{userId}")
-    public BaseResponse<PostFamilyRes> createFamily(@PathVariable Long userId,
+    @PostMapping("/family")
+    public BaseResponse<PostFamilyRes> createFamily(@AuthenticationPrincipal User user,
                                                     @RequestParam(name = "representImg") MultipartFile representImg,
                                                     @RequestPart PostFamilyReq postFamilyReq) {
         try{
@@ -43,7 +45,7 @@ public class FamilyController {
             String fileUrl = awsS3Service.uploadImage(representImg);
             postFamilyReq.setRepresentImg(fileUrl);             // 이미지 파일 객체에 추가
 
-            PostFamilyRes postFamilyRes = familyService.createFamily(userId, postFamilyReq);
+            PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq);
             return new BaseResponse<>(postFamilyRes);
         }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
@@ -151,15 +153,15 @@ public class FamilyController {
 
     /**
      * 업로드 주기 수정 API
-     * [PATCH] /:familyId/:userId?uploadCycle={업로드주기}
+     * [PATCH] /:familyId?uploadCycle={업로드주기}
      * @return BaseResponse<String>
      */
-    @PatchMapping("/{familyId}/{userId}")
-    public BaseResponse<String> updateUploadCycle(@PathVariable Long familyId,
-                                                  @PathVariable Long userId,
+    @PatchMapping("/{familyId}")
+    public BaseResponse<String> updateUploadCycle(@AuthenticationPrincipal User user,
+                                                  @PathVariable Long familyId,
                                                   @RequestParam("uploadCycle") int uploadCycle){
         try {
-            familyService.updateUploadCycle(familyId, userId, uploadCycle);
+            familyService.updateUploadCycle(user, familyId, uploadCycle);
             return new BaseResponse<>("업로드 주기가 수정되었습니다.");
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
@@ -168,13 +170,13 @@ public class FamilyController {
 
     /**
      * 가족 삭제 API
-     * [DELETE] /:familyId/:userId
+     * [DELETE] /:familyId
      * @return BaseResponse<String>
      */
-    @DeleteMapping("/{familyId}/{userId}")
-    public BaseResponse<String> deleteFamily(@PathVariable Long familyId, @PathVariable Long userId) {
+    @DeleteMapping("/{familyId}")
+    public BaseResponse<String> deleteFamily(@AuthenticationPrincipal User user, @PathVariable Long familyId) {
         try {
-            familyService.deleteFamily(familyId, userId);
+            familyService.deleteFamily(user, familyId);
             return new BaseResponse<>("가족이 삭제되었습니다.");
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));

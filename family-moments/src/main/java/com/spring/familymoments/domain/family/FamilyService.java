@@ -39,12 +39,12 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
-    public PostFamilyRes createFamily(Long userId, PostFamilyReq postFamilyReq) throws BaseException{
+    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq) throws BaseException{
 
-        // 1. 가족 튜플 생성
-        // 유저 외래키 생성
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+//        // 1. 가족 튜플 생성
+//        // 유저 외래키 생성
+//        User owner = userRepository.findById(userId)
+//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
@@ -215,12 +215,12 @@ public class FamilyService {
     }
 
     // 업로드 주기 수정
-    public void updateUploadCycle(Long familyId, Long userId, int uploadCycle) throws BaseException{
+    public void updateUploadCycle(User user, Long familyId, int uploadCycle) throws BaseException{
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 생성자 권한 확인
-        if (!family.getOwner().getUserId().equals(userId)) {
+        if (!family.getOwner().getUserId().equals(user.getUserId())) {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
 
@@ -229,9 +229,9 @@ public class FamilyService {
     }
 
     // 가족 삭제
-    public void deleteFamily(Long familyId,  Long userId) throws BaseException{
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+    public void deleteFamily(User user, Long familyId) throws BaseException{
+//        User user = userRepository.findById(userId)
+//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -252,7 +252,7 @@ public class FamilyService {
         }
 
         // 3. 가족 삭제
-        if (!family.getOwner().getUserId().equals(userId)) {        // 생성자 권한 확인
+        if (!family.getOwner().getUserId().equals(user.getUserId())) {        // 생성자 권한 확인
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
         family.updateStatus(BaseEntity.Status.INACTIVE);
