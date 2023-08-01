@@ -10,6 +10,9 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -28,8 +31,8 @@ public class Post extends BaseEntity {
     private Long postId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private User writerId;
+    @JoinColumn(name = "user", nullable = false)
+    private User writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "familyId", nullable = false)
@@ -58,6 +61,42 @@ public class Post extends BaseEntity {
     @ColumnDefault("0")
     private int countLove;
 
+    @Transient
+    private List<String> imgs;
+
+    public List<String> getImgs() {
+        imgs = new ArrayList<>();
+
+        Stream.of(img1, img2, img3, img4)
+                .filter(img -> img != null)
+                .forEach(img -> imgs.add(img));
+
+        return imgs;
+    }
+
+    public void updateContent(String newContent) {
+        this.content = newContent;
+    }
+
+    public void updateImg1(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg2(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg3(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void updateImg4(String newImg) {
+        this.img1 = newImg;
+    }
+
+    public void delete() {
+        this.status = Status.INACTIVE;
+    }
     /**
      * 가족 삭제 API 관련 메소드
      */
