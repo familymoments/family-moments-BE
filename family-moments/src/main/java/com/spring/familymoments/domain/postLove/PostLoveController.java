@@ -21,11 +21,9 @@ public class PostLoveController {
      * @return BaseResponse<String>
      */
     @PostMapping("/postloves")
-    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user,
-                                               @RequestParam Long postId,
-                                               @RequestBody PostLoveReq postLoveReq){
+    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user, @RequestParam Long postId){
 
-        PostLoveReq newPostLove = new PostLoveReq(postLoveReq.getPostId());
+        PostLoveReq newPostLove = new PostLoveReq(postId);
         postLoveService.createLove(user, newPostLove);
 
         return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
@@ -33,15 +31,13 @@ public class PostLoveController {
 
     /**
      * 게시물 내 하트 삭제
-     * [POST] /postloves
+     * [DELETE] /postloves
      * @return BaseResponse<String>
      */
     @DeleteMapping("/postloves")
-    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user,
-                                               @RequestParam Long postId,
-                                               @RequestBody PostLoveReq postLoveReq){
+    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user, @RequestParam Long postId){
 
-        PostLoveReq newPostLove = new PostLoveReq(postLoveReq.getPostId());
+        PostLoveReq newPostLove = new PostLoveReq(postId);
         postLoveService.deleteLove(user, newPostLove);
 
         return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
