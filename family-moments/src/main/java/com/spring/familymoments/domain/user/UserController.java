@@ -188,31 +188,29 @@ public class UserController {
     }
     /**
      * 회원정보 조회 API
-     * [GET] /users/profile
+     * [GET] /users/profile/families/{familyId}
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile")
-    public BaseResponse<GetProfileRes> readProfile(@AuthenticationPrincipal User user) {
-       GetProfileRes getProfileRes = userService.readProfile(user);
-       return new BaseResponse<>(getProfileRes);
+    @RequestMapping("/users/profile/families/{familyId}")
+    public BaseResponse<GetProfileRes> readProfile(@PathVariable Long familyId, @AuthenticationPrincipal User user) {
+        try {
+            GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+            return new BaseResponse<>(getProfileRes);
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }
     }
 
     /**
      * 유저 검색 API / 가족원 추가 API
-     * [GET] /users
+     * [GET] /users/families/{familyId}?keyword={}
      * @param keyword null 가능
-     * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users")
-    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
-        if(familyId != null) {
-            List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
-            return new BaseResponse<>(getSearchUserRes);
-        }
-        else {
-            return new BaseResponse<>(false, "familyId 값이 없습니다", 400);
-        }
+    @GetMapping("/users/families/{familyId}")
+    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @PathVariable Long familyId, @AuthenticationPrincipal User user) {
+        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+        return new BaseResponse<>(getSearchUserRes);
     }
     /**
      * 초대 리스트 확인 API
