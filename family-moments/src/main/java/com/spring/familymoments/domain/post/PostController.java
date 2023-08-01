@@ -177,6 +177,47 @@ public class PostController {
     }
 
     /**
+     * 특정 일 최신 10개 게시글 조회 API
+     * [GET] /posts/calendar?familyId={가족인덱스}&year={년}&month={월}&day={일}
+     * @return BaseResponse<List<MultiPostRes>>
+     */
+    @ResponseBody
+    @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day"})
+    public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal User user,
+                                                        @RequestParam("familyId") long familyId,
+                                                        @RequestParam("year") int year,
+                                                        @RequestParam("month") int month,
+                                                        @RequestParam("day") int day) {
+        try {
+            List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day);
+            return new BaseResponse<>(multiPostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
+     * 특정 일 최신 10개 게시글 조회 API
+     * [GET] /posts/calendar?familyId={가족인덱스}&year={년}&month={월}&day={일}
+     * @return BaseResponse<List<MultiPostRes>>
+     */
+    @ResponseBody
+    @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day", "postId"})
+    public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal User user,
+                                                              @RequestParam("familyId") long familyId,
+                                                              @RequestParam("year") int year,
+                                                              @RequestParam("month") int month,
+                                                              @RequestParam("day") int day,
+                                                              @RequestParam("postId") long postId) {
+        try {
+            List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day, postId);
+            return new BaseResponse<>(multiPostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
      * 좋아요 목록 조회 API
      * [GET] /posts/{postId}/postLoves
      * @return BaseResponse<SinglePostRes>

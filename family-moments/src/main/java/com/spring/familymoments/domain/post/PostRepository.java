@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -34,6 +35,28 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "ORDER BY p.postId DESC")
     List<MultiPostRes> findByFamilyId(@Param("familyId") long familyId, @Param("userId") long userId, @Param("postId") long postId, Pageable pageable);
 
+    @Query("SELECT " +
+            "new com.spring.familymoments.domain.post.model.MultiPostRes" +
+            "(p.postId, u.nickname, u.profileImg, p.content, CONCAT(COALESCE(p.img1, ''), ',', COALESCE(p.img2, ''), ',', COALESCE(p.img3, ''), ',', COALESCE(p.img4, '')), p.createdAt, pl.status) " +
+            "FROM Post p JOIN p.writer u " +
+            "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
+            "WHERE p.familyId.familyId = :familyId " +
+            "AND p.status = 'ACTIVE' " +
+            "AND FUNCTION('DATE', p.createdAt)  = FUNCTION('DATE', :date) " +
+            "ORDER BY p.postId DESC")
+    List<MultiPostRes> findByFamilyIdWithDate(@Param("familyId") long familyId, @Param("userId") long userId, @Param("date") LocalDateTime date, Pageable pageable);
+
+    @Query("SELECT " +
+            "new com.spring.familymoments.domain.post.model.MultiPostRes" +
+            "(p.postId, u.nickname, u.profileImg, p.content, CONCAT(COALESCE(p.img1, ''), ',', COALESCE(p.img2, ''), ',', COALESCE(p.img3, ''), ',', COALESCE(p.img4, '')), p.createdAt, pl.status) " +
+            "FROM Post p JOIN p.writer u " +
+            "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
+            "WHERE p.familyId.familyId = :familyId " +
+            "AND p.status = 'ACTIVE' " +
+            "AND FUNCTION('DATE', p.createdAt)  = FUNCTION('DATE', :date) " +
+            "AND p.postId < :postId " +
+            "ORDER BY p.postId DESC")
+    List<MultiPostRes> findByFamilyIdWithDateAfterPostId(@Param("familyId") long familyId, @Param("userId") long userId, @Param("date") LocalDateTime date, @Param("postId") long postId, Pageable pageable);
 
     @Modifying
     @Transactional
