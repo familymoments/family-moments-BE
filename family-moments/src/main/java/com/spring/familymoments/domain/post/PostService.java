@@ -17,6 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -173,5 +176,41 @@ public class PostService {
         }
 
         return singlePostRes;
+    }
+
+    // 특정 일 최신 post 조회
+    @Transactional
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) throws BaseException{
+        LocalDate date = LocalDate.of(year, month, day);
+        LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
+
+        LocalDateTime dateTime = LocalDateTime.of(date, dummy);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        List<MultiPostRes> posts = postRepository.findByFamilyIdWithDate(familyId, userId, dateTime, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        return posts;
+    }
+
+    // 특정일 postId 이후 post 조회
+    @Transactional
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) throws BaseException{
+        LocalDate date = LocalDate.of(year, month, day);
+        LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
+
+        LocalDateTime dateTime = LocalDateTime.of(date, dummy);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        List<MultiPostRes> posts = postRepository.findByFamilyIdWithDateAfterPostId(familyId, userId, dateTime, postId, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        return posts;
     }
 }
