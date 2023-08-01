@@ -203,20 +203,14 @@ public class UserController {
 
     /**
      * 유저 검색 API / 가족원 추가 API
-     * [GET] /users
+     * [GET] /users/families/{familyId}?keyword={}
      * @param keyword null 가능
-     * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users")
-    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
-        if(familyId != null) {
-            List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
-            return new BaseResponse<>(getSearchUserRes);
-        }
-        else {
-            return new BaseResponse<>(false, "familyId 값이 없습니다", 400);
-        }
+    @GetMapping("/users/families/{familyId}")
+    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @PathVariable Long familyId, @AuthenticationPrincipal User user) {
+        List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
+        return new BaseResponse<>(getSearchUserRes);
     }
     /**
      * 초대 리스트 확인 API
