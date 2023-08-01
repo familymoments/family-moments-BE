@@ -38,6 +38,8 @@ public enum BaseResponseStatus {
     POST_USERS_INVALID_BIRTH(false, HttpStatus.BAD_REQUEST.value(), "생년월일 형식을 확인해주세요."),
     POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
     POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
+    FIND_FAIL_ID(false, HttpStatus.NOT_FOUND.value(), "입력한 아이디와 일치하는 회원정보가 없습니다."),
+    FIND_FAIL_INVITATION(false, HttpStatus.NOT_FOUND.value(), "초대 요청 목록이 존재하지 않습니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디와 비밀번호가 일치하지 않습니다."),
 
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),

@@ -32,7 +32,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
@@ -60,19 +59,6 @@ public class UserService {
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
     public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
-
-        // TODO: 아이디 중복 체크
-        if(checkDuplicateId(postUserReq.getId())){
-            log.info("[createUser]: 이미 존재하는 아이디입니다!");
-            throw new BaseException(POST_USERS_EXISTS_ID);
-        }
-
-        // TODO: 이메일 중복 체크
-        // Optional<User> checkUserEmail = userRepository.findByEmail(postUserReq.getEmail());
-        if(checkDuplicateEmail(postUserReq.getEmail())){
-            log.info("[createUser]: 이미 존재하는 이메일입니다!");
-            throw new BaseException(POST_USERS_EXISTS_EMAIL);
-        }
 
         // TODO: UUID 생성
         String uuid = UuidUtils.generateUUID();
@@ -234,10 +220,10 @@ public class UserService {
         List<GetInvitationRes> getInvitationResList = new ArrayList<>();
         List<UserFamily> userFamilyList = userFamilyRepository.findAllByUserIdOrderByCreatedAtDesc(loginUser);
 
-        // TODO: 받은 초대가 없을 경우 예외처리
-        if (userFamilyList.isEmpty()) {
-            throw new InternalServerErrorException("초대 요청이 존재하지 않습니다.");
-        } else {
+//        // TODO: 받은 초대가 없을 경우 예외처리
+//        if (userFamilyList.isEmpty()) {
+//            throw new InternalServerErrorException("초대 요청이 존재하지 않습니다.");
+//        } else {
             for (UserFamily invitation : userFamilyList) {
                 GetInvitationRes getInvitationRes = new GetInvitationRes(invitation.getFamilyId().getFamilyName(),
                         invitation.getFamilyId().getOwner().getNickname(),
@@ -245,7 +231,7 @@ public class UserService {
 
                 getInvitationResList.add(getInvitationRes);
             }
-        }
+//        }
 
         return getInvitationResList;
     }
