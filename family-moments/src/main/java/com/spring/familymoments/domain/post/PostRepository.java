@@ -74,4 +74,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     SinglePostRes findByPostId(@Param("userId") long userId, @Param("postId") long postId);
 
     Post findByPostIdAndStatus(long postId, BaseEntity.Status status);
+
+    @Query("SELECT distinct p.createdAt " +
+            "FROM Post p " +
+            "WHERE p.familyId.familyId = :familyId AND p.status = :status " +
+            "AND p.createdAt BETWEEN :startDate AND :endDate " +
+            "ORDER BY p.postId ASC ")
+    List<LocalDateTime> getDateExistPost(@Param("familyId") long familyId, @Param("status") BaseEntity.Status status, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 }

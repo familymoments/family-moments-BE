@@ -15,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -218,9 +219,29 @@ public class PostController {
     }
 
     /**
+     * 특정 월 게시물 작성일 조회 API
+     * [GET] /posts/calendar?familyId={가족인덱스}&year={년}&month={월}
+     * @return BaseResponse<List<MultiPostRes>>
+     */
+   @GetMapping(value = "/calendar", params = {"familyId", "year", "month"})
+   public BaseResponse<List<LocalDate>> getDatesExistPost(@RequestParam("familyId") long familyId, @RequestParam("year") int year, @RequestParam("month") int month) {
+       if(month < 1 || month > 12 || year > LocalDate.now().getYear()) {
+           return new BaseResponse<>(minnie_POSTS_WRONG_POST_ID);
+       }
+
+       List<LocalDate> dates = null;
+       try {
+           dates = postService.getDayExistsPost(familyId, year, month);
+           return new BaseResponse<>(dates);
+       } catch (BaseException e) {
+           return new BaseResponse<>(e.getStatus());
+       }
+   }
+
+    /**
      * 좋아요 목록 조회 API
      * [GET] /posts/{postId}/postLoves
-     * @return BaseResponse<SinglePostRes>
+     * @return BaseResponse<List<CommentRes>>
      */
     @GetMapping("/{postId}/post-loves")
     public BaseResponse<List<CommentRes>> getLovedList(@PathVariable long postId) {

@@ -20,6 +20,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -196,7 +198,7 @@ public class PostService {
         return posts;
     }
 
-    // 특정일 postId 이후 post 조회
+    // 특정 일 postId 이후 post 조회
     @Transactional
     public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) throws BaseException{
         LocalDate date = LocalDate.of(year, month, day);
@@ -212,5 +214,29 @@ public class PostService {
         }
 
         return posts;
+    }
+
+    @Transactional
+    public List<LocalDate> getDayExistsPost(long familyId, int year, int month) throws BaseException {
+        // date 정보 생성
+        YearMonth month_info = YearMonth.of(year, month);
+        LocalDate start_date = month_info.atDay(1);
+        LocalDate end_date = month_info.atEndOfMonth();
+        LocalDateTime start = start_date.atStartOfDay();
+        LocalDateTime end = end_date.atTime(LocalTime.MAX);
+
+        List<LocalDateTime> dateTimes = postRepository.getDateExistPost(familyId, BaseEntity.Status.ACTIVE, start, end);
+
+        if(dateTimes.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        List<LocalDate> dates = new ArrayList<>();
+
+        for(LocalDateTime dateTime : dateTimes) {
+            dates.add(dateTime.toLocalDate());
+        }
+
+        return dates;
     }
 }
