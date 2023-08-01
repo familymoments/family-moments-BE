@@ -179,7 +179,7 @@ public class UserService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
 
-        Long totalUpload = postWithUserRepository.countByWriterIdAndFamilyId(user, family);
+        Long totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
 
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
