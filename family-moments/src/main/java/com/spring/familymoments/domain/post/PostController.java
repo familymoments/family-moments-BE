@@ -6,7 +6,9 @@ import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.PostInfoReq;
 import com.spring.familymoments.domain.post.model.PostReq;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
+import com.spring.familymoments.domain.postLove.PostLoveService;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.domain.user.model.CommentRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,6 +27,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 @RequestMapping("/posts")
 public class PostController {
     private final PostService postService;
+    private final PostLoveService postLoveService;
 
     /**
      * 게시글 작성 API
@@ -158,7 +161,7 @@ public class PostController {
 
     /**
      * 특정 게시글 조회 API
-     * [GET] /posts?{postId}
+     * [GET] /posts/{postId}
      * @return BaseResponse<SinglePostRes>
      */
     @ResponseBody
@@ -168,6 +171,22 @@ public class PostController {
             SinglePostRes singlePostRes = postService.getPost(user.getUserId(), postId);
 
             return new BaseResponse<>(singlePostRes);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
+     * 좋아요 목록 조회 API
+     * [GET] /posts/{postId}/postLoves
+     * @return BaseResponse<SinglePostRes>
+     */
+    @GetMapping("/{postId}/post-loves")
+    public BaseResponse<List<CommentRes>> getLovedList(@PathVariable long postId) {
+        try {
+            List<CommentRes> heartedList = postLoveService.getHeartList(postId);
+
+            return new BaseResponse<>(heartedList);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }

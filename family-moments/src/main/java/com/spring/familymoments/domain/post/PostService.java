@@ -75,10 +75,10 @@ public class PostService {
     // post update
     @Transactional
     public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
-        Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
+        Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
-            throw new BaseException(minnie_POSTS_EMPTY_POST);
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
@@ -122,10 +122,10 @@ public class PostService {
     // post delete
     @Transactional
     public void deletePost(User user, long postId) throws BaseException {
-        Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_EMPTY_POST));
+        Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(deletedPost.getStatus() == BaseEntity.Status.INACTIVE) {
-            throw new BaseException(minnie_POSTS_EMPTY_POST);
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
@@ -141,7 +141,7 @@ public class PostService {
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, pageable);
 
         if(multiPostReses.isEmpty()) {
-            throw new BaseException(minnie_POSTS_EMPTY_POST);
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
         return multiPostReses;
@@ -153,7 +153,7 @@ public class PostService {
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, postId, pageable);
 
         if(multiPostReses.isEmpty()) {
-            throw new BaseException(minnie_POSTS_EMPTY_POST);
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
         return multiPostReses;
