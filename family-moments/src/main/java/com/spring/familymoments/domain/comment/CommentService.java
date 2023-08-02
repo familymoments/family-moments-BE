@@ -2,9 +2,12 @@ package com.spring.familymoments.domain.comment;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.comment.entity.Comment;
+import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.family.model.GetFamilyAllRes;
+import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
 import com.spring.familymoments.domain.family.model.PostFamilyRes;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
@@ -14,6 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -51,5 +59,26 @@ public class CommentService {
             // 게시글이 INACTIVE일 경우
             throw new BaseException(FIND_FAIL_POST);
         }
+    }
+
+    // 특정 게시물의 댓글 목록 조회
+    public List<GetCommentsRes> getCommentsByPostId(Long postId) throws BaseException{
+        Post post = postWithUserRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_POST));
+
+        List<Comment> activeComments = commentWithUserRepository.findActiveCommentsByPostId(postId);
+
+        List<GetCommentsRes> getCommentsResList = activeComments.stream()
+                .map(comment -> new GetCommentsRes(
+                        comment.getCommentId(),
+                        comment.getWriter().getNickname(),
+                        comment.getWriter().getProfileImg(),
+                        comment.getContent(),
+                        comment.getStatus() == Comment.Status.ACTIVE,
+                        comment.getUpdatedAt()
+                ))
+                .collect(Collectors.toList());
+
+        return getCommentsResList;
     }
 }

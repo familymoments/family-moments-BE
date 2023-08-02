@@ -6,6 +6,7 @@ import com.spring.familymoments.domain.post.entity.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,6 +21,10 @@ public interface CommentWithUserRepository extends JpaRepository<Comment, Long> 
 
     @Query("SELECT c FROM Comment c WHERE c.postId IN (SELECT p FROM Post p WHERE p.writer.userId = :userId)")
     List<Comment> findByPostUserID(Long userId);
+
+    // 활성화된 게시글 내 댓글 목록 조회
+    @Query("SELECT c FROM Comment c WHERE c.postId = :postId AND c.status = 'ACTIVE'")
+    List<Comment> findActiveCommentsByPostId(@Param("postId") Long postId);
 
     // 게시글 내의 모든 댓글 조회
     List<Comment> findByPostId(Post post);
