@@ -43,9 +43,9 @@ public class FamilyController {
 //        int owner = jwtService.getUserIdx();
             // 대표 이미지 넣기
             String fileUrl = awsS3Service.uploadImage(representImg);
-            postFamilyReq.setRepresentImg(fileUrl);             // 이미지 파일 객체에 추가
+//            postFamilyReq.setRepresentImg(fileUrl);             // 이미지 파일 객체에 추가
 
-            PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq);
+            PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
             return new BaseResponse<>(postFamilyRes);
         }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
@@ -122,7 +122,7 @@ public class FamilyController {
      * [GET] /familyId
      * @return BaseResponse<String>
      */
-    @PostMapping("/ab/{familyId}")
+    @PostMapping("/{familyId}")
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<Long> userIds) throws BaseException{
         try {

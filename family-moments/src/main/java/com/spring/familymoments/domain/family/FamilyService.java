@@ -39,7 +39,7 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
-    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq) throws BaseException{
+    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
 
 //        // 1. 가족 튜플 생성
 //        // 유저 외래키 생성
@@ -56,7 +56,7 @@ public class FamilyService {
                 .familyName(postFamilyReq.getFamilyName())
                 .uploadCycle(postFamilyReq.getUploadCycle())
                 .inviteCode(inviteLink)
-                .representImg(postFamilyReq.getRepresentImg())
+                .representImg(fileUrl)
                 .build();
 
         // 가족 저장
