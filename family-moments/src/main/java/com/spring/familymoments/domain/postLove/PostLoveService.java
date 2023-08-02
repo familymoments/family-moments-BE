@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.postLove;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.post.PostRepository;
 import com.spring.familymoments.domain.post.PostWithLoveRepository;
@@ -19,8 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTLOVES_NON_EXISTS_LOVE;
-import static com.spring.familymoments.config.BaseResponseStatus.minnie_POSTS_WRONG_POST_ID;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
@@ -38,7 +36,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void createLove(User user, PostLoveReq postLoveReq) {
+    public void createLove(User user, PostLoveReq postLoveReq) throws BaseException {
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("[좋아요 누르기] 존재하지 않는 아이디입니다."));
@@ -47,7 +45,7 @@ public class PostLoveService {
                 .orElseThrow(() -> new NoSuchElementException("[좋아요 누르기] 존재하지 않는 게시물입니다."));
 
         if(postLoveRepository.existsByPostIdAndUserId(post, member)){
-            throw new InternalServerErrorException("이미 좋아요를 누른 게시물입니다.");
+            throw new BaseException(POSTLOVE_ALREADY_EXISTS);
         }
 
         PostLove postLove = PostLove.builder()
@@ -64,7 +62,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void deleteLove(User user, PostLoveReq postLoveReq) {
+    public void deleteLove(User user, PostLoveReq postLoveReq) throws BaseException {
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("[좋아요 취소] 존재하지 않는 아이디입니다."));
@@ -73,11 +71,11 @@ public class PostLoveService {
                 .orElseThrow(() -> new NoSuchElementException("[좋아요 취소] 존재하지 않는 게시물입니다."));
 
         if(!postLoveRepository.existsByPostIdAndUserId(post, member)){
-            throw new InternalServerErrorException("좋아요를 누르지 않아 취소할 수 없습니다.");
+            throw new BaseException(FIND_FAIL_POSTLOVE);
         }
 
         PostLove postLove = postLoveRepository.findByPostIdAndUserId(post, member)
-                .orElseThrow(() -> new NoSuchElementException("좋아요를 누르지 않아 취소할 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("요청한 좋아요 기록이 존재하지 않습니다."));
 
         postLoveRepository.delete(postLove);
     }
