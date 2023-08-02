@@ -188,10 +188,10 @@ public class UserController {
     }
     /**
      * 회원정보 조회 API
-     * [GET] /users/profile/families/{familyId}
+     * [GET] /users/families/{familyId}/profile
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile/families/{familyId}")
+    @RequestMapping("/users/families/{familyId}/profile")
     public BaseResponse<GetProfileRes> readProfile(@PathVariable Long familyId, @AuthenticationPrincipal User user) {
         try {
             GetProfileRes getProfileRes = userService.readProfile(user, familyId);
