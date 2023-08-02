@@ -162,11 +162,12 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user, Long familyId) {
-        Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
-
-        Long totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
-
+        Long totalUpload = new Long(0);
+        if(familyId != null) {
+            Family family = familyRepository.findById(familyId)
+                    .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
+            totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
+        }
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
