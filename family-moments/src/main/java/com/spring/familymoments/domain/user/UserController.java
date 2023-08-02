@@ -292,9 +292,10 @@ public class UserController {
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
 
-            if (getInvitationRes.isEmpty()) {
-                return new BaseResponse<>(false, FIND_FAIL_INVITATION.getMessage(), HttpStatus.NOT_FOUND.value());
-            }
+            // TODO: 초대 요청이 없을 경우 빈 리스트 반환
+//            if (getInvitationRes.isEmpty()) {
+//                return new BaseResponse<>(false, FIND_FAIL_INVITATION.getMessage(), HttpStatus.NOT_FOUND.value());
+//            }
 
             return new BaseResponse<>(getInvitationRes);
         } catch (NoSuchElementException e) {
