@@ -6,8 +6,8 @@ import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -20,6 +20,7 @@ import javax.persistence.*;
 @DynamicInsert
 @DynamicUpdate
 public class Family extends BaseEntity {
+
 
     @Id
     @Column(name = "familyId", nullable = false, updatable = false)
@@ -34,8 +35,7 @@ public class Family extends BaseEntity {
     private String familyName;
 
     @Column(columnDefinition = "int unsigned")
-    private String uploadCycle;
-
+    private int uploadCycle;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String inviteCode;
@@ -62,4 +62,3 @@ public class Family extends BaseEntity {
     }
 
 }
-
