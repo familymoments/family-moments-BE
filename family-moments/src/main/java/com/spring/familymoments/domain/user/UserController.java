@@ -188,9 +188,11 @@ public class UserController {
         }
 
         try {
-            if(emailService.checkVerificationCode(sendEmailReq)) {
+            if(emailService.checkVerificationCode(sendEmailReq) && emailService.checkNameAndEmail(sendEmailReq)) {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<>(getUserIdRes);
+            } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
+                return new BaseResponse<>(FIND_FAIL_USER_NAME_EMAIL);
             } else {
                 return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
             }
@@ -240,9 +242,11 @@ public class UserController {
         }
 
         try {
-            if(emailService.checkVerificationCode(sendEmailReq)) {
+            if(emailService.checkVerificationCode(sendEmailReq) && emailService.checkNameAndEmail(sendEmailReq)) {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
+            } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
+                return new BaseResponse<>(FIND_FAIL_USER_NAME_EMAIL);
             } else {
                 return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
             }
