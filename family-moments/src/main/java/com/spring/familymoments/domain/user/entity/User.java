@@ -40,6 +40,9 @@ public class User extends BaseTime implements UserDetails {
     @Column(nullable = false, length = 45)
     private String id;
 
+    @Column(nullable = false)
+    private String uuid;
+
     @Column(nullable = false, length = 45)
     private String email;
 
