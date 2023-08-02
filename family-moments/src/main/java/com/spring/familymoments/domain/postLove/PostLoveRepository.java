@@ -24,4 +24,9 @@ public interface PostLoveRepository extends JpaRepository<PostLove, Long> {
     List<CommentRes> findByPost(Post post);
 
     boolean existsByPostIdAndUserId(Post post, User user);
+
+    @Query("SELECT pl FROM PostLove pl WHERE pl.userId.userId = :userId")
+    List<PostLove> findPostLovesByUserId(Long userId);
+    @Query("SELECT pl FROM PostLove pl WHERE pl.postId IN (SELECT p FROM Post p WHERE p.writer.userId = :userId)")
+    List<PostLove> findPostLovesByPostUserId(Long userId);
 }

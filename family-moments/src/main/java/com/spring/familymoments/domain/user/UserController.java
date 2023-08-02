@@ -256,11 +256,12 @@ public class UserController {
     }
     /**
      * 회원정보 조회 API
-     * [GET] /users/families/{familyId}/profile
+     * [GET] /users/profile
+     * @param familyId null 가능
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/families/{familyId}/profile")
-    public BaseResponse<GetProfileRes> readProfile(@PathVariable Long familyId, @AuthenticationPrincipal User user) {
+    @RequestMapping("/users/profile")
+    public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
         try {
             GetProfileRes getProfileRes = userService.readProfile(user, familyId);
             return new BaseResponse<>(getProfileRes);
@@ -270,13 +271,14 @@ public class UserController {
     }
 
     /**
-     * 유저 검색 API / 가족원 추가 API
-     * [GET] /users/families/{familyId}?keyword={}
+     * 유저 검색 API (가족 생성시 + 가족원 추가시)
+     * [GET] /users
      * @param keyword null 가능
+     * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users/families/{familyId}")
-    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @PathVariable Long familyId, @AuthenticationPrincipal User user) {
+    @GetMapping("/users")
+    public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }

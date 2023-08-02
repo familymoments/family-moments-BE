@@ -5,12 +5,16 @@ import com.spring.familymoments.config.advice.exception.InternalServerErrorExcep
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
+import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
+import com.spring.familymoments.domain.commentLove.entity.CommentLove;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.postLove.PostLoveRepository;
+import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -47,8 +51,9 @@ public class UserService {
     private final FamilyRepository familyRepository;
     private final CommentWithUserRepository commentWithUserRepository;
     private final UserFamilyRepository userFamilyRepository;
+    private final CommentLoveWithUserRepository commentLoveWithUserRepository;
+    private final PostLoveRepository postLoveRepository;
     private final JwtService jwtService;
-
     private final PasswordEncoder passwordEncoder;
 
     /**
@@ -162,11 +167,12 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user, Long familyId) {
-        Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
-
-        Long totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
-
+        Long totalUpload = new Long(0);
+        if(familyId != null) {
+            Family family = familyRepository.findById(familyId)
+                    .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
+            totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
+        }
         LocalDateTime targetDate = user.getCreatedAt();
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
@@ -300,7 +306,26 @@ public class UserService {
     @Transactional
     public void deleteUser(User user) throws IllegalAccessException {
         Long userId = user.getUserId();
+        //1) 가족 생성자면 예외처리
+        List<Family> ownerFamilies = familyRepository.findByOwner(user);
+        if(ownerFamilies != null) {
+            for(Family f : ownerFamilies) {
+                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
+            }
+        }
+        //2) 로그인 유저의 댓글 좋아요 일괄 삭제
+        List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
+        if(commentLoves != null) {
+            commentLoveWithUserRepository.deleteAll(commentLoves);
+        }
+        //3) 로그인 유저의 게시글 좋아요 일괄 삭제
+        List<PostLove> postLoves = postLoveRepository.findPostLovesByUserId(userId);
+        if(postLoves != null) {
+            postLoveRepository.deleteAll(postLoves);
+        }
+
         //1. 로그인 유저의 댓글 일괄 삭제
+        //1-1. 그 전에 로그인 유저가 작성한 댓글 속 좋아요들 일괄 삭제
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
         if(comments != null) {
             commentWithUserRepository.deleteAll(comments);
@@ -308,26 +333,29 @@ public class UserService {
         //2. 로그인 유저의 게시글 일괄 삭제
         //2-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 일괄 삭제
         List<Comment> commentsInPosts = commentWithUserRepository.findByPostUserID(userId);
+        //2-1-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 속 좋아요들 일괄 삭제
+        List<CommentLove> commentLovesInComments = commentLoveWithUserRepository.findCommentLovesByCommentUserId(userId);
+        if(commentLovesInComments != null) {
+            commentLoveWithUserRepository.deleteAll(commentLovesInComments);
+        }
         if(commentsInPosts != null) {
             commentWithUserRepository.deleteAll(commentsInPosts);
+        }
+        //2-2. 그 전에 로그인 유저가 작성한 게시글 속 좋아요를 일괄 삭제
+        List<PostLove> postLovesInPosts = postLoveRepository.findPostLovesByPostUserId(userId);
+        if(postLovesInPosts != null) {
+            postLoveRepository.deleteAll(postLovesInPosts);
         }
         List<Post> posts = postWithUserRepository.findPostByUserId(userId);
         if(posts != null) {
             postWithUserRepository.deleteAll(posts);
         }
-        //3. 가족 생성자면 예외처리
-        List<Family> ownerFamilies = familyRepository.findByOwner(user);
-        if(ownerFamilies != null) {
-            for(Family f : ownerFamilies) {
-                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
-            }
-        }
-        //4. 로그인 유저의 참여한 유저가족매핑 삭제
+        //4) 로그인 유저의 참여한 유저가족매핑 삭제
         List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(userId);
         if(userFamilyList != null) {
             userFamilyRepository.deleteAll(userFamilyList);
         }
-        //5. 로그인 유저 삭제
+        //5) 로그인 유저 삭제
         userRepository.deleteById(userId);
     }
 }
