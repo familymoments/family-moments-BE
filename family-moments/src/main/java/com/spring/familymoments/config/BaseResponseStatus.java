@@ -39,6 +39,7 @@ public enum BaseResponseStatus {
     POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
     POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
     NOT_EQUAL_VERIFICATION_CODE(false, HttpStatus.BAD_REQUEST.value(), "인증 번호가 일치하지 않습니다."),
+    FIND_FAIL_USER_NAME_EMAIL(false,HttpStatus.NOT_FOUND.value(), "이름과 이메일이 정확히 입력되었는지 확인해주세요."),
     FIND_FAIL_ID(false, HttpStatus.NOT_FOUND.value(), "입력한 아이디와 일치하는 회원정보가 없습니다."),
     FIND_FAIL_INVITATION(false, HttpStatus.NOT_FOUND.value(), "초대 요청 목록이 존재하지 않습니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디와 비밀번호가 일치하지 않습니다."),
@@ -61,6 +62,7 @@ public enum BaseResponseStatus {
     //[GET] /users
     FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
     FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 이메일입니다."),
+    FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
 
     //[PATCH] /users/{userIdx}
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
@@ -78,8 +80,10 @@ public enum BaseResponseStatus {
     minnie_POSTS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST.value(), "내용을 입력해주세요."),
     minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "img1에 이미지를 지정해주세요."),
     minnie_POSTS_EMPTY_POST_INFO(false, HttpStatus.BAD_REQUEST.value(), "postInfo가 포함되어야 합니다."),
-    minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다.");
+    minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다."),
 
+    POSTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
+    FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다.");
 
 
 

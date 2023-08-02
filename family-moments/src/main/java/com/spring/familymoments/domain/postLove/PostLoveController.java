@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.postLove;
 
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.postLove.model.PostLoveReq;
 import com.spring.familymoments.domain.user.entity.User;
@@ -21,12 +22,16 @@ public class PostLoveController {
      * @return BaseResponse<String>
      */
     @PostMapping("/postloves")
-    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user, @RequestParam Long postId){
+    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user, @RequestParam Long postId) throws BaseException {
 
-        PostLoveReq newPostLove = new PostLoveReq(postId);
-        postLoveService.createLove(user, newPostLove);
+        try {
+            PostLoveReq newPostLove = new PostLoveReq(postId);
+            postLoveService.createLove(user, newPostLove);
 
-        return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
+            return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
     }
 
     /**
@@ -35,11 +40,15 @@ public class PostLoveController {
      * @return BaseResponse<String>
      */
     @DeleteMapping("/postloves")
-    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user, @RequestParam Long postId){
+    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user, @RequestParam Long postId) throws BaseException {
 
-        PostLoveReq newPostLove = new PostLoveReq(postId);
-        postLoveService.deleteLove(user, newPostLove);
+        try {
+            PostLoveReq newPostLove = new PostLoveReq(postId);
+            postLoveService.deleteLove(user, newPostLove);
 
-        return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
+            return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
+        }  catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
     }
 }
