@@ -29,15 +29,18 @@ public enum BaseResponseStatus {
     // [POST] /users
     USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "유저 아이디 값을 확인해주세요."),
     POST_USERS_INVALID_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디 형식을 확인해주세요."),
-    POST_USERS_EXISTS_ID(false,HttpStatus.BAD_REQUEST.value(),"중복된 아이디입니다."),
+    POST_USERS_EXISTS_ID(false,HttpStatus.BAD_REQUEST.value(),"이미 가입한 아이디가 존재합니다."),
     POST_USERS_INVALID_PW(false, HttpStatus.BAD_REQUEST.value(), "비밀번호 형식을 확인해주세요."),
     POST_USERS_EMPTY_NAME(false, HttpStatus.BAD_REQUEST.value(), "이름을 입력해주세요."),
     POST_USERS_EMPTY_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일을 입력해주세요."),
     POST_USERS_INVALID_EMAIL(false, HttpStatus.BAD_REQUEST.value(), "이메일 형식을 확인해주세요."),
-    POST_USERS_EXISTS_EMAIL(false,HttpStatus.BAD_REQUEST.value(),"중복된 이메일입니다."),
+    POST_USERS_EXISTS_EMAIL(false,HttpStatus.BAD_REQUEST.value(),"이미 가입한 이메일이 존재합니다."),
     POST_USERS_INVALID_BIRTH(false, HttpStatus.BAD_REQUEST.value(), "생년월일 형식을 확인해주세요."),
     POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
     POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
+    NOT_EQUAL_VERIFICATION_CODE(false, HttpStatus.BAD_REQUEST.value(), "인증 번호가 일치하지 않습니다."),
+    FIND_FAIL_ID(false, HttpStatus.NOT_FOUND.value(), "입력한 아이디와 일치하는 회원정보가 없습니다."),
+    FIND_FAIL_INVITATION(false, HttpStatus.NOT_FOUND.value(), "초대 요청 목록이 존재하지 않습니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디와 비밀번호가 일치하지 않습니다."),
 
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
@@ -66,7 +69,17 @@ public enum BaseResponseStatus {
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 
     POST_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 업로드에 실패하였습니다."),
-    DELETE_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 삭제에 실패하였습니다.");
+    DELETE_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 삭제에 실패하였습니다."),
+
+    minnie_POSTS_INVALIED_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
+    minnie_POSTS_WRONG_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
+    minnie_POSTS_NON_EXISTS_POST(false, HttpStatus.NOT_FOUND.value(), "post가 존재하지 않습니다."),
+    minnie_POSTS_EMPTY_UPDATE(false, HttpStatus.BAD_REQUEST.value(), "수정할 내용을 보내주세요."),
+    minnie_POSTS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST.value(), "내용을 입력해주세요."),
+    minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "img1에 이미지를 지정해주세요."),
+    minnie_POSTS_EMPTY_POST_INFO(false, HttpStatus.BAD_REQUEST.value(), "postInfo가 포함되어야 합니다."),
+    minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다.");
+
 
 
 

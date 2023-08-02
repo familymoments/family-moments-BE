@@ -48,13 +48,13 @@ public class EmailService {
 
         String setFrom = "sonshumc75@gmail.com";
         String emailReceiver = email; //받는 사람
-        String title = "Family Moments: 아이디 찾기 인증 번호";
+        String title = "[Family Moments] 인증 번호를 확인해주세요.";
 
         MimeMessage message = emailSender.createMimeMessage();
         message.setFrom(setFrom); //발신자 설정
         message.addRecipients(MimeMessage.RecipientType.TO, emailReceiver); //수신자 설정
         message.setSubject(title); //제목 설정
-        message.setText("요청하신 아이디 찾기 인증 번호는 ["+randomVerificationCode+"] 입니다."); //내용 설정
+        message.setText("Family Moments를 이용해 주셔서 감사합니다. 요청하신 인증 번호는 ["+randomVerificationCode+"] 입니다."); //내용 설정
 
         return message;
     }
@@ -107,6 +107,8 @@ public class EmailService {
             userId = member.getId();
 
             getUserId(userId);
+        } else if (!userRepository.existsByNameAndEmail(req.getName(), req.getEmail())) {
+            throw new InternalServerErrorException("입력하신 이메일과 성함을 다시 확인해주세요.");
         } else {
             throw new InternalServerErrorException("인증코드가 일치하지 않습니다.");
         }

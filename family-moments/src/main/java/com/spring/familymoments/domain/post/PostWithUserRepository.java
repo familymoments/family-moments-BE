@@ -13,9 +13,9 @@ import java.util.List;
 
 public interface PostWithUserRepository extends JpaRepository<Post, Long> {
     //현재 가족에서의 내 게시글 업로드 수
-    Long countByWriterIdAndFamilyId(User user, Family family);
+    Long countByWriterAndFamilyId(User user, Family family);
     //유저가 작성한 모든 게시글 조회
-    @Query("SELECT p FROM Post p WHERE p.writerId.userId = :userId")
+    @Query("SELECT p FROM Post p WHERE p.writer.userId = :userId")
     List<Post> findPostByUserId(Long userId);
 
     // 가족 내에 속한 모든 게시글 조회

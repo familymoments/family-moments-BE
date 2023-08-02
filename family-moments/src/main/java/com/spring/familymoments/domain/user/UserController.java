@@ -9,7 +9,6 @@ import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.parameters.P;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +51,11 @@ public class UserController {
         if(!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
+        // TODO: 아이디 중복 체크
+        if(userService.checkDuplicateId(postUserReq.getId())){
+            log.info("[createUser]: 이미 존재하는 아이디입니다!");
+            return new BaseResponse<>(POST_USERS_EXISTS_ID);
+        }
         //비밀번호
         if(!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
@@ -66,6 +70,11 @@ public class UserController {
         }
         if(!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
+        // TODO: 이메일 중복 체크
+        if(userService.checkDuplicateEmail(postUserReq.getEmail())){
+            log.info("[createUser]: 이미 존재하는 이메일입니다!");
+            return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
         if(!isRegexBirth(postUserReq.getStrBirthDate())) {
@@ -95,21 +104,37 @@ public class UserController {
     /**
      * 아이디 중복 확인 API
      * [GET] /users/check-id
-     * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
+     * @return BaseResponse<String>
      */
     @GetMapping("/users/check-id")
-    public ResponseEntity<Boolean> checkDuplicateId(@RequestParam String id) throws BaseException {
-        return ResponseEntity.ok(userService.checkDuplicateId(id));
+    public BaseResponse<String> checkDuplicateId(@RequestParam String id) throws BaseException {
+        try{
+            if(!userService.checkDuplicateId(id)) {
+                return new BaseResponse<>("사용 가능한 아이디입니다.");
+            } else {
+                return new BaseResponse<>(POST_USERS_EXISTS_ID);
+            }
+        } catch (NoSuchElementException e){
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
     }
 
     /**
      * 이메일 중복 확인 API
      * [GET] /users/check-email
-     * @return ResponseEntity<Boolean> -> 이미 가입된 아이디면 true, 그렇지 않으면 false
+     * @return BaseResponse<String>
      */
     @GetMapping("/users/check-email")
-    public ResponseEntity<Boolean> checkDuplicateEmail(@RequestParam String email) throws BaseException {
-        return ResponseEntity.ok(userService.checkDuplicateEmail(email));
+    public BaseResponse<String> checkDuplicateEmail(@RequestParam String email) throws BaseException {
+        try{
+            if(!userService.checkDuplicateEmail(email)) {
+                return new BaseResponse<>("사용 가능한 이메일입니다.");
+            } else {
+                return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
+            }
+        } catch (NoSuchElementException e){
+            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+        }
     }
 
     /**
@@ -150,28 +175,48 @@ public class UserController {
     public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws InternalServerErrorException, MessagingException, BaseException {
 
-        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+        //이름
+        if(sendEmailReq.getName() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        //이메일
+        if(sendEmailReq.getEmail() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+        }
+        if(!isRegexEmail(sendEmailReq.getEmail())) {
+            return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
 
-        return new BaseResponse<>(getUserIdRes);
+        try {
+            if(emailService.checkVerificationCode(sendEmailReq)) {
+                GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+                return new BaseResponse<>(getUserIdRes);
+            } else {
+                return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
+            }
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }
     }
     /**
      * 비밀번호 찾기 - 아이디 존재 여부 확인
      * [POST] /users/auth/check-id
-     * @return BaseResponse<GetUserIdRes>
+     * @return BaseResponse<String>
      */
-    @RequestMapping("/users/auth/check-id")
-    public BaseResponse<GetUserIdRes> findUserIdBeforeUpdatePwd(@RequestParam String id)
+    @PostMapping("/users/auth/check-id")
+    public BaseResponse<String> findUserIdBeforeUpdatePwd(@RequestBody GetUserIdReq getUserIdReq)
             throws InternalServerErrorException, MessagingException, BaseException {
-
-        GetUserIdRes getUserIdRes;
-
-        if (userService.checkDuplicateId(id)) {
-            getUserIdRes = new GetUserIdRes(id);
-        } else {
-            throw new InternalServerErrorException("입력한 아이디와 일치하는 회원정보가 없습니다.");
+        try {
+            if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
+                // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
+                // return new BaseResponse<>(getUserIdRes);
+                return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
+            } else {
+                return new BaseResponse<>(false, FIND_FAIL_ID.getMessage(), HttpStatus.NOT_FOUND.value());
+            }
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
-
-        return new BaseResponse<>(getUserIdRes);
     }
     /**
      * 비밀번호 찾기 API - 이메일 인증 확인
@@ -182,9 +227,28 @@ public class UserController {
     public BaseResponse<String> findUserPwd(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws InternalServerErrorException, MessagingException, BaseException {
 
-        GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+        //이름
+        if(sendEmailReq.getName() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        //이메일
+        if(sendEmailReq.getEmail() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+        }
+        if(!isRegexEmail(sendEmailReq.getEmail())) {
+            return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
 
-        return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
+        try {
+            if(emailService.checkVerificationCode(sendEmailReq)) {
+                GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
+                return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
+            } else {
+                return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
+            }
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }
     }
     /**
      * 회원정보 조회 API
@@ -221,8 +285,13 @@ public class UserController {
     public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
+
+            if (getInvitationRes.isEmpty()) {
+                return new BaseResponse<>(false, FIND_FAIL_INVITATION.getMessage(), HttpStatus.NOT_FOUND.value());
+            }
+
             return new BaseResponse<>(getInvitationRes);
-        } catch(NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
             return new BaseResponse<>(false, e.getMessage(), 400);
         }
     }
@@ -303,16 +372,16 @@ public class UserController {
 
         String memberEmail = emailService.getUserId(id);
 
-        //1. 비밀번호 변경
-        if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) { //newPassword와 password 일치시
-            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
-        }
-        if(patchPwdWithoutLoginReq.getPasswordB() == "") { //새 비밀번호 빈 입력
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
-        if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) { //새 비밀번호 형식
+        if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
+        if(patchPwdWithoutLoginReq.getPasswordB() == "") {
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+        if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
+            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+        }
+
         userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberEmail);
 
         return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
