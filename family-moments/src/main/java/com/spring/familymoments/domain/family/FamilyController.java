@@ -137,14 +137,14 @@ public class FamilyController {
 
     /**
      * 초대 승락 API
-     * [GET] /{familyId}/users/{userId}/invite-accept
+     * [GET] /{familyId}/invite-accept
      * @return BaseResponse<String>
      */
-    @PatchMapping("/{familyId}/users/{userId}/invite-accept")
+    @PatchMapping("/{familyId}/invite-accept")
     public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
-                                             @PathVariable Long userId) throws BaseException{
+                                             @AuthenticationPrincipal User user) throws BaseException{
         try {
-            familyService.acceptFamily(userId, familyId);
+            familyService.acceptFamily(user, familyId);
             return new BaseResponse<>("초대가 수락되었습니다.");
         }catch (NoSuchElementException e){
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
@@ -178,6 +178,53 @@ public class FamilyController {
         try {
             familyService.deleteFamily(user, familyId);
             return new BaseResponse<>("가족이 삭제되었습니다.");
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /** 가족 정보수정 API
+     * [GET] /families/{familyId}
+     * @return BaseResponse<FamilyDto>
+     */
+    @PatchMapping("/{familyId}/update")
+    public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
+                                                @AuthenticationPrincipal User user,
+                                                @RequestBody FamilyDto familyDto){
+        try {
+            FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyDto);
+            return new BaseResponse<>(resFamilyDto);
+        } catch (NoSuchElementException | IllegalAccessException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        }
+    }
+
+    /** 가족 탈퇴 API
+     * [DELETE] /families/{familyId}/withdraw
+     * @return BaseResponse<String>
+     */
+    @DeleteMapping("/{familyId}/withdraw")
+    public BaseResponse<String> withdrawFamily(@PathVariable Long familyId,
+                                               @AuthenticationPrincipal User user){
+        try {
+            familyService.withdrawFamily(user, familyId);
+            return new BaseResponse<>("가족에서 탈퇴되었습니다.");
+        } catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /** 가족 강제 탈퇴 API
+     * [DELETE] /families/{familyId}/emission
+     * @return BaseResponse<String>
+     */
+    @DeleteMapping("/{familyId}/{ownerId}/emission")
+    public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
+                                               @PathVariable Long ownerId,
+                                               @AuthenticationPrincipal User user){
+        try {
+            familyService.emissionFamily(ownerId, user, familyId);
+            return new BaseResponse<>("가족에서 탈퇴되었습니다.");
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
