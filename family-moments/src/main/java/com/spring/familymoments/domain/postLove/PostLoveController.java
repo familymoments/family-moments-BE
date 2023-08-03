@@ -22,11 +22,11 @@ public class PostLoveController {
      * @return BaseResponse<String>
      */
     @PostMapping("/postloves")
-    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user, @RequestParam Long postId) throws BaseException {
+    public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user,
+                                               @RequestBody PostLoveReq postLoveReq) throws BaseException {
 
         try {
-            PostLoveReq newPostLove = new PostLoveReq(postId);
-            postLoveService.createLove(user, newPostLove);
+            postLoveService.createLove(user, postLoveReq);
 
             return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
         } catch (BaseException e) {
@@ -40,11 +40,11 @@ public class PostLoveController {
      * @return BaseResponse<String>
      */
     @DeleteMapping("/postloves")
-    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user, @RequestParam Long postId) throws BaseException {
+    public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user,
+                                               @RequestBody PostLoveReq postLoveReq) throws BaseException {
 
         try {
-            PostLoveReq newPostLove = new PostLoveReq(postId);
-            postLoveService.deleteLove(user, newPostLove);
+            postLoveService.deleteLove(user, postLoveReq);
 
             return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
         }  catch (BaseException e) {

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -107,9 +106,9 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @GetMapping("/users/check-id")
-    public BaseResponse<String> checkDuplicateId(@RequestParam String id) throws BaseException {
+    public BaseResponse<String> checkDuplicateId(@RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) throws BaseException {
         try{
-            if(!userService.checkDuplicateId(id)) {
+            if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
                 return new BaseResponse<>("사용 가능한 아이디입니다.");
             } else {
                 return new BaseResponse<>(POST_USERS_EXISTS_ID);
@@ -125,9 +124,9 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @GetMapping("/users/check-email")
-    public BaseResponse<String> checkDuplicateEmail(@RequestParam String email) throws BaseException {
+    public BaseResponse<String> checkDuplicateEmail(@RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) throws BaseException {
         try{
-            if(!userService.checkDuplicateEmail(email)) {
+            if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
                 return new BaseResponse<>("사용 가능한 이메일입니다.");
             } else {
                 return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
