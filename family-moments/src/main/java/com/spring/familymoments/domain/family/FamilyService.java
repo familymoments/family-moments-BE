@@ -155,6 +155,8 @@ public class FamilyService {
 
     }
 
+
+    // 가족 초대
     // 가족 초대
     public void inviteUser(List<Long> userIdList, Long familyId) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
@@ -166,11 +168,10 @@ public class FamilyService {
             for (Long ids : userIdList) {
                 Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(userRepository.findById(ids));
 
-                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
+                // 매핑 테이블에 존재하는지 확인
+                if(byUserId.isPresent()){
                     throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
-                }if(byUserId.isPresent() && byUserId.get().getStatus() == DEACCEPT && byUserId.get().getFamilyId() == family){
-                    throw new IllegalAccessException("이미 초대 요청을 보낸 회원입니다.");
-                } else {
+                }else{
                     User user = userRepository.findById(ids)
                             .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
 
@@ -181,6 +182,22 @@ public class FamilyService {
 
                     userFamilyRepository.save(userFamily);
                 }
+
+//                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
+//                    throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
+//                }if(byUserId.isPresent() && byUserId.get().getStatus() == DEACCEPT && byUserId.get().getFamilyId() == family){
+//                    throw new IllegalAccessException("이미 초대 요청을 보낸 회원입니다.");
+//                } else {
+//                    User user = userRepository.findById(ids)
+//                            .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
+//
+//                    UserFamily userFamily = UserFamily.builder()
+//                            .familyId(family)
+//                            .userId(user)
+//                            .status(DEACCEPT).build();
+//
+//                    userFamilyRepository.save(userFamily);
+//                }
             }
         } else {
             throw new NoSuchElementException("가족을 찾을 수 없습니다.");
@@ -331,5 +348,6 @@ public class FamilyService {
         withdrawFamily(user, familyId);
 
     }
+
 
 }
