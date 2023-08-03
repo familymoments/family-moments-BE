@@ -70,7 +70,7 @@ public class PostService {
         SinglePostRes singlePostRes = SinglePostRes.builder()
                 .postId(result.getPostId())
                 .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
-                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt())
+                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
                 .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
                 .build();
 
