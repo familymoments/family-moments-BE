@@ -1,7 +1,10 @@
 package com.spring.familymoments.domain.post.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.spring.familymoments.domain.common.BaseEntity;
 import java.util.Arrays;
@@ -19,7 +22,9 @@ public class SinglePostRes {
     private String profileImg;
     private String content;
     private List<String> imgs;
-    private LocalDateTime createdAt;
+    @JsonIgnore
+    private LocalDateTime createdAtLocalDateTime;
+    private LocalDate createdAt;
     private int countLove;
     private Boolean loved;
 
@@ -30,7 +35,7 @@ public class SinglePostRes {
         this.profileImg = profileImg;
         this.content = content;
         this.imgs = Arrays.asList(imgs.split(","));
-        this.createdAt = createdAt;
+        this.createdAt = createdAt.toLocalDate();
         this.countLove = countLove;
         this.loved = status == BaseEntity.Status.ACTIVE;
     }

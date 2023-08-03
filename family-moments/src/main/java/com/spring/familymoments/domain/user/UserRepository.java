@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u, uf FROM User u LEFT JOIN UserFamily uf ON u.userId = uf.userId.userId " +
             "WHERE (uf.familyId.familyId = :familyId) AND (u.userId = :userId)")
     List<Object[]> findUsersByFamilyIdAndUserId(Long familyId, Long userId);
+
+    User findByNickname(String nickname);
 }

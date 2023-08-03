@@ -39,7 +39,7 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
-    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq) throws BaseException{
+    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
 
 //        // 1. 가족 튜플 생성
 //        // 유저 외래키 생성
@@ -56,7 +56,7 @@ public class FamilyService {
                 .familyName(postFamilyReq.getFamilyName())
                 .uploadCycle(postFamilyReq.getUploadCycle())
                 .inviteCode(inviteLink)
-                .representImg(postFamilyReq.getRepresentImg())
+                .representImg(fileUrl)
                 .build();
 
         // 가족 저장
@@ -155,6 +155,8 @@ public class FamilyService {
 
     }
 
+
+    // 가족 초대
     // 가족 초대
     public void inviteUser(List<Long> userIdList, Long familyId) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
@@ -166,11 +168,10 @@ public class FamilyService {
             for (Long ids : userIdList) {
                 Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(userRepository.findById(ids));
 
-                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
+                // 매핑 테이블에 존재하는지 확인
+                if(byUserId.isPresent()){
                     throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
-                }if(byUserId.isPresent() && byUserId.get().getStatus() == DEACCEPT && byUserId.get().getFamilyId() == family){
-                    throw new IllegalAccessException("이미 초대 요청을 보낸 회원입니다.");
-                } else {
+                }else{
                     User user = userRepository.findById(ids)
                             .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
 
@@ -181,6 +182,22 @@ public class FamilyService {
 
                     userFamilyRepository.save(userFamily);
                 }
+
+//                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
+//                    throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
+//                }if(byUserId.isPresent() && byUserId.get().getStatus() == DEACCEPT && byUserId.get().getFamilyId() == family){
+//                    throw new IllegalAccessException("이미 초대 요청을 보낸 회원입니다.");
+//                } else {
+//                    User user = userRepository.findById(ids)
+//                            .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
+//
+//                    UserFamily userFamily = UserFamily.builder()
+//                            .familyId(family)
+//                            .userId(user)
+//                            .status(DEACCEPT).build();
+//
+//                    userFamilyRepository.save(userFamily);
+//                }
             }
         } else {
             throw new NoSuchElementException("가족을 찾을 수 없습니다.");
@@ -188,12 +205,10 @@ public class FamilyService {
     }
 
     // 가족 초대 수락
-    public void acceptFamily(Long userId, Long familyId){
-        Optional<User> userOptional = userRepository.findById(userId);
+    public void acceptFamily(User user, Long familyId){
         Optional<Family> familyOptional = familyRepository.findById(familyId);
 
-        if (userOptional.isPresent() && familyOptional.isPresent()) {
-            User user = userOptional.get();
+        if (familyOptional.isPresent()) {
             Family family = familyOptional.get();
 
             Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family);
@@ -258,5 +273,81 @@ public class FamilyService {
         family.updateStatus(BaseEntity.Status.INACTIVE);
         familyRepository.save(family);
     }
+
+    //가족 정보 수정
+    public FamilyDto updateFamily(User user, Long familyId, FamilyDto familyDto) throws IllegalAccessException {
+        //Optional<User> userOptional = userRepository.findById(userId);
+        Optional<Family> familyOptional = familyRepository.findById(familyId);
+        //1. 매핑 테이블에서 userId와 familyId로 검색
+        //2. userId 변경
+        if (familyOptional.isPresent()) {
+            Family family = familyOptional.get();
+            // 유저 권환 확인
+            if(!user.equals(family.getOwner())){
+                throw new IllegalAccessException("권한이 없습니다.");
+            }
+
+
+            Family updatedFamily = Family.builder()
+                    .familyId(familyId)
+                    .owner(userRepository.findByNickname(familyDto.getOwner()))
+                    .familyName(family.getFamilyName())
+                    .uploadCycle(family.getUploadCycle())
+                    .inviteCode(family.getInviteCode())
+                    .representImg(family.getRepresentImg())
+                    .build();
+
+            familyRepository.save(updatedFamily);
+
+            // 업데이트된 Family 정보를 FamilyDto로 변환하여 반환
+            return FamilyDto.builder()
+                    .owner(updatedFamily.getOwner().getNickname())
+                    .familyName(updatedFamily.getFamilyName())
+                    .uploadCycle(updatedFamily.getUploadCycle())
+                    .inviteCode(updatedFamily.getInviteCode())
+                    .representImg(updatedFamily.getRepresentImg())
+                    .build();
+
+        } else {
+            throw new NoSuchElementException("존재하지 않는 사용자 또는 가족입니다.");
+        }
+    }
+
+    // 가족 탈퇴
+    public void withdrawFamily(User user, Long familyId) throws BaseException{
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        // 1. 게시글 삭제
+        List<Post> posts = postWithUserRepository.findPostByUserId(user.getUserId());
+        for (Post post : posts) {
+            post.updateStatus(BaseEntity.Status.INACTIVE);
+        }
+        // 2. 댓글 삭제
+        List<Comment> comments = commentWithUserRepository.findCommentsByUserId(user.getUserId());
+        for (Comment comment : comments) {
+            comment.updateStatus(Comment.Status.INACTIVE);
+        }
+        // 3. 매핑 테이블에서 유저-가족 정보 삭제
+        Optional<UserFamily> byUserIdAndFamilyId = userFamilyRepository.findByUserIdAndFamilyId(user, family);
+        userFamilyRepository.delete(byUserIdAndFamilyId.get());
+
+    }
+
+    // 가족 강제 탈퇴
+    public void emissionFamily(Long ownerId, User user, Long familyId) throws BaseException{
+
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        // 생성자 권한 확인
+        if (!family.getOwner().getUserId().equals(ownerId)) {
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+
+        withdrawFamily(user, familyId);
+
+    }
+
 
 }

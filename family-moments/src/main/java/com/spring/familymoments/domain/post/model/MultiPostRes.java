@@ -1,9 +1,11 @@
 package com.spring.familymoments.domain.post.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.spring.familymoments.domain.common.BaseEntity;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -21,7 +23,9 @@ public class MultiPostRes {
     private String profileImg;
     private String content;
     private List<String> imgs;
-    private LocalDateTime createdAt;
+    @JsonIgnore
+    private LocalDateTime createdAtLocalDateTime;
+    private LocalDate createdAt;
     private Boolean loved;
 
     public MultiPostRes(Long postId, String writer, String profileImg, String content, String imgs, LocalDateTime createdAt, BaseEntity.Status status) {
@@ -30,7 +34,7 @@ public class MultiPostRes {
         this.profileImg = profileImg;
         this.content = content;
         this.imgs = Arrays.asList(imgs.split(","));
-        this.createdAt = createdAt;
+        this.createdAt = createdAt.toLocalDate();
         this.loved = status == BaseEntity.Status.ACTIVE;
     }
 }

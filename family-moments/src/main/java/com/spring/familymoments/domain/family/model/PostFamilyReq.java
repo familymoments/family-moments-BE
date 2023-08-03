@@ -18,14 +18,12 @@ public class PostFamilyReq {
     private String familyName;
     @NotBlank(message = "알림 주기를 설정해주세요.")
     private int uploadCycle;
-    @NotBlank(message = "대표 이미지를 설정해주세요.")
-    private String representImg;
+
 
     public Family toEntity() {
         return Family.builder()
                 .familyName(this.familyName)
                 .uploadCycle(this.uploadCycle)
-                .representImg(this.representImg)
                 .build();
     }
 }
