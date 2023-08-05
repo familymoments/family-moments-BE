@@ -216,9 +216,9 @@ public class FamilyService {
         if (familyOptional.isPresent()) {
             Family family = familyOptional.get();
 
+            // 1. 매핑 테이블에서 userId와 familyId로 검색
             Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family);
 
-            // 1. 매핑 테이블에서 userId와 familyId로 검색
             if (userFamily.isPresent()) {
                 // 2. 상태 바꿔줌
                 UserFamily updatedUserFamily = userFamily.get().toBuilder()
@@ -329,10 +329,11 @@ public class FamilyService {
         // 3. 매핑 테이블에서 유저-가족 정보 삭제
         Optional<UserFamily> byUserIdAndFamilyId = userFamilyRepository.findByUserIdAndFamilyId(user, family);
         if(byUserIdAndFamilyId.isEmpty()){
-            throw new BaseException(FIND_FAIL_FAMILY);
+            throw new NoSuchElementException("가족에 가입되어 있지 않은 유저입니다.");
         }
-        userFamilyRepository.delete(byUserIdAndFamilyId.get());
 
+        // 매핑테이블에서 삭제
+        userFamilyRepository.delete(byUserIdAndFamilyId.get());
     }
 
     // 가족 강제 탈퇴
@@ -348,6 +349,7 @@ public class FamilyService {
 
         for (String ids : userIdList) {
             User emissionUser = userRepository.findByNickname(ids);
+            // 유저 탈퇴
             withdrawFamily(emissionUser, familyId);
         }
 
