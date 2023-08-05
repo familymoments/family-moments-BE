@@ -162,12 +162,15 @@ public class FamilyService {
             Family family = familyOptional.get();
 
             for (String ids : userIdList) {
-                Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
+
                 // 매핑 테이블에 존재하는지 확인
-                // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
-                if(byUserId.isPresent()){
-                    if(byUserId.get().getStatus() == ACTIVE || byUserId.get().getStatus() == DEACCEPT){
-                        throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
+                List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
+                if(byUserIdList.size() != 0){
+                    for (UserFamily userFamily : byUserIdList) {
+                        // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
+                        if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
+                            throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
+                        }
                     }
                 }
 
@@ -179,8 +182,8 @@ public class FamilyService {
 
                 UserFamily userFamily = UserFamily.builder()
                         .familyId(family)
-                        .userId(user)
-                        .inviteUserId(invitedUser)
+                        .userId(invitedUser)
+                        .inviteUserId(user)
                         .status(DEACCEPT).build();
 
                 userFamilyRepository.save(userFamily);

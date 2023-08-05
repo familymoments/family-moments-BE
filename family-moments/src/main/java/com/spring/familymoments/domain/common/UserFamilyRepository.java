@@ -14,6 +14,9 @@ import java.util.Optional;
 public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
 
     Optional<UserFamily> findByUserId(Optional<User> user);
+
+    List<UserFamily> findUserFamilyByUserId(Optional<User> user);
+
     Optional<UserFamily> findByUserIdAndFamilyId(User userId, Family familyId);
 
     @Query(value = "SELECT uf FROM UserFamily uf WHERE uf.userId = ?1 "
