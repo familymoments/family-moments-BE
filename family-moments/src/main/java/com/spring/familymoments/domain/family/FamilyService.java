@@ -154,7 +154,7 @@ public class FamilyService {
 
 
     // 가족 초대
-    public void inviteUser(List<String> userIdList, Long familyId) throws IllegalAccessException {
+    public void inviteUser(User user, List<String> userIdList, Long familyId) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
         // 1. 리스트의 유저들이 family에 가입했는지 확인
         // 가입 -> 테이블에 존재&&상태 ACTIVE
@@ -167,14 +167,15 @@ public class FamilyService {
                 if(byUserId.isPresent()){
                     throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
                 }else{
-                    User user = userRepository.findByNickname(ids);
-                    if(user == null){
+                    User invitedUser = userRepository.findByNickname(ids);
+                    if(invitedUser == null){
                         throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
                     }
 
                     UserFamily userFamily = UserFamily.builder()
                             .familyId(family)
                             .userId(user)
+                            .inviteUserId(invitedUser)
                             .status(DEACCEPT).build();
 
                     userFamilyRepository.save(userFamily);

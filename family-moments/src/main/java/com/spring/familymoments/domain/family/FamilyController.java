@@ -123,9 +123,10 @@ public class FamilyController {
      */
     @PostMapping("/{familyId}")
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
-                                           @RequestParam List<String> userIds) throws BaseException{
+                                           @RequestParam List<String> userIds,
+                                           @AuthenticationPrincipal User user) throws BaseException{
         try {
-            familyService.inviteUser(userIds, familyId);
+            familyService.inviteUser(user, userIds, familyId);
             return new BaseResponse<>("초대 요청이 완료되었습니다.");
         } catch (IllegalAccessException e) {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.CONFLICT.value());
