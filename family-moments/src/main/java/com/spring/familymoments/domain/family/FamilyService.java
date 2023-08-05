@@ -142,13 +142,13 @@ public class FamilyService {
     public FamilyDto getFamilyByInviteCode(String inviteCode){
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
 
-        return FamilyDto.builder()
-                .owner(family.get().getOwner().getNickname())
-                .familyName(family.get().getFamilyName())
-                .uploadCycle(family.get().getUploadCycle())
-                .inviteCode(family.get().getInviteCode())
-                .representImg(family.get().getRepresentImg())
-                .build();
+        return family.map(value -> FamilyDto.builder()
+                .owner(value.getOwner().getNickname())
+                .familyName(value.getFamilyName())
+                .uploadCycle(value.getUploadCycle())
+                .inviteCode(value.getInviteCode())
+                .representImg(value.getRepresentImg())
+                .build()).orElse(null);
 
     }
 
