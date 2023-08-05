@@ -211,7 +211,9 @@ public class FamilyController {
         try {
             familyService.withdrawFamily(user, familyId);
             return new BaseResponse<>("가족에서 탈퇴되었습니다.");
-        } catch (BaseException e) {
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
     }
@@ -227,6 +229,8 @@ public class FamilyController {
         try {
             familyService.emissionFamily(user, familyId, userIds);
             return new BaseResponse<>("가족에서 탈퇴되었습니다.");
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }

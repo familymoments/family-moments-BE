@@ -162,24 +162,31 @@ public class FamilyService {
             Family family = familyOptional.get();
 
             for (String ids : userIdList) {
-                Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
+
                 // 매핑 테이블에 존재하는지 확인
-                if(byUserId.isPresent()){
-                    throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
-                }else{
-                    User invitedUser = userRepository.findByNickname(ids);
-                    if(invitedUser == null){
-                        throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
+                List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
+                if(byUserIdList.size() != 0){
+                    for (UserFamily userFamily : byUserIdList) {
+                        // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
+                        if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
+                            throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
+                        }
                     }
-
-                    UserFamily userFamily = UserFamily.builder()
-                            .familyId(family)
-                            .userId(user)
-                            .inviteUserId(invitedUser)
-                            .status(DEACCEPT).build();
-
-                    userFamilyRepository.save(userFamily);
                 }
+
+                User invitedUser = userRepository.findByNickname(ids);
+
+                if(invitedUser == null){
+                    throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
+                }
+
+                UserFamily userFamily = UserFamily.builder()
+                        .familyId(family)
+                        .userId(invitedUser)
+                        .inviteUserId(user)
+                        .status(DEACCEPT).build();
+
+                userFamilyRepository.save(userFamily);
 
 //                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
 //                    throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
@@ -209,9 +216,9 @@ public class FamilyService {
         if (familyOptional.isPresent()) {
             Family family = familyOptional.get();
 
+            // 1. 매핑 테이블에서 userId와 familyId로 검색
             Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family);
 
-            // 1. 매핑 테이블에서 userId와 familyId로 검색
             if (userFamily.isPresent()) {
                 // 2. 상태 바꿔줌
                 UserFamily updatedUserFamily = userFamily.get().toBuilder()
@@ -322,10 +329,11 @@ public class FamilyService {
         // 3. 매핑 테이블에서 유저-가족 정보 삭제
         Optional<UserFamily> byUserIdAndFamilyId = userFamilyRepository.findByUserIdAndFamilyId(user, family);
         if(byUserIdAndFamilyId.isEmpty()){
-            throw new BaseException(FIND_FAIL_FAMILY);
+            throw new NoSuchElementException("가족에 가입되어 있지 않은 유저입니다.");
         }
-        userFamilyRepository.delete(byUserIdAndFamilyId.get());
 
+        // 매핑테이블에서 삭제
+        userFamilyRepository.delete(byUserIdAndFamilyId.get());
     }
 
     // 가족 강제 탈퇴
@@ -341,6 +349,7 @@ public class FamilyService {
 
         for (String ids : userIdList) {
             User emissionUser = userRepository.findByNickname(ids);
+            // 유저 탈퇴
             withdrawFamily(emissionUser, familyId);
         }
 

@@ -83,8 +83,10 @@ public enum BaseResponseStatus {
     minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다."),
 
     POSTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
-    FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다.");
+    FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
 
+    COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
+    FIND_FAIL_COMMENTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다.");
 
 
     private final boolean isSuccess;
