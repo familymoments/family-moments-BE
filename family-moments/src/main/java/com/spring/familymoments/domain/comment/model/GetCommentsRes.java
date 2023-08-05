@@ -23,6 +23,6 @@ public class GetCommentsRes {
 
     private boolean heart;
 
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
 
 }

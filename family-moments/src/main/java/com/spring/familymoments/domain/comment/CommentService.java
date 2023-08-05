@@ -72,7 +72,7 @@ public class CommentService {
                         comment.getWriter().getProfileImg(),
                         comment.getContent(),
                         comment.getCountLove() != 0,
-                        comment.getUpdatedAt()
+                        comment.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
 
