@@ -4,22 +4,14 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
-import com.spring.familymoments.domain.common.entity.UserFamily;
-import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.family.model.GetFamilyAllRes;
-import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
-import com.spring.familymoments.domain.family.model.PostFamilyRes;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
-import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,7 +21,6 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 @RequiredArgsConstructor
 @Transactional
 public class CommentService {
-    private final UserRepository userRepository;
     private final CommentWithUserRepository commentWithUserRepository;
     private final PostWithUserRepository postWithUserRepository;
 
@@ -63,10 +54,16 @@ public class CommentService {
 
     // 특정 게시물의 댓글 목록 조회
     public List<GetCommentsRes> getCommentsByPostId(Long postId) throws BaseException{
-        Post post = postWithUserRepository.findById(postId)
+
+        // 게시글 존재 확인
+        postWithUserRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_POST));
 
         List<Comment> activeComments = commentWithUserRepository.findActiveCommentsByPostId(postId);
+
+        if(activeComments.isEmpty() || activeComments == null) {
+            throw new BaseException(NO_ACTIVE_COMMENTS);
+        }
 
         List<GetCommentsRes> getCommentsResList = activeComments.stream()
                 .map(comment -> new GetCommentsRes(
@@ -74,7 +71,7 @@ public class CommentService {
                         comment.getWriter().getNickname(),
                         comment.getWriter().getProfileImg(),
                         comment.getContent(),
-                        comment.getStatus() == Comment.Status.ACTIVE,
+                        comment.getCountLove() != 0,
                         comment.getUpdatedAt()
                 ))
                 .collect(Collectors.toList());
