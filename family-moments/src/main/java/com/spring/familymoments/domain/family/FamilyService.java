@@ -138,46 +138,44 @@ public class FamilyService {
         return getFamilyAllResList;
     }
 
+    //초대코드로 가족 조회
     public FamilyDto getFamilyByInviteCode(String inviteCode){
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
 
-        if (family.isEmpty()) {
-            throw new NoSuchElementException("존재하지 않습니다");
-        }
-
-        return FamilyDto.builder()
-                .owner(family.get().getOwner().getNickname())
-                .familyName(family.get().getFamilyName())
-                .uploadCycle(family.get().getUploadCycle())
-                .inviteCode(family.get().getInviteCode())
-                .representImg(family.get().getRepresentImg())
-                .build();
+        return family.map(value -> FamilyDto.builder()
+                .owner(value.getOwner().getNickname())
+                .familyName(value.getFamilyName())
+                .uploadCycle(value.getUploadCycle())
+                .inviteCode(value.getInviteCode())
+                .representImg(value.getRepresentImg())
+                .build()).orElse(null);
 
     }
 
 
     // 가족 초대
-    // 가족 초대
-    public void inviteUser(List<Long> userIdList, Long familyId) throws IllegalAccessException {
+    public void inviteUser(User user, List<String> userIdList, Long familyId) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
         // 1. 리스트의 유저들이 family에 가입했는지 확인
         // 가입 -> 테이블에 존재&&상태 ACTIVE
         if (familyOptional.isPresent()) {
             Family family = familyOptional.get();
 
-            for (Long ids : userIdList) {
-                Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(userRepository.findById(ids));
-
+            for (String ids : userIdList) {
+                Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
                 // 매핑 테이블에 존재하는지 확인
                 if(byUserId.isPresent()){
-                    throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
+                    throw new IllegalAccessException("이미 초대 요청을 받은 회원입니다.");
                 }else{
-                    User user = userRepository.findById(ids)
-                            .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
+                    User invitedUser = userRepository.findByNickname(ids);
+                    if(invitedUser == null){
+                        throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
+                    }
 
                     UserFamily userFamily = UserFamily.builder()
                             .familyId(family)
                             .userId(user)
+                            .inviteUserId(invitedUser)
                             .status(DEACCEPT).build();
 
                     userFamilyRepository.save(userFamily);
@@ -275,7 +273,7 @@ public class FamilyService {
     }
 
     //가족 정보 수정
-    public FamilyDto updateFamily(User user, Long familyId, FamilyDto familyDto) throws IllegalAccessException {
+    public FamilyDto updateFamily(User user, Long familyId, FamilyUpdateDto familyUpdateDto) throws IllegalAccessException {
         //Optional<User> userOptional = userRepository.findById(userId);
         Optional<Family> familyOptional = familyRepository.findById(familyId);
         //1. 매핑 테이블에서 userId와 familyId로 검색
@@ -287,25 +285,18 @@ public class FamilyService {
                 throw new IllegalAccessException("권한이 없습니다.");
             }
 
+            family.updateFamily(userRepository.findByNickname(familyUpdateDto.getOwner()), familyUpdateDto.getFamilyName());
+            if(family.getOwner() == null){
+                throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
+            }
+            familyRepository.save(family);
 
-            Family updatedFamily = Family.builder()
-                    .familyId(familyId)
-                    .owner(userRepository.findByNickname(familyDto.getOwner()))
+            return FamilyDto.builder()
+                    .owner(family.getOwner().getNickname())
                     .familyName(family.getFamilyName())
                     .uploadCycle(family.getUploadCycle())
                     .inviteCode(family.getInviteCode())
                     .representImg(family.getRepresentImg())
-                    .build();
-
-            familyRepository.save(updatedFamily);
-
-            // 업데이트된 Family 정보를 FamilyDto로 변환하여 반환
-            return FamilyDto.builder()
-                    .owner(updatedFamily.getOwner().getNickname())
-                    .familyName(updatedFamily.getFamilyName())
-                    .uploadCycle(updatedFamily.getUploadCycle())
-                    .inviteCode(updatedFamily.getInviteCode())
-                    .representImg(updatedFamily.getRepresentImg())
                     .build();
 
         } else {
@@ -330,22 +321,28 @@ public class FamilyService {
         }
         // 3. 매핑 테이블에서 유저-가족 정보 삭제
         Optional<UserFamily> byUserIdAndFamilyId = userFamilyRepository.findByUserIdAndFamilyId(user, family);
+        if(byUserIdAndFamilyId.isEmpty()){
+            throw new BaseException(FIND_FAIL_FAMILY);
+        }
         userFamilyRepository.delete(byUserIdAndFamilyId.get());
 
     }
 
     // 가족 강제 탈퇴
-    public void emissionFamily(Long ownerId, User user, Long familyId) throws BaseException{
+    public void emissionFamily(User user, Long familyId, List<String> userIdList) throws BaseException{
 
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 생성자 권한 확인
-        if (!family.getOwner().getUserId().equals(ownerId)) {
+        if (!family.getOwner().equals(user)) {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
 
-        withdrawFamily(user, familyId);
+        for (String ids : userIdList) {
+            User emissionUser = userRepository.findByNickname(ids);
+            withdrawFamily(emissionUser, familyId);
+        }
 
     }
 

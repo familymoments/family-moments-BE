@@ -37,6 +37,10 @@ public class UserFamily extends BaseTime {
     @Column(name = "status", nullable = false, length = 10)
     protected Status status = Status.DEACCEPT;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inviteUserId", nullable = false)
+    private User inviteUserId;
+
     public enum Status {
         ACTIVE, INACTIVE, DEACCEPT, REJECT;
     }
