@@ -124,7 +124,7 @@ public class FamilyController {
      */
     @PostMapping("/{familyId}")
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
-                                           @RequestParam List<Long> userIds) throws BaseException{
+                                           @RequestParam List<String> userIds) throws BaseException{
         try {
             familyService.inviteUser(userIds, familyId);
             return new BaseResponse<>("초대 요청이 완료되었습니다.");
@@ -190,12 +190,14 @@ public class FamilyController {
     @PatchMapping("/{familyId}/update")
     public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
                                                 @AuthenticationPrincipal User user,
-                                                @RequestBody FamilyDto familyDto){
+                                                @RequestBody FamilyUpdateDto familyUpdateDto){
         try {
-            FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyDto);
+            FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyUpdateDto);
             return new BaseResponse<>(resFamilyDto);
-        } catch (NoSuchElementException | IllegalAccessException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(FIND_FAIL_USERNAME);
+        }catch (IllegalAccessException e){
+            return new BaseResponse<>(FAILED_USERSS_UNATHORIZED);
         }
     }
 
@@ -218,12 +220,12 @@ public class FamilyController {
      * [DELETE] /families/{familyId}/emission
      * @return BaseResponse<String>
      */
-    @DeleteMapping("/{familyId}/{ownerId}/emission")
+    @DeleteMapping("/{familyId}/emission")
     public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
-                                               @PathVariable Long ownerId,
-                                               @AuthenticationPrincipal User user){
+                                               @AuthenticationPrincipal User user,
+                                               @RequestParam List<String> userIds){
         try {
-            familyService.emissionFamily(ownerId, user, familyId);
+            familyService.emissionFamily(user, familyId, userIds);
             return new BaseResponse<>("가족에서 탈퇴되었습니다.");
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
