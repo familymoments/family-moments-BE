@@ -261,6 +261,9 @@ public class UserController {
      */
     @RequestMapping("/users/profile")
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             GetProfileRes getProfileRes = userService.readProfile(user, familyId);
             return new BaseResponse<>(getProfileRes);
@@ -278,6 +281,9 @@ public class UserController {
      */
     @GetMapping("/users")
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
@@ -309,6 +315,9 @@ public class UserController {
      */
     @PatchMapping("/users")
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         String fileUrl = awsS3Service.uploadImage(profileImg);
         patchProfileReqRes.setProfileImg(fileUrl);
 
@@ -322,6 +331,9 @@ public class UserController {
      */
     @GetMapping("/users/auth/compare-pwd")
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             if(userService.authenticate(getPwdReq, user)) {
                 return new BaseResponse<>("비밀번호가 일치합니다.");
@@ -342,6 +354,9 @@ public class UserController {
     @Transactional
     @PatchMapping("/users/modify-pwd")
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq, @AuthenticationPrincipal User user, HttpServletResponse response) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         //1. 비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(FAILED_AUTHENTICATION);
@@ -412,6 +427,9 @@ public class UserController {
     @Transactional
     @DeleteMapping("/users")
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             userService.deleteUser(user);
             return new BaseResponse<>("계정을 삭제했습니다.");
