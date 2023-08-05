@@ -138,12 +138,9 @@ public class FamilyService {
         return getFamilyAllResList;
     }
 
+    //초대코드로 가족 조회
     public FamilyDto getFamilyByInviteCode(String inviteCode){
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
-
-        if (family.isEmpty()) {
-            throw new NoSuchElementException("존재하지 않습니다");
-        }
 
         return FamilyDto.builder()
                 .owner(family.get().getOwner().getNickname())

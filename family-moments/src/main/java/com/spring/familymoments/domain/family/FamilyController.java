@@ -106,9 +106,8 @@ public class FamilyController {
      * [GET] /{inviteCode}/inviteCode
      * @return BaseResponse<FamilyDto>
      */
-    @GetMapping("/{inviteCode}/inviteCode")
-    public BaseResponse<FamilyDto> getFamilyByInviteCode(@PathVariable String inviteCode) throws BaseException{
-        //return new BaseResponse<>(familyService.getFamily(familyId));
+    @PostMapping("/inviteCode")
+    public BaseResponse<FamilyDto> getFamilyByInviteCode(@RequestBody String inviteCode){
         try {
             FamilyDto familyDto = familyService.getFamilyByInviteCode(inviteCode);
             return new BaseResponse<>(familyDto);
