@@ -11,6 +11,7 @@ import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,17 +65,22 @@ public class PostService {
         }
         Post params = postBuilder.build();
 
-        Post result = postRepository.save(params);
+        try {
+            Post result = postRepository.save(params);
 
-        // postId로 연관된 테이블을 다시 검색하지 않음
-        SinglePostRes singlePostRes = SinglePostRes.builder()
-                .postId(result.getPostId())
-                .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
-                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
-                .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
-                .build();
+            // postId로 연관된 테이블을 다시 검색하지 않음
+            SinglePostRes singlePostRes = SinglePostRes.builder()
+                    .postId(result.getPostId())
+                    .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
+                    .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
+                    .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
+                    .build();
 
-        return singlePostRes;
+            return singlePostRes;
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("유효하지 않은 familyId");
+        }
+
     }
 
     // post update

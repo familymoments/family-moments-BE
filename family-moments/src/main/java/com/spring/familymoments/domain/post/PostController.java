@@ -74,6 +74,8 @@ public class PostController {
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
+        } catch (RuntimeException e) {
+            return new BaseResponse<>(FIND_FAIL_FAMILY);
         }
     }
 
