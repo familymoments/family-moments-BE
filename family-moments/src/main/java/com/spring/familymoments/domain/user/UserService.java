@@ -27,8 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -126,40 +124,6 @@ public class UserService {
     public boolean checkDuplicateEmail(String email) throws BaseException {
         return userRepository.existsByEmail(email);
     }
-
-    /**
-     * 로그인
-     * [POST]
-     * @return ok
-     */
-    public PostLoginRes createLogin(PostLoginReq postLoginReq, HttpServletResponse response) {
-        // 로그인 아이디 확인 db의 Id랑 같은지 확인하고 토큰 돌려주기
-        User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
-        if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
-        }
-        // 로그인 시 토큰 생성해서 header에 붙이기
-        String token = jwtService.createToken(user.getUuid());
-        response.setHeader("X-AUTH-TOKEN", token);
-
-        // 클라이언트에 cookie로 토큰도 보내기
-        Cookie cookie = new Cookie("X-AUTH-TOKEN", token);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
-        response.addCookie(cookie);
-
-        return new PostLoginRes(postLoginReq.getId());
-    }
-
-    /**
-     * 로그아웃
-     * [POST]
-     * @return ok
-     *
-     * controller 부분에만 작성함.
-     */
 
     /**
      * 회원정보 조회 API
