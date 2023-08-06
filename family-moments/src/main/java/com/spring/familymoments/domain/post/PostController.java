@@ -2,10 +2,7 @@ package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.domain.post.model.MultiPostRes;
-import com.spring.familymoments.domain.post.model.PostInfoReq;
-import com.spring.familymoments.domain.post.model.PostReq;
-import com.spring.familymoments.domain.post.model.SinglePostRes;
+import com.spring.familymoments.domain.post.model.*;
 import com.spring.familymoments.domain.postLove.PostLoveService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.CommentRes;
@@ -239,6 +236,36 @@ public class PostController {
            return new BaseResponse<>(e.getStatus());
        }
    }
+
+    /**
+     * 앨범 조회 API - 최근 30건
+     * [GET] /posts/album?familyId={가족인덱스}
+     * @return BaseResponse<List<AlbumRes>>
+     */
+    @GetMapping(value = "/album")
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId) {
+        try {
+            List<AlbumRes> album = postService.getAlbum(familyId);
+            return new BaseResponse<>(album);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+    /**
+     * 앨범 조회 API - 기준 이후 30건
+     * [GET] /posts/album?familyId={가족인덱스}&postId={post인덱스}
+     * @return BaseResponse<List<AlbumRes>>
+     */
+    @GetMapping(value = "/album", params = {"familyId", "postId"})
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+        try {
+            List<AlbumRes> album = postService.getAlbum(familyId, postId);
+            return new BaseResponse<>(album);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
 
     /**
      * 좋아요 목록 조회 API
