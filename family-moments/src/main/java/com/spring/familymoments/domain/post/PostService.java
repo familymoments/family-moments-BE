@@ -5,6 +5,7 @@ import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.model.AlbumRes;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.PostReq;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
@@ -244,5 +245,41 @@ public class PostService {
         }
 
         return dates;
+    }
+
+    @Transactional
+    public List<AlbumRes> getAlbum (long familyId) throws BaseException {
+        Pageable pageable = PageRequest.of(0, 30);
+        List<Post> posts = postRepository.findByFamilyIdAndStatusOrderByPostIdDesc(new Family(familyId), BaseEntity.Status.ACTIVE, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        List<AlbumRes> albumResList = new ArrayList<>();
+        for(Post post : posts) {
+            AlbumRes albumRes = AlbumRes.builder().postId(post.getPostId()).img1(post.getImg1()).build();
+            albumResList.add(albumRes);
+        }
+
+        return albumResList;
+    }
+
+    @Transactional
+    public List<AlbumRes> getAlbum (long familyId, long postId) throws BaseException {
+        Pageable pageable = PageRequest.of(0, 30);
+        List<Post> posts = postRepository.findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(new Family(familyId), postId, BaseEntity.Status.ACTIVE, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        List<AlbumRes> albumResList = new ArrayList<>();
+        for(Post post : posts) {
+            AlbumRes albumRes = AlbumRes.builder().postId(post.getPostId()).img1(post.getImg1()).build();
+            albumResList.add(albumRes);
+        }
+
+        return albumResList;
     }
 }

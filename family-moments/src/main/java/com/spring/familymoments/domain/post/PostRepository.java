@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
@@ -82,4 +83,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "AND p.createdAt BETWEEN :startDate AND :endDate " +
             "ORDER BY p.postId ASC ")
     List<LocalDateTime> getDateExistPost(@Param("familyId") long familyId, @Param("status") BaseEntity.Status status, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    List<Post> findByFamilyIdAndStatusOrderByPostIdDesc(Family family, BaseEntity.Status status, Pageable pageable);
+
+    List<Post> findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(Family family, long postId, BaseEntity.Status status, Pageable pageable);
 }
