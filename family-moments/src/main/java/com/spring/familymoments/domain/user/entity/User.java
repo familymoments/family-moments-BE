@@ -97,7 +97,7 @@ public class User extends BaseTime implements UserDetails {
     }
     @Override
     public String getUsername() {
-        return id; //uuid?
+        return uuid;
     }
 
     @Override

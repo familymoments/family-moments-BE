@@ -68,6 +68,5 @@ public class Family extends BaseEntity {
         this.owner = owner;
         this.familyName = familyName;
     }
-
 }
 
