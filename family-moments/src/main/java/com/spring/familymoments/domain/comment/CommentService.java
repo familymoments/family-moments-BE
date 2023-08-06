@@ -4,6 +4,8 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
+import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.entity.User;
@@ -27,9 +29,14 @@ public class CommentService {
     // 댓글 생성하기
     public void createComment(User user, Long postId, PostCommentReq postCommentReq) throws BaseException {
 
-//        // 사용자
+        // 사용자
 //        User writer = userRepository.findById(userId)
 //                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
+
+        // 유저 존재 확인
+        if(user==null){
+            throw new BaseException(FIND_FAIL_USERNAME);
+        }
 
         // 게시글
         Post post = postWithUserRepository.findById(postId)
@@ -77,5 +84,33 @@ public class CommentService {
                 .collect(Collectors.toList());
 
         return getCommentsResList;
+    }
+
+    // 댓글 삭제
+    public void deleteComment(User user, Long commentId) throws BaseException{
+
+        // 유저 존재 확인
+        if(user==null){
+            throw new BaseException(FIND_FAIL_USERNAME);
+        }
+
+        // 댓글 존재 확인
+        Comment comment = commentWithUserRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        // 생성자 권한 확인
+        if (!comment.getWriter().getUserId().equals(user.getUserId())) {
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+
+        // 기존 삭제 여부 확인
+        if (comment.getStatus().equals(BaseEntity.Status.INACTIVE)) {
+            throw new BaseException(ALREADY_DELETE_COMMENT);
+        }
+
+        // 댓글 삭제
+        comment.updateStatus(BaseEntity.Status.INACTIVE);
+        commentWithUserRepository.save(comment);
+
     }
 }
