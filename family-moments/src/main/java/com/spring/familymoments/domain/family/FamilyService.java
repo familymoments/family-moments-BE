@@ -72,6 +72,7 @@ public class FamilyService {
         UserFamily userFamily = UserFamily.builder()
                 .userId(owner)
                 .familyId(preFamily)
+                .inviteUserId(owner)
                 .status(ACTIVE)
                 .build();
 
