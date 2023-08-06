@@ -256,6 +256,11 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
+        // 생성자 권한 확인
+        if (!family.getOwner().getUserId().equals(user.getUserId())) {
+            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        }
+
         // 1. 가족 내 게시글의 댓글 일괄 삭제
         List<Post> postsToDelete = postWithUserRepository.findByFamilyId(family);
         for (Post post : postsToDelete) {
@@ -272,9 +277,6 @@ public class FamilyService {
         }
 
         // 3. 가족 삭제
-        if (!family.getOwner().getUserId().equals(user.getUserId())) {        // 생성자 권한 확인
-            throw new BaseException(FAILED_USERSS_UNATHORIZED);
-        }
         family.updateStatus(BaseEntity.Status.INACTIVE);
         familyRepository.save(family);
     }

@@ -14,10 +14,15 @@ import java.time.LocalDateTime;
 public class GetCommentsRes {
 
     private Long commentId;
+
     private String nickname;
+
     private String profileImg;
+
     private String content;
+
     private boolean heart;
-    private LocalDateTime updatedAt;
+
+    private LocalDateTime createdAt;
 
 }

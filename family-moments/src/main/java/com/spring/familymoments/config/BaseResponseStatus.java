@@ -72,6 +72,10 @@ public enum BaseResponseStatus {
 
     POST_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 업로드에 실패하였습니다."),
     DELETE_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 삭제에 실패하였습니다."),
+    NO_ACTIVE_COMMENTS(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다."),
+    FIND_FAIL_COMMENT(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
+    ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
+
 
     minnie_POSTS_INVALIED_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
     minnie_POSTS_WRONG_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),

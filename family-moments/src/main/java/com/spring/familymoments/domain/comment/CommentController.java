@@ -51,4 +51,20 @@ public class CommentController {
             return new BaseResponse<>((e.getStatus()));
         }
     }
+
+    /**
+     * 댓글 삭제 API
+     * [DELETE] /comments/:{댓글인덱스}
+     * @return BaseResponse<String>
+     */
+    @ResponseBody
+    @DeleteMapping("/{commentId}")
+    public BaseResponse<String> deleteComment(@AuthenticationPrincipal User user, @PathVariable Long commentId){
+        try{
+            commentService.deleteComment(user, commentId);
+            return new BaseResponse<>("댓글이 삭제되었습니다.");
+        }catch (BaseException e) {
+            return new BaseResponse<>((e.getStatus()));
+        }
+    }
 }
