@@ -70,7 +70,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "(p.postId, u.nickname, u.profileImg, p.content, CONCAT(COALESCE(p.img1, ''), ',', COALESCE(p.img2, ''), ',', COALESCE(p.img3, ''), ',', COALESCE(p.img4, '')), p.createdAt, p.countLove, pl.status) " +
             "FROM Post p JOIN p.writer u " +
             "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
-            "WHERE p.postId = :postId")
+            "WHERE p.postId = :postId " +
+            "AND p.status = 'ACTIVE'")
     SinglePostRes findByPostId(@Param("userId") long userId, @Param("postId") long postId);
 
     Post findByPostIdAndStatus(long postId, BaseEntity.Status status);
