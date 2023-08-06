@@ -196,8 +196,10 @@ public class UserService {
 //        } else {
             for (UserFamily invitation : userFamilyList) {
                 GetInvitationRes getInvitationRes = new GetInvitationRes(invitation.getFamilyId().getFamilyName(),
-                        invitation.getFamilyId().getOwner().getNickname(),
-                        invitation.getFamilyId().getOwner().getProfileImg());
+                        // invitation.getFamilyId().getOwner().getNickname(),
+                        // invitation.getFamilyId().getOwner().getProfileImg());
+                        invitation.getInviteUserId().getNickname(),
+                        invitation.getInviteUserId().getProfileImg());
 
                 getInvitationResList.add(getInvitationRes);
             }

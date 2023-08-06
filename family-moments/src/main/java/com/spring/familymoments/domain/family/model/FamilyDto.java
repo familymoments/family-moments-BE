@@ -17,13 +17,4 @@ public class FamilyDto {
     private String inviteCode;
     private String representImg;
 
-//    public Family toEntity() {
-//        return Family.builder()
-//                .owner()
-//                .familyName(this.familyName)
-//                .uploadCycle(this.uploadCycle)
-//                .inviteCode(this.inviteCode)
-//                .representImg(this.representImg)
-//                .build();
-//    }
 }

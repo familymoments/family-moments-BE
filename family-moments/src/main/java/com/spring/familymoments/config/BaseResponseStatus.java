@@ -73,6 +73,10 @@ public enum BaseResponseStatus {
 
     POST_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 업로드에 실패하였습니다."),
     DELETE_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 삭제에 실패하였습니다."),
+    NO_ACTIVE_COMMENTS(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다."),
+    FIND_FAIL_COMMENT(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
+    ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
+
 
     minnie_POSTS_INVALIED_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
     minnie_POSTS_WRONG_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
@@ -84,8 +88,10 @@ public enum BaseResponseStatus {
     minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다."),
 
     POSTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
-    FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다.");
+    FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
 
+    COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
+    FIND_FAIL_COMMENTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다.");
 
 
     private final boolean isSuccess;

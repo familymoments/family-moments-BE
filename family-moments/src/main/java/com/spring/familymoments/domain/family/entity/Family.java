@@ -61,4 +61,12 @@ public class Family extends BaseEntity {
         this.uploadCycle = uploadCycle;
     }
 
+    /**
+     * 가족 정보 수정 API 관련 메소드
+     */
+    public void updateFamily(User owner, String familyName) {
+        this.owner = owner;
+        this.familyName = familyName;
+    }
 }
+
