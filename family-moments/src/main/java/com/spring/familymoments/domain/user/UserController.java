@@ -31,6 +31,7 @@ public class UserController {
     private final UserService userService;
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
+    private final AuthService authService;
 
     /**
      * 회원 가입 API
@@ -135,36 +136,6 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
     }
-
-    /**
-     * 로그인 API
-     * [POST] /users/log-in
-     * @return BaseResponse<>(postLoginRes)
-     */
-    @PostMapping("/users/log-in")
-    public BaseResponse<PostLoginRes> login(@RequestBody PostLoginReq postLoginReq, HttpServletResponse response) {
-        try{
-            PostLoginRes postLoginRes = userService.createLogin(postLoginReq, response);
-            return new BaseResponse<>(postLoginRes);
-        } catch(NoSuchElementException e){
-            return new BaseResponse<>(FAILED_TO_LOGIN);
-        }
-    }
-
-    /**
-     * 로그아웃 API
-     * [POST] /users/log-out
-     * @return
-     */
-    @PostMapping("/users/log-out")
-    public BaseResponse<String> logout(HttpServletResponse response) throws BaseException {
-        Cookie cookie = new Cookie("X-AUTH-TOKEN", null);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        response.addCookie(cookie);
-        return new BaseResponse<>("로그아웃 했습니다.");
-    }
     /**
      * 아이디 찾기 API
      * [POST] /users/auth/find-id
@@ -261,6 +232,9 @@ public class UserController {
      */
     @RequestMapping("/users/profile")
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             GetProfileRes getProfileRes = userService.readProfile(user, familyId);
             return new BaseResponse<>(getProfileRes);
@@ -278,6 +252,9 @@ public class UserController {
      */
     @GetMapping("/users")
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
@@ -309,6 +286,9 @@ public class UserController {
      */
     @PatchMapping("/users")
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestParam(name = "profileImg") MultipartFile profileImg, @RequestPart PatchProfileReqRes patchProfileReqRes, @AuthenticationPrincipal User user) throws BaseException {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         String fileUrl = awsS3Service.uploadImage(profileImg);
         patchProfileReqRes.setProfileImg(fileUrl);
 
@@ -322,6 +302,9 @@ public class UserController {
      */
     @GetMapping("/users/auth/compare-pwd")
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq, @AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             if(userService.authenticate(getPwdReq, user)) {
                 return new BaseResponse<>("비밀번호가 일치합니다.");
@@ -341,7 +324,10 @@ public class UserController {
      */
     @Transactional
     @PatchMapping("/users/modify-pwd")
-    public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq, @AuthenticationPrincipal User user, HttpServletResponse response) {
+    public BaseResponse<String> updatePassword(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestBody PatchPwdReq patchPwdReq, @AuthenticationPrincipal User user, HttpServletResponse response) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         //1. 비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(FAILED_AUTHENTICATION);
@@ -359,10 +345,10 @@ public class UserController {
 
         //2. 보안을 위해 로그아웃
         try {
-            logout(response);
-        } catch (BaseException e) {
+            authService.logout(requestAccessToken);
+        } catch (IllegalAccessException e) {
             System.out.println(e.getMessage());
-            throw new RuntimeException(e);
+            return new BaseResponse<>(INVALID_USER_JWT);
         }
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
@@ -412,6 +398,9 @@ public class UserController {
     @Transactional
     @DeleteMapping("/users")
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user) {
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
         try {
             userService.deleteUser(user);
             return new BaseResponse<>("계정을 삭제했습니다.");
