@@ -5,12 +5,14 @@ import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.model.AlbumRes;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.PostReq;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,17 +66,22 @@ public class PostService {
         }
         Post params = postBuilder.build();
 
-        Post result = postRepository.save(params);
+        try {
+            Post result = postRepository.save(params);
 
-        // postId로 연관된 테이블을 다시 검색하지 않음
-        SinglePostRes singlePostRes = SinglePostRes.builder()
-                .postId(result.getPostId())
-                .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
-                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
-                .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
-                .build();
+            // postId로 연관된 테이블을 다시 검색하지 않음
+            SinglePostRes singlePostRes = SinglePostRes.builder()
+                    .postId(result.getPostId())
+                    .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
+                    .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
+                    .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
+                    .build();
 
-        return singlePostRes;
+            return singlePostRes;
+        } catch (DataIntegrityViolationException e) {
+            throw new RuntimeException("유효하지 않은 familyId");
+        }
+
     }
 
     // post update
@@ -238,5 +245,41 @@ public class PostService {
         }
 
         return dates;
+    }
+
+    @Transactional
+    public List<AlbumRes> getAlbum (long familyId) throws BaseException {
+        Pageable pageable = PageRequest.of(0, 30);
+        List<Post> posts = postRepository.findByFamilyIdAndStatusOrderByPostIdDesc(new Family(familyId), BaseEntity.Status.ACTIVE, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        List<AlbumRes> albumResList = new ArrayList<>();
+        for(Post post : posts) {
+            AlbumRes albumRes = AlbumRes.builder().postId(post.getPostId()).img1(post.getImg1()).build();
+            albumResList.add(albumRes);
+        }
+
+        return albumResList;
+    }
+
+    @Transactional
+    public List<AlbumRes> getAlbum (long familyId, long postId) throws BaseException {
+        Pageable pageable = PageRequest.of(0, 30);
+        List<Post> posts = postRepository.findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(new Family(familyId), postId, BaseEntity.Status.ACTIVE, pageable);
+
+        if(posts.isEmpty()) {
+            throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
+        }
+
+        List<AlbumRes> albumResList = new ArrayList<>();
+        for(Post post : posts) {
+            AlbumRes albumRes = AlbumRes.builder().postId(post.getPostId()).img1(post.getImg1()).build();
+            albumResList.add(albumRes);
+        }
+
+        return albumResList;
     }
 }
