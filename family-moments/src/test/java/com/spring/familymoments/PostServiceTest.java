@@ -3,6 +3,7 @@ package com.spring.familymoments;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.post.PostRepository;
 import com.spring.familymoments.domain.post.PostService;
+import com.spring.familymoments.domain.post.model.AlbumRes;
 import com.spring.familymoments.domain.post.model.MultiPostRes;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
 import org.junit.jupiter.api.Test;
@@ -32,12 +33,16 @@ public class PostServiceTest {
 
     @Test
     void multiplePost() throws BaseException {
-        List<MultiPostRes> multiPostRes= postService.getPosts(1, 2);
+        List<AlbumRes> multiPostRes= postService.getAlbum(1, 15);
 
         if(multiPostRes == null) {
             System.out.print("Is null");
         } else if(multiPostRes.isEmpty()){
             System.out.print("Is empty");
+        }
+
+        for(AlbumRes res : multiPostRes) {
+            System.out.println("id : " + res.getPostId() + "\t" + res.getImg1());
         }
     }
 }
