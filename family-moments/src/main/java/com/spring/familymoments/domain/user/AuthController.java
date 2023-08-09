@@ -53,17 +53,14 @@ public class AuthController {
      * 재발급 필요 여부 확인 API
      * [POST] /users/validate
      * return 401 ( -> 재발급 필요)
+     * (백에서 처리하는 것으로 결론이 남)
      */
     @PostMapping("/users/validate")
     public ResponseEntity<?> validate(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        try {
-            if (!authService.validate(requestAccessToken)) {
-                return ResponseEntity.status(HttpStatus.OK).build(); // 재발급 필요X
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 재발급 필요
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new BaseResponse(INVALID_USER_JWT));
+        if (!authService.validate(requestAccessToken)) {
+            return ResponseEntity.status(HttpStatus.OK).build(); // 재발급 필요X
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); // 재발급 필요
         }
     }
 

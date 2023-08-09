@@ -58,10 +58,7 @@ public class AuthService {
      * : Access Token이 만료일자만 초과한 유효한 토큰인지 검사
      *  true (-> 재발급)
      */
-    public boolean validate(String requestAccessTokenInHeader) throws IllegalAccessException {
-        if(requestAccessTokenInHeader == null) {
-            throw new IllegalAccessException("토큰을 확인해주세요");
-        }
+    public boolean validate(String requestAccessTokenInHeader) {
         return jwtService.validateAccessTokenOnlyExpired(requestAccessTokenInHeader);
     }
 
