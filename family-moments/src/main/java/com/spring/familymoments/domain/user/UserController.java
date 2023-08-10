@@ -3,7 +3,9 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
+import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
+import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +20,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -32,6 +35,8 @@ public class UserController {
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
+    private final RedisService redisService;
+    private final JwtService jwtService;
 
     /**
      * 회원 가입 API
@@ -427,6 +432,15 @@ public class UserController {
         }
         try {
             userService.deleteUser(user);
+            //Redis에 저장되어 있는 RT 삭제
+            String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
+            if(refreshTokenInRedis != null) {
+                redisService.deleteValues("RT(" + "SERVER" + "):" + user);
+            }
+            //Redis에 탈퇴 처리한 AT 저장
+            long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
+            redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+
             return new BaseResponse<>("계정을 삭제했습니다.");
         } catch (IllegalAccessException e) {
             return new BaseResponse<>(false, e.getMessage(), 500);
