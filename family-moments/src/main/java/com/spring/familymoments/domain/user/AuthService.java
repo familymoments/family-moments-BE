@@ -41,6 +41,9 @@ public class AuthService {
     public TokenDto login(PostLoginReq postLoginReq) {
         User user = userRepository.findById(postLoginReq.getId())
                 .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
+        if(user.getStatus().equals(User.Status.INACTIVE)) {
+            throw new NoSuchElementException("탈퇴하거나 신고당한 유저입니다.");
+        }
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
             throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
         }

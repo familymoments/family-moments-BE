@@ -7,6 +7,7 @@ import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
 import com.spring.familymoments.domain.commentLove.entity.CommentLove;
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
+import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.ACTIVE;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.DEACCEPT;
 
@@ -279,49 +281,36 @@ public class UserService {
                 throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
             }
         }
-        //2) 로그인 유저의 댓글 좋아요 일괄 삭제
+        //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
-        if(commentLoves != null) {
-            commentLoveWithUserRepository.deleteAll(commentLoves);
-        }
-        //3) 로그인 유저의 게시글 좋아요 일괄 삭제
-        List<PostLove> postLoves = postLoveRepository.findPostLovesByUserId(userId);
-        if(postLoves != null) {
-            postLoveRepository.deleteAll(postLoves);
+        for(CommentLove commentLove : commentLoves) {
+            commentLove.updateStatus(INACTIVE);
         }
 
-        //1. 로그인 유저의 댓글 일괄 삭제
-        //1-1. 그 전에 로그인 유저가 작성한 댓글 속 좋아요들 일괄 삭제
+        //3) 로그인 유저의 게시글 좋아요 일괄 INACTIVE
+        List<PostLove> postLoves = postLoveRepository.findPostLovesByUserId(userId);
+        for(PostLove postLove : postLoves) {
+            postLove.updateStatus(INACTIVE);
+        }
+
+        //4) 로그인 유저의 댓글 일괄 INACTIVE
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
-        if(comments != null) {
-            commentWithUserRepository.deleteAll(comments);
+        for(Comment comment : comments) {
+            comment.updateStatus(INACTIVE);
         }
-        //2. 로그인 유저의 게시글 일괄 삭제
-        //2-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 일괄 삭제
-        List<Comment> commentsInPosts = commentWithUserRepository.findByPostUserID(userId);
-        //2-1-1. 그 전에 로그인 유저가 작성한 게시글 속 댓글들 속 좋아요들 일괄 삭제
-        List<CommentLove> commentLovesInComments = commentLoveWithUserRepository.findCommentLovesByCommentUserId(userId);
-        if(commentLovesInComments != null) {
-            commentLoveWithUserRepository.deleteAll(commentLovesInComments);
-        }
-        if(commentsInPosts != null) {
-            commentWithUserRepository.deleteAll(commentsInPosts);
-        }
-        //2-2. 그 전에 로그인 유저가 작성한 게시글 속 좋아요를 일괄 삭제
-        List<PostLove> postLovesInPosts = postLoveRepository.findPostLovesByPostUserId(userId);
-        if(postLovesInPosts != null) {
-            postLoveRepository.deleteAll(postLovesInPosts);
-        }
+        //5) 로그인 유저의 게시글 일괄 INACTIVE
         List<Post> posts = postWithUserRepository.findPostByUserId(userId);
-        if(posts != null) {
-            postWithUserRepository.deleteAll(posts);
+        for(Post post : posts) {
+            post.updateStatus(INACTIVE);
         }
-        //4) 로그인 유저의 참여한 유저가족매핑 삭제
+
+        //6) 로그인 유저의 참여한 유저가족매핑 일괄 INACTIVE
         List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(userId);
-        if(userFamilyList != null) {
-            userFamilyRepository.deleteAll(userFamilyList);
+        for(UserFamily userFamily : userFamilyList) {
+            userFamily.updateStatus(UserFamily.Status.INACTIVE);
         }
-        //5) 로그인 유저 삭제
-        userRepository.deleteById(userId);
+        //7) 로그인 유저 INACTIVE
+        user.updateStatus(User.Status.INACTIVE);
+        userRepository.save(user);
     }
 }
