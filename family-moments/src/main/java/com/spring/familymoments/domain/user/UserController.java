@@ -277,7 +277,15 @@ public class UserController {
      * @return BaseResponse<List<GetInvitationRes>>
      */
     @GetMapping("/users/invitation")
-    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
+    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user,
+                                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) {
+            return new BaseResponse<>(INVALID_JWT);
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
+
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
 
