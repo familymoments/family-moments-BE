@@ -33,7 +33,7 @@ public class CommentLoveController {
     @PostMapping("")
     public BaseResponse<String> createPostLove(@AuthenticationPrincipal User user,
                                                @RequestBody CommentLoveReq commentLoveReq,
-                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException, IllegalAccessException {
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -59,7 +59,7 @@ public class CommentLoveController {
     @DeleteMapping("")
     public BaseResponse<String> deletePostLove(@AuthenticationPrincipal User user,
                                                @RequestBody CommentLoveReq commentLoveReq,
-                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException, IllegalAccessException {
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
 
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.

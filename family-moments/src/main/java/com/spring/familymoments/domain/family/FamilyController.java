@@ -63,7 +63,7 @@ public class FamilyController {
     @GetMapping("/{familyId}")
     public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId,
                                              @AuthenticationPrincipal User user,
-                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException, IllegalAccessException {
+                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         //return new BaseResponse<>(familyService.getFamily(familyId));
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
@@ -120,7 +120,7 @@ public class FamilyController {
     @PostMapping("/inviteCode")
     public BaseResponse<FamilyDto> getFamilyByInviteCode(@RequestBody String inviteCode,
                                                          @AuthenticationPrincipal User user,
-                                                         @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws IllegalAccessException {
+                                                         @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -145,7 +145,7 @@ public class FamilyController {
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<String> userIds,
                                            @AuthenticationPrincipal User user,
-                                           @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException, IllegalAccessException {
+                                           @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -171,7 +171,7 @@ public class FamilyController {
     @PatchMapping("/{familyId}/invite-accept")
     public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
                                              @AuthenticationPrincipal User user,
-                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException, IllegalAccessException {
+                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
 
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
@@ -228,7 +228,7 @@ public class FamilyController {
     public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
                                                 @AuthenticationPrincipal User user,
                                                 @RequestBody FamilyUpdateDto familyUpdateDto,
-                                                @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws IllegalAccessException {
+                                                @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
 
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
@@ -254,7 +254,7 @@ public class FamilyController {
     @DeleteMapping("/{familyId}/withdraw")
     public BaseResponse<String> withdrawFamily(@PathVariable Long familyId,
                                                @AuthenticationPrincipal User user,
-                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws IllegalAccessException {
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -280,7 +280,7 @@ public class FamilyController {
     public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
                                                @AuthenticationPrincipal User user,
                                                @RequestParam List<String> userIds,
-                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws IllegalAccessException {
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
