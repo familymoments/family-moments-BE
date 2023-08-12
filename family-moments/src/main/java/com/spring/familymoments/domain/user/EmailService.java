@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.GetUserIdRes;
 import com.spring.familymoments.domain.user.model.PostEmailReq;
@@ -14,6 +13,8 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.util.Objects;
+
+import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_USER_EMAIL;
 
 @Slf4j
 @Service
@@ -101,8 +102,7 @@ public class EmailService {
 
         String userId = null;
 
-        User member = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new InternalServerErrorException("가입되지 않은 이메일입니다."));
+        User member = userRepository.findByEmail(req.getEmail()).orElseThrow(() -> new BaseException(FIND_FAIL_USER_EMAIL));
 
         userId = member.getId();
 
