@@ -80,7 +80,7 @@ public enum BaseResponseStatus {
 
 
     minnie_POSTS_INVALIED_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
-    minnie_POSTS_WRONG_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
+    minnie_POSTS_INVALIED_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
     minnie_POSTS_NON_EXISTS_POST(false, HttpStatus.NOT_FOUND.value(), "post가 존재하지 않습니다."),
     minnie_POSTS_EMPTY_UPDATE(false, HttpStatus.BAD_REQUEST.value(), "수정할 내용을 보내주세요."),
     minnie_POSTS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST.value(), "내용을 입력해주세요."),

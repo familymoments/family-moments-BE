@@ -26,6 +26,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -181,7 +182,7 @@ public class PostService {
         SinglePostRes singlePostRes = postRepository.findByPostId(userId, postId);
 
         if(singlePostRes == null) {
-            throw new BaseException(minnie_POSTS_WRONG_POST_ID);
+            throw new BaseException(minnie_POSTS_INVALIED_POST_ID);
         }
 
         return singlePostRes;
@@ -281,5 +282,14 @@ public class PostService {
         }
 
         return albumResList;
+    }
+
+    @Transactional
+    public List<String> getPostImages(long postId) throws BaseException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALIED_POST_ID));
+
+        List<String> imgs = post.getImgs();
+        
+        return imgs;
     }
 }
