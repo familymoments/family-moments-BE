@@ -26,7 +26,6 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -95,7 +94,7 @@ public class PostService {
         }
 
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALIED_USER);
+            throw new BaseException(minnie_POSTS_INVALID_USER);
         }
 
         SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
@@ -142,7 +141,7 @@ public class PostService {
         }
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALIED_USER);
+            throw new BaseException(minnie_POSTS_INVALID_USER);
         }
 
         deletedPost.delete();
@@ -182,7 +181,7 @@ public class PostService {
         SinglePostRes singlePostRes = postRepository.findByPostId(userId, postId);
 
         if(singlePostRes == null) {
-            throw new BaseException(minnie_POSTS_INVALIED_POST_ID);
+            throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
 
         return singlePostRes;
@@ -286,10 +285,10 @@ public class PostService {
 
     @Transactional
     public List<String> getPostImages(long postId) throws BaseException {
-        Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALIED_POST_ID));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALID_POST_ID));
 
         List<String> imgs = post.getImgs();
-        
+
         return imgs;
     }
 }

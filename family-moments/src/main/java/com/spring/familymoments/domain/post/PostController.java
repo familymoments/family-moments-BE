@@ -293,7 +293,7 @@ public class PostController {
        }
 
        if(month < 1 || month > 12 || year > LocalDate.now().getYear()) {
-           return new BaseResponse<>(minnie_POSTS_INVALIED_POST_ID);
+           return new BaseResponse<>(minnie_POSTS_INVALID_POST_ID);
        }
 
        List<LocalDate> dates = null;
