@@ -33,4 +33,11 @@ public class CommentLove extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="userId", nullable = false)
     private User userId;
+
+    /**
+     * 회원 탈퇴 API 관련 메소드
+     */
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }
