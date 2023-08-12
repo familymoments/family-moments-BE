@@ -165,7 +165,7 @@ public class FamilyService {
             for (String ids : userIdList) {
 
                 // 매핑 테이블에 존재하는지 확인
-                List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(Optional.ofNullable(userRepository.findByNickname(ids)));
+                List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(ids));
                 if(byUserIdList.size() != 0){
                     for (UserFamily userFamily : byUserIdList) {
                         // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
@@ -175,15 +175,15 @@ public class FamilyService {
                     }
                 }
 
-                User invitedUser = userRepository.findByNickname(ids);
+                Optional<User> invitedUser = userRepository.findById(ids);
 
-                if(invitedUser == null){
+                if(invitedUser.isEmpty()){
                     throw new NoSuchElementException("사용자를 찾을 수 없습니다.");
                 }
 
                 UserFamily userFamily = UserFamily.builder()
                         .familyId(family)
-                        .userId(invitedUser)
+                        .userId(invitedUser.get())
                         .inviteUserId(user)
                         .status(DEACCEPT).build();
 
@@ -295,7 +295,12 @@ public class FamilyService {
                 throw new IllegalAccessException("권한이 없습니다.");
             }
 
-            family.updateFamily(userRepository.findByNickname(familyUpdateDto.getOwner()), familyUpdateDto.getFamilyName());
+            Optional<User> userToOwner = userRepository.findById(familyUpdateDto.getOwner());
+            if(userToOwner.isEmpty()){
+                throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
+            }
+
+            family.updateFamily(userToOwner.get(), familyUpdateDto.getFamilyName());
             if(family.getOwner() == null){
                 throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
             }
@@ -351,9 +356,13 @@ public class FamilyService {
         }
 
         for (String ids : userIdList) {
-            User emissionUser = userRepository.findByNickname(ids);
+            Optional<User> emissionUser = userRepository.findById(ids);
+            if(emissionUser.isEmpty()){
+                throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
+            }
+            
             // 유저 탈퇴
-            withdrawFamily(emissionUser, familyId);
+            withdrawFamily(emissionUser.get(), familyId);
         }
 
     }
