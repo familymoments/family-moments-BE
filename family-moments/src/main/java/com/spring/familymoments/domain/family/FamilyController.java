@@ -5,6 +5,7 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
+import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ public class FamilyController {
 
     private final FamilyService familyService;
     private final JwtService jwtService;
+    private final AuthService authService;
     @Autowired
     private final AwsS3Service awsS3Service;
 
@@ -38,7 +40,13 @@ public class FamilyController {
     @PostMapping("/family")
     public BaseResponse<PostFamilyRes> createFamily(@AuthenticationPrincipal User user,
                                                     @RequestParam(name = "representImg") MultipartFile representImg,
-                                                    @RequestPart PostFamilyReq postFamilyReq) {
+                                                    @RequestPart PostFamilyReq postFamilyReq,
+                                                    @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try{
 //        int owner = jwtService.getUserIdx();
             // 대표 이미지 넣기
@@ -77,7 +85,12 @@ public class FamilyController {
     @ResponseBody
     @GetMapping("/{familyId}/created")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@AuthenticationPrincipal User user,
-                                                                              @PathVariable Long familyId){
+                                                                              @PathVariable Long familyId,
+                                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
             return new BaseResponse<>(getFamilyCreatedNicknameRes);
@@ -92,7 +105,12 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @GetMapping("/{familyId}/users")
-    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId){
+    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId,
+                                                            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
             return new BaseResponse<>(getFamilyAllRes);
@@ -159,7 +177,12 @@ public class FamilyController {
     @PatchMapping("/{familyId}")
     public BaseResponse<String> updateUploadCycle(@AuthenticationPrincipal User user,
                                                   @PathVariable Long familyId,
-                                                  @RequestParam("uploadCycle") int uploadCycle){
+                                                  @RequestParam("uploadCycle") int uploadCycle,
+                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             familyService.updateUploadCycle(user, familyId, uploadCycle);
             return new BaseResponse<>("업로드 주기가 수정되었습니다.");
@@ -174,7 +197,13 @@ public class FamilyController {
      * @return BaseResponse<String>
      */
     @DeleteMapping("/{familyId}")
-    public BaseResponse<String> deleteFamily(@AuthenticationPrincipal User user, @PathVariable Long familyId) {
+    public BaseResponse<String> deleteFamily(@AuthenticationPrincipal User user,
+                                             @PathVariable Long familyId,
+                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             familyService.deleteFamily(user, familyId);
             return new BaseResponse<>("가족이 삭제되었습니다.");
