@@ -111,7 +111,7 @@ public class UserController {
      * [GET] /users/check-id
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-id")
+    @PostMapping("/users/check-id")
     public BaseResponse<String> checkDuplicateId(@RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) throws BaseException {
         try{
             if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
@@ -129,7 +129,7 @@ public class UserController {
      * [GET] /users/check-email
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-email")
+    @PostMapping("/users/check-email")
     public BaseResponse<String> checkDuplicateEmail(@RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) throws BaseException {
         try{
             if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
