@@ -50,7 +50,7 @@ public class UserController {
     public BaseResponse<PostUserRes> createUser(@RequestPart("newUser") PostUserReq.joinUser postUserReq,
                                                 @RequestPart("profileImg") MultipartFile profileImage) throws BaseException {
         //아이디
-        if(postUserReq.getId() == null) {
+        if(postUserReq.getId() == null || postUserReq.getId().isEmpty()) {
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
         }
         if(!isRegexId(postUserReq.getId())) {
@@ -66,11 +66,11 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
         //이름
-        if(postUserReq.getName() == null) {
+        if(postUserReq.getName() == null || postUserReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(postUserReq.getEmail() == null) {
+        if(postUserReq.getEmail() == null || postUserReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(postUserReq.getEmail())) {
@@ -82,11 +82,14 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
+        if(postUserReq.getStrBirthDate() == null || postUserReq.getStrBirthDate().isEmpty()) {
+            return new BaseResponse<>(POST_USERS_EXISTS_BIRTH);
+        }
         if(!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if(postUserReq.getNickname() == null) {
+        if(postUserReq.getNickname() == null || postUserReq.getNickname().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
         }
         if(!isRegexNickName(postUserReq.getNickname())) {
@@ -309,6 +312,22 @@ public class UserController {
         }
         String fileUrl = awsS3Service.uploadImage(profileImg);
         patchProfileReqRes.setProfileImg(fileUrl);
+
+        if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        if(patchProfileReqRes.getBirthdate() == null || patchProfileReqRes.getBirthdate().isEmpty()) { //생년월일 비어있으면
+            return new BaseResponse<>(POST_USERS_EXISTS_BIRTH);
+        }
+        if(!isRegexBirth(patchProfileReqRes.getBirthdate())) { //생년월일 형식 다르면
+            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
+        }
+        if(patchProfileReqRes.getNickname() == null || patchProfileReqRes.getNickname().isEmpty()) { //닉네임 비어있으면
+            return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
+        }
+        if(!isRegexNickName(patchProfileReqRes.getNickname())) { //닉네임 형식 다르면
+            return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
+        }
 
         PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
         return new BaseResponse<>(updatedUser);
