@@ -2,7 +2,6 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
@@ -114,7 +113,7 @@ public class UserController {
      * [GET] /users/check-id
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-id")
+    @PostMapping("/users/check-id")
     public BaseResponse<String> checkDuplicateId(@RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) throws BaseException {
         try{
             if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
@@ -132,7 +131,7 @@ public class UserController {
      * [GET] /users/check-email
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-email")
+    @PostMapping("/users/check-email")
     public BaseResponse<String> checkDuplicateEmail(@RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) throws BaseException {
         try{
             if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
@@ -151,7 +150,7 @@ public class UserController {
      */
     @PostMapping("/users/auth/find-id")
     public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
 
         //이름
         if(sendEmailReq.getName() == null) {
@@ -185,7 +184,7 @@ public class UserController {
      */
     @PostMapping("/users/auth/check-id")
     public BaseResponse<String> findUserIdBeforeUpdatePwd(@RequestBody GetUserIdReq getUserIdReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
         try {
             if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
                 // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
@@ -205,7 +204,7 @@ public class UserController {
      */
     @PostMapping("/users/auth/find-pwd")
     public BaseResponse<String> findUserPwd(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
 
         //이름
         if(sendEmailReq.getName() == null) {
@@ -224,9 +223,9 @@ public class UserController {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
             } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
-                return new BaseResponse<>(FIND_FAIL_USER_NAME_EMAIL);
+                return new BaseResponse<>(false, FIND_FAIL_USER_NAME_EMAIL.getMessage(), HttpStatus.NOT_FOUND.value());
             } else {
-                return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
+                return new BaseResponse<>(false, NOT_EQUAL_VERIFICATION_CODE.getMessage(), HttpStatus.BAD_REQUEST.value());
             }
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
@@ -280,7 +279,15 @@ public class UserController {
      * @return BaseResponse<List<GetInvitationRes>>
      */
     @GetMapping("/users/invitation")
-    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user){
+    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user,
+                                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) {
+            return new BaseResponse<>(INVALID_JWT);
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT);
+        }
+
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
 
@@ -405,23 +412,32 @@ public class UserController {
     @Transactional
     @PatchMapping("/users/auth/modify-pwd")
     public BaseResponse<String> updatePasswordWithoutLogin(@RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
-                                                           @RequestParam String id) {
+                                                           @RequestParam String id) throws BaseException{
 
-        String memberEmail = emailService.getUserId(id);
+        String memberId = emailService.getUserId(id);
 
-        if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) {
-            return new BaseResponse<>(POST_USERS_INVALID_PW);
+        try {
+            if(userService.checkDuplicateId(memberId)) {
+                if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) {
+                    return new BaseResponse<>(POST_USERS_INVALID_PW);
+                }
+                if(patchPwdWithoutLoginReq.getPasswordB() == "") {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
+                if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
+                    return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+                }
+
+                userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberId);
+
+                return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
+            } else {
+                return new BaseResponse<>(false, FIND_FAIL_USER_ID.getMessage(), HttpStatus.NOT_FOUND.value());
+            }
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
-        if(patchPwdWithoutLoginReq.getPasswordB() == "") {
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
-        if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
-            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
-        }
 
-        userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberEmail);
-
-        return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
     }
 
     /**

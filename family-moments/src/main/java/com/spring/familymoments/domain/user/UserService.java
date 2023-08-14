@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
@@ -261,9 +260,8 @@ public class UserService {
      * [PATCH]
      * @return
      */
-    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) throws BaseException {
+        User user = userRepository.findById(id).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
         user.updatePassword(passwordEncoder.encode(patchPwdWithoutLoginReq.getPasswordA()));
         userRepository.save(user);
