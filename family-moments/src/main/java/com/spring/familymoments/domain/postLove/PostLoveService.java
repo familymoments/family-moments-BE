@@ -86,7 +86,7 @@ public class PostLoveService {
         Post post = postRepository.findByPostIdAndStatus(postId, BaseEntity.Status.ACTIVE);
 
         if(post == null) {
-            throw new BaseException(minnie_POSTS_WRONG_POST_ID);
+            throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
 
         List<CommentRes> users = postLoveRepository.findByPost(post);

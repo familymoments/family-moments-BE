@@ -293,7 +293,7 @@ public class PostController {
        }
 
        if(month < 1 || month > 12 || year > LocalDate.now().getYear()) {
-           return new BaseResponse<>(minnie_POSTS_WRONG_POST_ID);
+           return new BaseResponse<>(minnie_POSTS_INVALID_POST_ID);
        }
 
        List<LocalDate> dates = null;
@@ -342,6 +342,26 @@ public class PostController {
             return new BaseResponse<>(e.getStatus());
         }
     }
+
+    /**
+     * 앨범 상세 조회 API
+     * [GET] /posts/album/{post인덱스}
+     * @return BaseResponse<List<String>>
+     */
+    @GetMapping(value = "/album/{postId}")
+    public BaseResponse<List<String>> getAlbumImages(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
+        try {
+            List<String> imgs = postService.getPostImages(postId);
+            return new BaseResponse<>(imgs);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
 
     /**
      * 좋아요 목록 조회 API
