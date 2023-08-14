@@ -29,7 +29,6 @@ public class FamilyController {
     private final AuthService authService;
     @Autowired
     private final AwsS3Service awsS3Service;
-    private final AuthService authService;
 
 
     /**
