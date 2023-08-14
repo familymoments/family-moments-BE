@@ -4,6 +4,7 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.post.model.*;
 import com.spring.familymoments.domain.postLove.PostLoveService;
+import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.CommentRes;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class PostController {
     private final PostService postService;
     private final PostLoveService postLoveService;
+    private final AuthService authService;
 
     /**
      * 게시글 작성 API
@@ -34,12 +36,21 @@ public class PostController {
      */
     @ResponseBody
     @PostMapping
-    public BaseResponse<SinglePostRes> createPost(@AuthenticationPrincipal User user, @RequestParam("familyId") long familyId,
+    public BaseResponse<SinglePostRes> createPost(@AuthenticationPrincipal User user,
+                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
+                                                  @RequestParam("familyId") long familyId,
                                                   @RequestPart("postInfo") PostInfoReq postInfoReq,
                                                   @RequestPart("img1")MultipartFile img1,
                                                   @RequestPart(name = "img2", required = false)MultipartFile img2,
                                                   @RequestPart(name = "img3", required = false)MultipartFile img3,
                                                   @RequestPart(name = "img4", required = false)MultipartFile img4){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         if(postInfoReq == null) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_POST_INFO);
         }
@@ -83,12 +94,21 @@ public class PostController {
      */
     @ResponseBody
     @PatchMapping("/{postId}")
-    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user, @PathVariable long postId,
+    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user,
+                                                @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
+                                                @PathVariable long postId,
                                                 @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
                                                 @RequestPart(name = "img1", required = false)MultipartFile img1,
                                                 @RequestPart(name = "img2", required = false)MultipartFile img2,
                                                 @RequestPart(name = "img3", required = false)MultipartFile img3,
                                                 @RequestPart(name = "img4", required = false)MultipartFile img4) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         if(postInfoReq == null && img1 == null && img2 == null && img3 == null && img4 == null) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
@@ -118,7 +138,14 @@ public class PostController {
      */
     @ResponseBody
     @DeleteMapping("/{postId}")
-    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             postService.deletePost(user, postId);
             return new BaseResponse<>(SUCCESS);
@@ -134,7 +161,14 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping(params = {"familyId"})
-    public BaseResponse<List<MultiPostRes>> getRecentPosts(@AuthenticationPrincipal User user, @RequestParam("familyId") long familyId) {
+    public BaseResponse<List<MultiPostRes>> getRecentPosts(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId);
             return new BaseResponse<>(multiPostRes);
@@ -150,7 +184,14 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping(params = {"familyId", "postId"})
-    public BaseResponse<List<MultiPostRes>> getNextPosts(@AuthenticationPrincipal User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+    public BaseResponse<List<MultiPostRes>> getNextPosts(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId, postId);
             return new BaseResponse<>(multiPostRes);
@@ -166,7 +207,14 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping("/{postId}")
-    public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal User user, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             SinglePostRes singlePostRes = postService.getPost(user.getUserId(), postId);
 
@@ -184,10 +232,18 @@ public class PostController {
     @ResponseBody
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day"})
     public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal User user,
-                                                        @RequestParam("familyId") long familyId,
-                                                        @RequestParam("year") int year,
-                                                        @RequestParam("month") int month,
-                                                        @RequestParam("day") int day) {
+                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
+                                                              @RequestParam("familyId") long familyId,
+                                                              @RequestParam("year") int year,
+                                                              @RequestParam("month") int month,
+                                                              @RequestParam("day") int day) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day);
             return new BaseResponse<>(multiPostRes);
@@ -204,11 +260,19 @@ public class PostController {
     @ResponseBody
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day", "postId"})
     public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal User user,
+                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                               @RequestParam("familyId") long familyId,
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day,
                                                               @RequestParam("postId") long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day, postId);
             return new BaseResponse<>(multiPostRes);
@@ -223,9 +287,13 @@ public class PostController {
      * @return BaseResponse<List<MultiPostRes>>
      */
    @GetMapping(value = "/calendar", params = {"familyId", "year", "month"})
-   public BaseResponse<List<LocalDate>> getDatesExistPost(@RequestParam("familyId") long familyId, @RequestParam("year") int year, @RequestParam("month") int month) {
+   public BaseResponse<List<LocalDate>> getDatesExistPost(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("year") int year, @RequestParam("month") int month) {
+       if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+           return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+       }
+
        if(month < 1 || month > 12 || year > LocalDate.now().getYear()) {
-           return new BaseResponse<>(minnie_POSTS_WRONG_POST_ID);
+           return new BaseResponse<>(minnie_POSTS_INVALID_POST_ID);
        }
 
        List<LocalDate> dates = null;
@@ -243,7 +311,11 @@ public class PostController {
      * @return BaseResponse<List<AlbumRes>>
      */
     @GetMapping(value = "/album")
-    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId) {
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             List<AlbumRes> album = postService.getAlbum(familyId);
             return new BaseResponse<>(album);
@@ -258,7 +330,11 @@ public class PostController {
      * @return BaseResponse<List<AlbumRes>>
      */
     @GetMapping(value = "/album", params = {"familyId", "postId"})
-    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             List<AlbumRes> album = postService.getAlbum(familyId, postId);
             return new BaseResponse<>(album);
@@ -268,12 +344,36 @@ public class PostController {
     }
 
     /**
+     * 앨범 상세 조회 API
+     * [GET] /posts/album/{post인덱스}
+     * @return BaseResponse<List<String>>
+     */
+    @GetMapping(value = "/album/{postId}")
+    public BaseResponse<List<String>> getAlbumImages(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
+        try {
+            List<String> imgs = postService.getPostImages(postId);
+            return new BaseResponse<>(imgs);
+        } catch (BaseException e) {
+            return new BaseResponse<>(e.getStatus());
+        }
+    }
+
+
+    /**
      * 좋아요 목록 조회 API
      * [GET] /posts/{postId}/postLoves
      * @return BaseResponse<List<CommentRes>>
      */
     @GetMapping("/{postId}/post-loves")
-    public BaseResponse<List<CommentRes>> getLovedList(@PathVariable long postId) {
+    public BaseResponse<List<CommentRes>> getLovedList(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+
         try {
             List<CommentRes> heartedList = postLoveService.getHeartList(postId);
 

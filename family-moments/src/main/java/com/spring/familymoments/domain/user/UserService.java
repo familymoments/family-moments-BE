@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
@@ -139,11 +138,23 @@ public class UserService {
                     .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
             totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
         }
-        LocalDateTime targetDate = user.getCreatedAt();
+        LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+        StringBuilder sb = new StringBuilder(); //생년월일
+        sb.append(user.getBirthDate().getYear());
+        if(user.getBirthDate().getMonthValue() <= 9) {
+            sb.append(0);
+        }
+        sb.append(user.getBirthDate().getMonthValue());
+        if(user.getBirthDate().getDayOfMonth() <= 9) {
+            sb.append(0);
+        }
+        sb.append(user.getBirthDate().getDayOfMonth());
+        String strBirth = sb.toString();
+
+        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
      * 유저 검색 API
@@ -249,9 +260,8 @@ public class UserService {
      * [PATCH]
      * @return
      */
-    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new InternalServerErrorException("아이디가 일치하지 않습니다."));
+    public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) throws BaseException {
+        User user = userRepository.findById(id).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
         user.updatePassword(passwordEncoder.encode(patchPwdWithoutLoginReq.getPasswordA()));
         userRepository.save(user);

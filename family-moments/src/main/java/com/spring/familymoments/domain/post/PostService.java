@@ -94,7 +94,7 @@ public class PostService {
         }
 
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALIED_USER);
+            throw new BaseException(minnie_POSTS_INVALID_USER);
         }
 
         SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
@@ -141,7 +141,7 @@ public class PostService {
         }
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALIED_USER);
+            throw new BaseException(minnie_POSTS_INVALID_USER);
         }
 
         deletedPost.delete();
@@ -181,7 +181,7 @@ public class PostService {
         SinglePostRes singlePostRes = postRepository.findByPostId(userId, postId);
 
         if(singlePostRes == null) {
-            throw new BaseException(minnie_POSTS_WRONG_POST_ID);
+            throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
 
         return singlePostRes;
@@ -281,5 +281,14 @@ public class PostService {
         }
 
         return albumResList;
+    }
+
+    @Transactional
+    public List<String> getPostImages(long postId) throws BaseException {
+        Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALID_POST_ID));
+
+        List<String> imgs = post.getImgs();
+
+        return imgs;
     }
 }

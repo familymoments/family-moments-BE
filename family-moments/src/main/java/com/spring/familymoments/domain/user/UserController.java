@@ -2,7 +2,6 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.advice.exception.InternalServerErrorException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
@@ -50,7 +49,7 @@ public class UserController {
     public BaseResponse<PostUserRes> createUser(@RequestPart("newUser") PostUserReq.joinUser postUserReq,
                                                 @RequestPart("profileImg") MultipartFile profileImage) throws BaseException {
         //아이디
-        if(postUserReq.getId() == null) {
+        if(postUserReq.getId() == null || postUserReq.getId().isEmpty()) {
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
         }
         if(!isRegexId(postUserReq.getId())) {
@@ -66,11 +65,11 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
         //이름
-        if(postUserReq.getName() == null) {
+        if(postUserReq.getName() == null || postUserReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(postUserReq.getEmail() == null) {
+        if(postUserReq.getEmail() == null || postUserReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(postUserReq.getEmail())) {
@@ -82,11 +81,14 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
+        if(postUserReq.getStrBirthDate() == null || postUserReq.getStrBirthDate().isEmpty()) {
+            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
+        }
         if(!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if(postUserReq.getNickname() == null) {
+        if(postUserReq.getNickname() == null || postUserReq.getNickname().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
         }
         if(!isRegexNickName(postUserReq.getNickname())) {
@@ -111,7 +113,7 @@ public class UserController {
      * [GET] /users/check-id
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-id")
+    @PostMapping("/users/check-id")
     public BaseResponse<String> checkDuplicateId(@RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) throws BaseException {
         try{
             if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
@@ -129,7 +131,7 @@ public class UserController {
      * [GET] /users/check-email
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/check-email")
+    @PostMapping("/users/check-email")
     public BaseResponse<String> checkDuplicateEmail(@RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) throws BaseException {
         try{
             if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
@@ -148,14 +150,14 @@ public class UserController {
      */
     @PostMapping("/users/auth/find-id")
     public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
 
         //이름
-        if(sendEmailReq.getName() == null) {
+        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null) {
+        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -182,7 +184,7 @@ public class UserController {
      */
     @PostMapping("/users/auth/check-id")
     public BaseResponse<String> findUserIdBeforeUpdatePwd(@RequestBody GetUserIdReq getUserIdReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
         try {
             if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
                 // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
@@ -202,14 +204,14 @@ public class UserController {
      */
     @PostMapping("/users/auth/find-pwd")
     public BaseResponse<String> findUserPwd(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws InternalServerErrorException, MessagingException, BaseException {
+            throws MessagingException, BaseException {
 
         //이름
-        if(sendEmailReq.getName() == null) {
+        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null) {
+        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -221,9 +223,9 @@ public class UserController {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
             } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
-                return new BaseResponse<>(FIND_FAIL_USER_NAME_EMAIL);
+                return new BaseResponse<>(false, FIND_FAIL_USER_NAME_EMAIL.getMessage(), HttpStatus.NOT_FOUND.value());
             } else {
-                return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
+                return new BaseResponse<>(false, NOT_EQUAL_VERIFICATION_CODE.getMessage(), HttpStatus.BAD_REQUEST.value());
             }
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
@@ -318,6 +320,22 @@ public class UserController {
         String fileUrl = awsS3Service.uploadImage(profileImg);
         patchProfileReqRes.setProfileImg(fileUrl);
 
+        if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        if(patchProfileReqRes.getBirthdate() == null || patchProfileReqRes.getBirthdate().isEmpty()) { //생년월일 비어있으면
+            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
+        }
+        if(!isRegexBirth(patchProfileReqRes.getBirthdate())) { //생년월일 형식 다르면
+            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
+        }
+        if(patchProfileReqRes.getNickname() == null || patchProfileReqRes.getNickname().isEmpty()) { //닉네임 비어있으면
+            return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
+        }
+        if(!isRegexNickName(patchProfileReqRes.getNickname())) { //닉네임 형식 다르면
+            return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
+        }
+
         PatchProfileReqRes updatedUser = userService.updateProfile(patchProfileReqRes, user);
         return new BaseResponse<>(updatedUser);
     }
@@ -394,23 +412,35 @@ public class UserController {
     @Transactional
     @PatchMapping("/users/auth/modify-pwd")
     public BaseResponse<String> updatePasswordWithoutLogin(@RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
-                                                           @RequestParam String id) {
+                                                           @RequestParam String id) throws BaseException{
 
-        String memberEmail = emailService.getUserId(id);
+        String memberId = emailService.getUserId(id);
 
-        if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) {
-            return new BaseResponse<>(POST_USERS_INVALID_PW);
+        try {
+            if(userService.checkDuplicateId(memberId)) {
+                if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
+                    return new BaseResponse<>(POST_USERS_INVALID_PW);
+                }
+                if(patchPwdWithoutLoginReq.getPasswordA() == "" || patchPwdWithoutLoginReq.getPasswordA().isEmpty()) {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
+                if(patchPwdWithoutLoginReq.getPasswordB() == "" || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
+                if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
+                    return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+                }
+
+                userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberId);
+
+                return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
+            } else {
+                return new BaseResponse<>(false, FIND_FAIL_USER_ID.getMessage(), HttpStatus.NOT_FOUND.value());
+            }
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
-        if(patchPwdWithoutLoginReq.getPasswordB() == "") {
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
-        if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
-            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
-        }
 
-        userService.updatePasswordWithoutLogin(patchPwdWithoutLoginReq, memberEmail);
-
-        return new BaseResponse<>("비밀번호가 변경되었습니다. 다시 로그인을 진행해주세요.");
     }
 
     /**

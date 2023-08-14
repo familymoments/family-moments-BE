@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
 
+import java.io.UnsupportedEncodingException;
 import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
@@ -32,14 +33,14 @@ public class EmailController {
      */
     @PostMapping("/users/auth/send-email")
     public BaseResponse<String> sendVerificationEmail(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws MessagingException, BaseException {
+            throws BaseException, MessagingException, UnsupportedEncodingException {
 
         //이름
-        if(sendEmailReq.getName() == null) {
+        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null) {
+        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {

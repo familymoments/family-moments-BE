@@ -29,6 +29,7 @@ public class FamilyController {
     private final AuthService authService;
     @Autowired
     private final AwsS3Service awsS3Service;
+    private final AuthService authService;
 
 
     /**
@@ -67,8 +68,17 @@ public class FamilyController {
      */
     @ResponseBody
     @GetMapping("/{familyId}")
-    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId) throws BaseException{
+    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId,
+                                             @AuthenticationPrincipal User user,
+                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         //return new BaseResponse<>(familyService.getFamily(familyId));
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             FamilyDto familyDto = familyService.getFamily(familyId);
             return new BaseResponse<>(familyDto);
@@ -125,7 +135,16 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @PostMapping("/inviteCode")
-    public BaseResponse<FamilyDto> getFamilyByInviteCode(@RequestBody String inviteCode){
+    public BaseResponse<FamilyDto> getFamilyByInviteCode(@RequestBody String inviteCode,
+                                                         @AuthenticationPrincipal User user,
+                                                         @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             FamilyDto familyDto = familyService.getFamilyByInviteCode(inviteCode);
             return new BaseResponse<>(familyDto);
@@ -142,7 +161,15 @@ public class FamilyController {
     @PostMapping("/{familyId}")
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<String> userIds,
-                                           @AuthenticationPrincipal User user) throws BaseException{
+                                           @AuthenticationPrincipal User user,
+                                           @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             familyService.inviteUser(user, userIds, familyId);
             return new BaseResponse<>("초대 요청이 완료되었습니다.");
@@ -160,7 +187,16 @@ public class FamilyController {
      */
     @PatchMapping("/{familyId}/invite-accept")
     public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
-                                             @AuthenticationPrincipal User user) throws BaseException{
+                                             @AuthenticationPrincipal User user,
+                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             familyService.acceptFamily(user, familyId);
             return new BaseResponse<>("초대가 수락되었습니다.");
@@ -219,7 +255,16 @@ public class FamilyController {
     @PatchMapping("/{familyId}/update")
     public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
                                                 @AuthenticationPrincipal User user,
-                                                @RequestBody FamilyUpdateDto familyUpdateDto){
+                                                @RequestBody FamilyUpdateDto familyUpdateDto,
+                                                @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyUpdateDto);
             return new BaseResponse<>(resFamilyDto);
@@ -236,7 +281,15 @@ public class FamilyController {
      */
     @DeleteMapping("/{familyId}/withdraw")
     public BaseResponse<String> withdrawFamily(@PathVariable Long familyId,
-                                               @AuthenticationPrincipal User user){
+                                               @AuthenticationPrincipal User user,
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             familyService.withdrawFamily(user, familyId);
             return new BaseResponse<>("가족에서 탈퇴되었습니다.");
@@ -254,7 +307,15 @@ public class FamilyController {
     @DeleteMapping("/{familyId}/emission")
     public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
                                                @AuthenticationPrincipal User user,
-                                               @RequestParam List<String> userIds){
+                                               @RequestParam List<String> userIds,
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
         try {
             familyService.emissionFamily(user, familyId, userIds);
             return new BaseResponse<>("가족에서 탈퇴되었습니다.");
