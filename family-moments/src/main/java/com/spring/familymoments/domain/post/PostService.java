@@ -98,35 +98,48 @@ public class PostService {
         }
 
         SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
+        ArrayList resImgs = new ArrayList<>(singlePostRes.getImgs());
 
         if(postReq.getContent() != null) {
             singlePostRes.setContent(postReq.getContent());
             editedPost.updateContent(singlePostRes.getContent());
         }
 
-        for(int i = 0 ; i < postReq.getImgs().size(); i++) {
-            if(postReq.getImgs().get(i) != null) {
+        for(int i = 0 ; i < 4; i++) {
+            String url;
+
+            if(postReq.getImgs().size() > i && postReq.getImgs().get(i) != null) {
                 MultipartFile img = postReq.getImgs().get(i);
-                String url = awsS3Service.uploadImage(img);
-                singlePostRes.getImgs().set(i, url);
-                switch(i) {
-                    case 0:
-                        editedPost.updateImg1(url);
-                        break;
-                    case 1:
-                        editedPost.updateImg2(url);
-                        break;
-                    case 2:
-                        editedPost.updateImg3(url);
-                        break;
-                    case 3:
-                        editedPost.updateImg4(url);
-                        break;
-                    default:
-                        break;
-                }
+                url = awsS3Service.uploadImage(img);
+            } else {
+                url = null;
+            }
+
+            if(resImgs.size() - 1 < i) {
+                resImgs.add(url);
+            } else {
+                resImgs.set(i, url);
+            }
+
+            switch(i) {
+                case 0:
+                    editedPost.updateImg1(url);
+                    break;
+                case 1:
+                    editedPost.updateImg2(url);
+                    break;
+                case 2:
+                    editedPost.updateImg3(url);
+                    break;
+                case 3:
+                    editedPost.updateImg4(url);
+                    break;
+                default:
+                    break;
             }
         }
+
+        singlePostRes.setImgs(resImgs);
 
         return singlePostRes;
     }
