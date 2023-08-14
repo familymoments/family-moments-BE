@@ -10,6 +10,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetProfileRes {
+    private String name;
+    private String birthDate;
     private String profileImg;
     private String nickName;
     private String email;
