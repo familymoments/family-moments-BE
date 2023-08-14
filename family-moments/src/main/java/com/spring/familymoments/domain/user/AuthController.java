@@ -95,7 +95,7 @@ public class AuthController {
                         .path("/")
                         .build(); //쿠키 삭제 후 재로그인 유도
                 return ResponseEntity
-                        .status(HttpStatus.UNAUTHORIZED)
+                        .status(471)
                         .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                         .build();
             }
