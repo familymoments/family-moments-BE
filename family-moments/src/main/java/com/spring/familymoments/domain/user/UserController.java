@@ -82,7 +82,7 @@ public class UserController {
         }
         //생년월일
         if(postUserReq.getStrBirthDate() == null || postUserReq.getStrBirthDate().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EXISTS_BIRTH);
+            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
         }
         if(!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
@@ -153,11 +153,11 @@ public class UserController {
             throws MessagingException, BaseException {
 
         //이름
-        if(sendEmailReq.getName() == null) {
+        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null) {
+        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -207,11 +207,11 @@ public class UserController {
             throws MessagingException, BaseException {
 
         //이름
-        if(sendEmailReq.getName() == null) {
+        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null) {
+        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -324,7 +324,7 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         if(patchProfileReqRes.getBirthdate() == null || patchProfileReqRes.getBirthdate().isEmpty()) { //생년월일 비어있으면
-            return new BaseResponse<>(POST_USERS_EXISTS_BIRTH);
+            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
         }
         if(!isRegexBirth(patchProfileReqRes.getBirthdate())) { //생년월일 형식 다르면
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
@@ -418,10 +418,13 @@ public class UserController {
 
         try {
             if(userService.checkDuplicateId(memberId)) {
-                if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA())) {
+                if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
                 }
-                if(patchPwdWithoutLoginReq.getPasswordB() == "") {
+                if(patchPwdWithoutLoginReq.getPasswordA() == "" || patchPwdWithoutLoginReq.getPasswordA().isEmpty()) {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
+                if(patchPwdWithoutLoginReq.getPasswordB() == "" || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
                     return new BaseResponse<>(EMPTY_PASSWORD);
                 }
                 if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
