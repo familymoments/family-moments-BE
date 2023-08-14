@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.user.entity;
 
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.user.model.PatchProfileReqRes;
 import com.spring.familymoments.domain.user.model.PatchPwdReq;
@@ -147,5 +148,12 @@ public class User extends BaseTime implements UserDetails {
      */
     public void updatePassword(String newPassword) {
         this.password = newPassword;
+    }
+
+    /**
+     * 회원 탈퇴 API 관련 메소드
+     */
+    public void updateStatus(Status status) {
+        this.status = status;
     }
 }

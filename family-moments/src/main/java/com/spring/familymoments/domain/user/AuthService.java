@@ -41,6 +41,9 @@ public class AuthService {
     public TokenDto login(PostLoginReq postLoginReq) {
         User user = userRepository.findById(postLoginReq.getId())
                 .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
+        if(user.getStatus().equals(User.Status.INACTIVE)) {
+            throw new NoSuchElementException("탈퇴하거나 신고당한 유저입니다.");
+        }
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
             throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
         }
@@ -58,10 +61,7 @@ public class AuthService {
      * : Access Token이 만료일자만 초과한 유효한 토큰인지 검사
      *  true (-> 재발급)
      */
-    public boolean validate(String requestAccessTokenInHeader) throws IllegalAccessException {
-        if(requestAccessTokenInHeader == null) {
-            throw new IllegalAccessException("토큰을 확인해주세요");
-        }
+    public boolean validate(String requestAccessTokenInHeader) {
         return jwtService.validateAccessTokenOnlyExpired(requestAccessTokenInHeader);
     }
 
