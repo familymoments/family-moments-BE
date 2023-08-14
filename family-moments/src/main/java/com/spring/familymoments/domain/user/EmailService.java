@@ -11,7 +11,9 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
 import java.util.Objects;
 
 import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_USER_EMAIL;
@@ -43,19 +45,29 @@ public class EmailService {
      *
      * @return MimeMessage -> 인증 메일
      */
-    public MimeMessage createEmailForm(String email) throws MessagingException {
+    public MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException {
 
         createRandomCode();
 
-        String setFrom = "sonshumc75@gmail.com";
         String emailReceiver = email; //받는 사람
-        String title = "[Family Moments] 인증 번호를 확인해주세요.";
+        String title = "Family Moments 본인 인증 번호";
+        String messageContext = "";
+        messageContext += "<div style = \"background-color: #F7E1E3; margin: -8px -8px 50px -8px; height: 100px; padding-top: 50px;\">\n" +
+                          "<span style = \"color: #5B6380; margin-left:50px; text-align: left; font-weight:900; font-family: Segoe Script; font-size: 25px;\">Family Moments</span>\n" +
+                          "</div>\n" +
+                          "<h1 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:35px; margin-bottom: 80px;\">이메일 인증</h1>\n" +
+                          "<h2 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:20px; margin-bottom: 10px;\">안녕하세요, 고객님</h2>\n" +
+                          "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 60px;\">아이디 찾기/비밀번호 재설정을 위해 이메일 인증을 진행합니다.\n" +
+                          "아래 발급된 이메일 인증번호를 복사하거나 직접 입력하여 인증을 완료해주세요.</p>\n" +
+                          "<span style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 10px;\">인증번호 : " + randomVerificationCode + "</span>\n" +
+                          "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 100px;\">감사합니다.</p>\n" +
+                          "<p style = \"color: #96979C; display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size: 10px;\">* 귀하가 한 행동이 아니라면 이 이메일을 무시하셔도 됩니다.</p>\n";
 
         MimeMessage message = emailSender.createMimeMessage();
-        message.setFrom(setFrom); //발신자 설정
+        message.setFrom(new InternetAddress("sonshumc75@gmail.com", "Family Moments")); //발신자 설정
         message.addRecipients(MimeMessage.RecipientType.TO, emailReceiver); //수신자 설정
         message.setSubject(title); //제목 설정
-        message.setText("Family Moments를 이용해 주셔서 감사합니다. 요청하신 인증 번호는 ["+randomVerificationCode+"] 입니다."); //내용 설정
+        message.setText(messageContext, "utf-8", "html"); //내용 설정
 
         return message;
     }
@@ -65,7 +77,7 @@ public class EmailService {
      * 이메일 전송
      * @return String randomVerificationCode
      */
-    public String sendEmail(String name, String emailReceiver) throws MessagingException, BaseException {
+    public String sendEmail(String name, String emailReceiver) throws MessagingException, BaseException, UnsupportedEncodingException {
 
         MimeMessage emailForm = createEmailForm(emailReceiver);
         emailSender.send(emailForm);
