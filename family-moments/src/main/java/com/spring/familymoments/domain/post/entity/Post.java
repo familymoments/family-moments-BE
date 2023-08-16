@@ -83,15 +83,15 @@ public class Post extends BaseEntity {
     }
 
     public void updateImg2(String newImg) {
-        this.img1 = newImg;
+        this.img2 = newImg;
     }
 
     public void updateImg3(String newImg) {
-        this.img1 = newImg;
+        this.img3 = newImg;
     }
 
     public void updateImg4(String newImg) {
-        this.img1 = newImg;
+        this.img4 = newImg;
     }
 
     public void delete() {
