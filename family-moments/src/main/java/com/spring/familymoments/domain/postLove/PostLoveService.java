@@ -39,10 +39,10 @@ public class PostLoveService {
     public void createLove(User user, PostLoveReq postLoveReq) throws BaseException {
 
         User member = userRepository.findById(user.getId())
-                .orElseThrow(() -> new NoSuchElementException("[좋아요 누르기] 존재하지 않는 아이디입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
         Post post = postWithLoveRepository.findByPostId(postLoveReq.getPostId())
-                .orElseThrow(() -> new NoSuchElementException("[좋아요 누르기] 존재하지 않는 게시물입니다."));
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(postLoveRepository.existsByPostIdAndUserId(post, member)){
             throw new BaseException(POSTLOVE_ALREADY_EXISTS);
@@ -65,10 +65,10 @@ public class PostLoveService {
     public void deleteLove(User user, PostLoveReq postLoveReq) throws BaseException {
 
         User member = userRepository.findById(user.getId())
-                .orElseThrow(() -> new NoSuchElementException("[좋아요 취소] 존재하지 않는 아이디입니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
         Post post = postWithLoveRepository.findByPostId(postLoveReq.getPostId())
-                .orElseThrow(() -> new NoSuchElementException("[좋아요 취소] 존재하지 않는 게시물입니다."));
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(!postLoveRepository.existsByPostIdAndUserId(post, member)){
             throw new BaseException(FIND_FAIL_POSTLOVE);
