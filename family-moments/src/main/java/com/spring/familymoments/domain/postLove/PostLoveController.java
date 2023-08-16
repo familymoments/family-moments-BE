@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.*;
 import static com.spring.familymoments.config.BaseResponseStatus.INVALID_JWT;
 import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
 
+import java.util.NoSuchElementException;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -42,6 +46,8 @@ public class PostLoveController {
             postLoveService.createLove(user, postLoveReq);
 
             return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
+        } catch (NoSuchElementException e){
+            return new BaseResponse<>(false, e.getMessage(), NOT_FOUND.value());
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
@@ -68,7 +74,9 @@ public class PostLoveController {
             postLoveService.deleteLove(user, postLoveReq);
 
             return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
-        }  catch (BaseException e) {
+        } catch (NoSuchElementException e){
+            return new BaseResponse<>(false, e.getMessage(), NOT_FOUND.value());
+        } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
     }
