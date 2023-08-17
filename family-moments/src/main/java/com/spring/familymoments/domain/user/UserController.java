@@ -375,30 +375,30 @@ public class UserController {
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq,
                                                @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨. -> 461
         }
         if(user == null) {
             return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
         }
         //비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user, requestAccessToken).getIsSuccess()) { //비밀번호 인증
-            return new BaseResponse<>(FAILED_AUTHENTICATION);
+            return new BaseResponse<>(false, "비밀번호가 올바르지 않습니다.", 4000); //<- 403
         }
         //새 비밀번호 빈 입력
         if(patchPwdReq.getNewPassword_first().isEmpty() || patchPwdReq.getNewPassword().isEmpty()) {
-            return new BaseResponse<>(EMPTY_PASSWORD);
+            return new BaseResponse<>(false, "비밀번호를 입력하세요.", 4001); //<- 400 EMPTY_PASSWORD
         }
         //새 비밀번호 재확인
         if(!patchPwdReq.getNewPassword_first().equals(patchPwdReq.getNewPassword())) {
-            return new BaseResponse<>(false, "새 비밀번호가 일치하지 않습니다.", 400);
+            return new BaseResponse<>(false, "새 비밀번호가 일치하지 않습니다.", 4002); //<- 400
         }
         //기존 비밀번호와 새 비밀번호 일치
         if(patchPwdReq.getPassword().equals(patchPwdReq.getNewPassword())) {
-            return new BaseResponse<>(EQUAL_NEW_PASSWORD);
+            return new BaseResponse<>(false, "기존 비밀번호와 같습니다.", 4003); //<- 400 EQUAL_NEW_PASSWORD
         }
         //새 비밀번호 형식
         if(!isRegexPw(patchPwdReq.getNewPassword())) {
-            return new BaseResponse<>(POST_USERS_INVALID_PW);
+            return new BaseResponse<>(false, "비밀번호 형식을 확인해주세요.", 4004); //<- 400 POST_USERS_INVALID_PW
         }
         userService.updatePassword(patchPwdReq, user);
 
