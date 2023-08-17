@@ -11,5 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PatchPwdReq {
     private String password;
+    private String newPassword_first;
     private String newPassword;
 }

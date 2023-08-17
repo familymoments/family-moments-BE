@@ -308,7 +308,7 @@ public class UserController {
      * @return BaseResponse<PatchProfileReqRes>
      */
     @PatchMapping("/users")
-    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestParam(name = "profileImg") MultipartFile profileImg,
+    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg") MultipartFile profileImg,
                                                           @RequestPart PatchProfileReqRes patchProfileReqRes,
                                                           @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
@@ -380,17 +380,24 @@ public class UserController {
         if(user == null) {
             return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
         }
-        //1. 비밀번호 변경
+        //비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user, requestAccessToken).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
-        if(patchPwdReq.getPassword().equals(patchPwdReq.getNewPassword())) { //newPassword와 password 일치시
-            return new BaseResponse<>(EQUAL_NEW_PASSWORD);
-        }
-        if(patchPwdReq.getNewPassword() == null || patchPwdReq.getNewPassword() == "") { //새 비밀번호 빈 입력
+        //새 비밀번호 빈 입력
+        if(patchPwdReq.getNewPassword_first().isEmpty() || patchPwdReq.getNewPassword().isEmpty()) {
             return new BaseResponse<>(EMPTY_PASSWORD);
         }
-        if(!isRegexPw(patchPwdReq.getNewPassword())) { //새 비밀번호 형식
+        //새 비밀번호 재확인
+        if(!patchPwdReq.getNewPassword_first().equals(patchPwdReq.getNewPassword())) {
+            return new BaseResponse<>(false, "새 비밀번호가 일치하지 않습니다.", 400);
+        }
+        //기존 비밀번호와 새 비밀번호 일치
+        if(patchPwdReq.getPassword().equals(patchPwdReq.getNewPassword())) {
+            return new BaseResponse<>(EQUAL_NEW_PASSWORD);
+        }
+        //새 비밀번호 형식
+        if(!isRegexPw(patchPwdReq.getNewPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
         userService.updatePassword(patchPwdReq, user);
