@@ -10,10 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import static com.spring.familymoments.config.BaseResponseStatus.INVALID_JWT;
-import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
-
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
 @RestController
@@ -45,7 +42,7 @@ public class PostLoveController {
 
             return new BaseResponse<>("게시글에 좋아요를 누르셨습니다!");
         } catch (BaseException e){
-            return new BaseResponse<>(false, e.getMessage(), NOT_FOUND.value());
+            return new BaseResponse<>(POSTLOVE_ALREADY_EXISTS);
         }
     }
 
@@ -71,7 +68,7 @@ public class PostLoveController {
 
             return new BaseResponse<>("게시글 좋아요를 취소하셨습니다.");
         } catch (BaseException e){
-            return new BaseResponse<>(false, e.getMessage(), NOT_FOUND.value());
+            return new BaseResponse<>(FIND_FAIL_POSTLOVE);
         }
     }
 }
