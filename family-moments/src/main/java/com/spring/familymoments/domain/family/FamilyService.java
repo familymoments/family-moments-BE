@@ -83,7 +83,8 @@ public class FamilyService {
         // 반환
         return new PostFamilyRes(
                 savedFamily.getFamilyId(),
-                owner.getNickname()
+                owner.getNickname(),
+                savedFamily.getInviteCode()
         );
 
     }

@@ -13,4 +13,5 @@ import java.time.LocalDateTime;
 public class PostFamilyRes {
     private Long familyId;
     private String ownerNickName;
+    private String inviteCode;
 }
