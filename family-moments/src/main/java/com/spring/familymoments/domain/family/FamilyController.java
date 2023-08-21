@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
@@ -322,6 +323,33 @@ public class FamilyController {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         } catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
+        }
+    }
+
+    /** 가족 권한 수정 API
+     * [DELETE] /faimlies/{familyId}/authority
+     */
+    @PatchMapping("/{familyId}/authority")
+    public BaseResponse<String> changeFamilyAuthority(@PathVariable Long familyId,
+                                               @AuthenticationPrincipal User user,
+                                               @RequestBody Map<String, String> map,
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
+        try {
+            // 가족 권한 수정
+            familyService.changeFamilyAuthority(user, familyId, map.get("userId"));
+            return new BaseResponse<>("가족 대표가 변경되었습니다..");
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+        } catch (IllegalAccessException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.FORBIDDEN.value());
         }
     }
 }

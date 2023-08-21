@@ -68,5 +68,12 @@ public class Family extends BaseEntity {
         this.owner = owner;
         this.familyName = familyName;
     }
+
+    /**
+     * 가족 정보 수정 API 관련 메소드
+     */
+    public void updateFamily(User owner) {
+        this.owner = owner;
+    }
 }
 
