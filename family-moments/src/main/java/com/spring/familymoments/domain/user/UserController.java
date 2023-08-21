@@ -303,13 +303,13 @@ public class UserController {
     }
     /**
      * 회원 정보 수정 API
-     * [PATCH] /users
+     * [POST] /users/edit
      * @param profileImg
      * @return BaseResponse<PatchProfileReqRes>
      */
-    @PatchMapping("/users")
+    @PostMapping("/users/edit")
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg") MultipartFile profileImg,
-                                                          @RequestPart PatchProfileReqRes patchProfileReqRes,
+                                                          @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
                                                           @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
