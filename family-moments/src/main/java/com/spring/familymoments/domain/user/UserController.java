@@ -341,10 +341,10 @@ public class UserController {
     }
     /**
      * 비밀번호 인증 API
-     * [GET] /users/auth/compare-pwd
+     * [POST] /users/auth/compare-pwd
      * @return BaseResponse<String>
      */
-    @GetMapping("/users/auth/compare-pwd")
+    @PostMapping("/users/auth/compare-pwd")
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
                                              @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
