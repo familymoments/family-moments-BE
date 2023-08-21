@@ -98,7 +98,7 @@ public class PostService {
         }
 
         SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
-        ArrayList resImgs = new ArrayList<>(singlePostRes.getImgs());
+        ArrayList resImgs = new ArrayList<String>();
 
         if(postReq.getContent() != null) {
             singlePostRes.setContent(postReq.getContent());
@@ -115,10 +115,8 @@ public class PostService {
                 url = null;
             }
 
-            if(resImgs.size() - 1 < i) {
+            if(url != null) {
                 resImgs.add(url);
-            } else {
-                resImgs.set(i, url);
             }
 
             switch(i) {
