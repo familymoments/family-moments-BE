@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -29,6 +28,15 @@ public class PostLoveService {
     private final UserRepository userRepository;
     private final PostWithLoveRepository postWithLoveRepository;
     private final PostRepository postRepository;
+
+    /**
+     * checkDuplicatePostLove
+     * [GET]
+     * @return
+     */
+    public boolean checkDuplicatePostLove(Post post, User member) throws BaseException {
+        return postLoveRepository.existsByPostIdAndUserId(post, member);
+    }
 
     /**
      * createLove
@@ -44,7 +52,7 @@ public class PostLoveService {
         Post post = postWithLoveRepository.findByPostId(postLoveReq.getPostId())
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        if(postLoveRepository.existsByPostIdAndUserId(post, member)){
+        if(checkDuplicatePostLove(post, member)){
             throw new BaseException(POSTLOVE_ALREADY_EXISTS);
         }
 
@@ -70,12 +78,12 @@ public class PostLoveService {
         Post post = postWithLoveRepository.findByPostId(postLoveReq.getPostId())
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        if(!postLoveRepository.existsByPostIdAndUserId(post, member)){
+        if(!checkDuplicatePostLove(post, member)){
             throw new BaseException(FIND_FAIL_POSTLOVE);
         }
 
         PostLove postLove = postLoveRepository.findByPostIdAndUserId(post, member)
-                .orElseThrow(() -> new NoSuchElementException("요청한 좋아요 기록이 존재하지 않습니다."));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_POSTLOVE));
 
         postLoveRepository.delete(postLove);
     }

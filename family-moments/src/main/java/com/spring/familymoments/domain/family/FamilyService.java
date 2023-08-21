@@ -12,6 +12,7 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -367,5 +368,28 @@ public class FamilyService {
 
     }
 
+    // 가족 권한 수정
+    public void changeFamilyAuthority(User user, Long familyId, String authUser) throws IllegalAccessException {
+        Optional<Family> familyOptional = familyRepository.findById(familyId);
+
+        if(familyOptional.isEmpty()){
+            throw new NoSuchElementException("존재하지 않는 가족입니다.");
+        }
+
+        // 유저 권환 확인
+        if(!user.equals(familyOptional.get().getOwner())){
+            throw new IllegalAccessException("권한이 없습니다.");
+        }
+
+        // 권한 받을 사용자 존재 여부 확인
+        Optional<User> userToOwner = userRepository.findById(authUser);
+        if(userToOwner.isEmpty()){
+            throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
+        }
+
+        // 정보 수정
+        familyOptional.get().updateFamily(userToOwner.get());
+
+    }
 
 }

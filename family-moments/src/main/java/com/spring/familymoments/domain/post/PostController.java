@@ -89,11 +89,11 @@ public class PostController {
 
     /**
      * 게시글 수정 API
-     * [PATCH] /posts?{postId}
+     * [POST] /posts/{postId}/edit
      * @return BaseResponse<SinglePostRes>
      */
     @ResponseBody
-    @PatchMapping("/{postId}")
+    @PostMapping("/{postId}/edit")
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal User user,
                                                 @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                 @PathVariable long postId,
