@@ -4,6 +4,7 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
+import com.spring.familymoments.domain.user.model.PostLoginRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
@@ -31,22 +32,33 @@ public class AuthController {
      */
     @PostMapping("/users/log-in")
     public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
+        //User 등록 및 Refresh Token 저장
+        TokenDto tokenDto;
         try {
-            //User 등록 및 Refresh Token 저장
-            TokenDto tokenDto = authService.login(postLoginReq);
-            //RefreshToken 저장
-            HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
-                    .maxAge(COOKIE_EXPIRATION)
-                    .httpOnly(true)
-                    .secure(true)
-                    .build();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
-                    .header("X-AUTH-TOKEN", tokenDto.getAccessToken())
-                    .build();
+            tokenDto = authService.login(postLoginReq);
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().body(new BaseResponse(FAILED_TO_LOGIN));
         }
+
+        //RefreshToken 쿠키에 저장
+        HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
+                .maxAge(COOKIE_EXPIRATION)
+                .httpOnly(true)
+                .secure(true)
+                .build();
+
+        //가입된 familyId 값 넘기기 -- 임시
+        PostLoginRes postLoginRes;
+        try {
+            postLoginRes = authService.login_familyId(postLoginReq.getId());
+        } catch (IllegalArgumentException e) {
+            postLoginRes = new PostLoginRes(null);
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
+                .header("X-AUTH-TOKEN", tokenDto.getAccessToken())
+                .body(new BaseResponse<PostLoginRes>(postLoginRes)); //.build();
     }
 
     /**

@@ -2,9 +2,12 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
+import com.spring.familymoments.domain.common.UserFamilyRepository;
+import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
+import com.spring.familymoments.domain.user.model.PostLoginRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +32,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserFamilyRepository userFamilyRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -56,6 +60,15 @@ public class AuthService {
 
         return generateToken(SERVER, authentication.getName());
     }
+    /**
+     * 로그인 시 familyId 전달
+     */
+    public PostLoginRes login_familyId(String id) {
+        UserFamily userFamily = userFamilyRepository.findActiveUserFamilyByUserId(id)
+                .orElseThrow(() -> new IllegalArgumentException("가입한 가족이 없습니다."));
+        return new PostLoginRes(userFamily.getFamilyId().getFamilyId());
+    }
+
     /**
      * 재발급 필요 여부 확인
      * : Access Token이 만료일자만 초과한 유효한 토큰인지 검사

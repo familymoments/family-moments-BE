@@ -15,6 +15,9 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
 
     Optional<UserFamily> findByUserId(Optional<User> user);
 
+    @Query("SELECT uf FROM UserFamily uf WHERE uf.status = 'ACTIVE' AND uf.userId.id = :userId")
+    Optional<UserFamily> findActiveUserFamilyByUserId(@Param("userId") String userId);
+
     List<UserFamily> findUserFamilyByUserId(Optional<User> user);
 
     Optional<UserFamily> findByUserIdAndFamilyId(User userId, Family familyId);
