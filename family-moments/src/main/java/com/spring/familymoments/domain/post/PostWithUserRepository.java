@@ -6,6 +6,7 @@ import com.spring.familymoments.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +17,7 @@ public interface PostWithUserRepository extends JpaRepository<Post, Long> {
     Long countByWriterAndFamilyId(User user, Family family);
     //유저가 작성한 모든 게시글 조회
     @Query("SELECT p FROM Post p WHERE p.writer.userId = :userId")
-    List<Post> findPostByUserId(Long userId);
+    List<Post> findPostByUserId(@Param("userId")Long userId);
 
     // 가족 내에 속한 모든 게시글 조회
     List<Post> findByFamilyId(Family family);
