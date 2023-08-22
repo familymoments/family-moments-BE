@@ -50,7 +50,7 @@ public class User extends BaseTime implements UserDetails {
     @Column(columnDefinition = "TEXT", nullable = false)
     private String password;
 
-    @Column(nullable = false, updatable = false, length = 20)
+    @Column(nullable = false, length = 20)
     private String name;
 
     @Column(nullable = false, length = 20)
