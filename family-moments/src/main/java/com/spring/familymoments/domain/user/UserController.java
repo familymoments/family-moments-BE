@@ -308,7 +308,7 @@ public class UserController {
      * @return BaseResponse<PatchProfileReqRes>
      */
     @PostMapping("/users/edit")
-    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg") MultipartFile profileImg,
+    public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg", required = false) MultipartFile profileImg,
                                                           @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
                                                           @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
@@ -317,9 +317,12 @@ public class UserController {
         if(user == null) {
             return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
         }
-        String fileUrl = awsS3Service.uploadImage(profileImg);
-        patchProfileReqRes.setProfileImg(fileUrl);
-
+        if(profileImg == null || profileImg.isEmpty()) { //이미지 비어있으면 원래 이미지 넣어주기
+            patchProfileReqRes.setProfileImg(user.getProfileImg());
+        } else {
+            String fileUrl = awsS3Service.uploadImage(profileImg);
+            patchProfileReqRes.setProfileImg(fileUrl);
+        }
         if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
