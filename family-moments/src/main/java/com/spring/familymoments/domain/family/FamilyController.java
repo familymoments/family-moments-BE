@@ -135,7 +135,7 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @PostMapping("/inviteCode")
-    public BaseResponse<FamilyDto> getFamilyByInviteCode(@RequestBody String inviteCode,
+    public BaseResponse<FamilyIdDto> getFamilyByInviteCode(@RequestBody String inviteCode,
                                                          @AuthenticationPrincipal User user,
                                                          @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
@@ -146,8 +146,8 @@ public class FamilyController {
         }
 
         try {
-            FamilyDto familyDto = familyService.getFamilyByInviteCode(inviteCode);
-            return new BaseResponse<>(familyDto);
+            FamilyIdDto familyIdDto = familyService.getFamilyByInviteCode(inviteCode);
+            return new BaseResponse<>(familyIdDto);
         } catch (NoSuchElementException e) {
             return new BaseResponse<>(FIND_FAIL_FAMILY);
         }
@@ -350,6 +350,26 @@ public class FamilyController {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         } catch (IllegalAccessException e) {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.FORBIDDEN.value());
+        }
+    }
+
+    @PostMapping("/{familyId}/insertMember")
+    BaseResponse<String> insertMember(@PathVariable Long familyId,
+                                               @AuthenticationPrincipal User user,
+                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+
+        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
+            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+        }
+        if(user == null) {
+            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
+        }
+
+        try {
+            familyService.insertMember(user, familyId);
+            return new BaseResponse<>("가족에 가입되었습니다");
+        } catch (NoSuchElementException e) {
+            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
         }
     }
 }
