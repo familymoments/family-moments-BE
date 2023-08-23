@@ -6,6 +6,7 @@ import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.CommentRes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -26,7 +27,7 @@ public interface PostLoveRepository extends JpaRepository<PostLove, Long> {
     boolean existsByPostIdAndUserId(Post post, User user);
 
     @Query("SELECT pl FROM PostLove pl WHERE pl.userId.userId = :userId")
-    List<PostLove> findPostLovesByUserId(Long userId);
+    List<PostLove> findPostLovesByUserId(@Param("userId") Long userId);
     @Query("SELECT pl FROM PostLove pl WHERE pl.postId IN (SELECT p FROM Post p WHERE p.writer.userId = :userId)")
     List<PostLove> findPostLovesByPostUserId(Long userId);
 }

@@ -2,11 +2,15 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
+import com.spring.familymoments.domain.common.UserFamilyRepository;
+import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
+import com.spring.familymoments.domain.user.model.PostLoginRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -29,6 +34,7 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class AuthService {
     private final UserRepository userRepository;
+    private final UserFamilyRepository userFamilyRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
@@ -55,6 +61,16 @@ public class AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return generateToken(SERVER, authentication.getName());
+    }
+    /**
+     * 로그인 시 familyId 전달
+     */
+    public PostLoginRes login_familyId(String id) {
+        List<UserFamily> userFamilyList = userFamilyRepository.findFirstActiveUserFamilyByUserId(id, PageRequest.of(0,1));
+        if(userFamilyList.size() == 0) {
+            throw new IllegalArgumentException("가입한 가족이 없습니다.");
+        }
+        return new PostLoginRes(userFamilyList.get(0).getFamilyId().getFamilyId());
     }
     /**
      * 재발급 필요 여부 확인
