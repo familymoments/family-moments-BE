@@ -40,6 +40,7 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     // 가족 생성하기
+    @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
 
 //        // 1. 가족 튜플 생성
@@ -91,6 +92,7 @@ public class FamilyService {
 
 
     //특정 가족 정보 조회
+    @Transactional
     public FamilyDto getFamily(Long id){
         Optional<Family> family = familyRepository.findById(id);
 
@@ -109,6 +111,7 @@ public class FamilyService {
     }
 
     // 닉네임 및 가족 생성일 조회
+    @Transactional
     public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) throws BaseException{
 
 //        User user = userRepository.findById(userId)
@@ -128,6 +131,7 @@ public class FamilyService {
     }
 
     // 가족원 전체 조회
+    @Transactional
     public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -142,10 +146,12 @@ public class FamilyService {
     }
 
     //초대코드로 가족 조회
-    public FamilyDto getFamilyByInviteCode(String inviteCode){
+    @Transactional
+    public FamilyIdDto getFamilyByInviteCode(String inviteCode){
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
 
-        return family.map(value -> FamilyDto.builder()
+        return family.map(value -> FamilyIdDto.builder()
+                .familyId(value.getFamilyId())
                 .owner(value.getOwner().getNickname())
                 .familyName(value.getFamilyName())
                 .uploadCycle(value.getUploadCycle())
@@ -157,6 +163,7 @@ public class FamilyService {
 
 
     // 가족 초대
+    @Transactional
     public void inviteUser(User user, List<String> userIdList, Long familyId) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
         // 1. 리스트의 유저들이 family에 가입했는지 확인
@@ -168,6 +175,8 @@ public class FamilyService {
 
                 // 매핑 테이블에 존재하는지 확인
                 List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(ids));
+                System.out.println(userRepository.findById(ids));
+
                 if(byUserIdList.size() != 0){
                     for (UserFamily userFamily : byUserIdList) {
                         // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
@@ -213,6 +222,7 @@ public class FamilyService {
     }
 
     // 가족 초대 수락
+    @Transactional
     public void acceptFamily(User user, Long familyId){
         Optional<Family> familyOptional = familyRepository.findById(familyId);
 
@@ -238,6 +248,7 @@ public class FamilyService {
     }
 
     // 업로드 주기 수정
+    @Transactional
     public void updateUploadCycle(User user, Long familyId, int uploadCycle) throws BaseException{
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -252,6 +263,7 @@ public class FamilyService {
     }
 
     // 가족 삭제
+    @Transactional
     public void deleteFamily(User user, Long familyId) throws BaseException{
 //        User user = userRepository.findById(userId)
 //                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
@@ -285,6 +297,7 @@ public class FamilyService {
     }
 
     //가족 정보 수정
+    @Transactional
     public FamilyDto updateFamily(User user, Long familyId, FamilyUpdateDto familyUpdateDto) throws IllegalAccessException {
         //Optional<User> userOptional = userRepository.findById(userId);
         Optional<Family> familyOptional = familyRepository.findById(familyId);
@@ -322,6 +335,7 @@ public class FamilyService {
     }
 
     // 가족 탈퇴
+    @Transactional
     public void withdrawFamily(User user, Long familyId) throws BaseException{
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -347,6 +361,7 @@ public class FamilyService {
     }
 
     // 가족 강제 탈퇴
+    @Transactional
     public void emissionFamily(User user, Long familyId, List<String> userIdList) throws BaseException{
 
         Family family = familyRepository.findById(familyId)
@@ -370,6 +385,7 @@ public class FamilyService {
     }
 
     // 가족 권한 수정
+    @Transactional
     public void changeFamilyAuthority(User user, Long familyId, String authUser) throws IllegalAccessException {
         Optional<Family> familyOptional = familyRepository.findById(familyId);
 
@@ -392,5 +408,26 @@ public class FamilyService {
         familyOptional.get().updateFamily(userToOwner.get());
 
     }
+
+    // 초대코드 -> 가족 가입
+    @Transactional
+    public void insertMember(User user, Long familyId){
+        // 가족 검색
+        Optional<Family> familyOptional = familyRepository.findById(familyId);
+        if (familyOptional.isEmpty()){
+            throw new NoSuchElementException("존재하지 않는 가족입니다");
+        }
+
+        Family family = familyOptional.get();
+
+        UserFamily userFamily = UserFamily.builder()
+                .familyId(family)
+                .userId(user)
+                .inviteUserId(user)
+                .status(ACTIVE).build();
+
+        userFamilyRepository.save(userFamily);
+    }
+
 
 }
