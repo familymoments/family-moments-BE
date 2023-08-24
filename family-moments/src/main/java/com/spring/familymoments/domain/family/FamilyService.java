@@ -16,7 +16,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
@@ -30,7 +30,7 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+// @Transactional
 public class FamilyService {
 
     private final FamilyRepository familyRepository;
