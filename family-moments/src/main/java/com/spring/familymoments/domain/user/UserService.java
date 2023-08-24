@@ -63,7 +63,6 @@ public class UserService {
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
     public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
-
         // TODO: UUID 생성
         String uuid = UuidUtils.generateUUID();
 
@@ -116,6 +115,18 @@ public class UserService {
     public boolean checkDuplicateId(String UserId) throws BaseException {
         return userRepository.existsById(UserId);
     }
+
+//    /**
+//     * INACTIVE 여부 확인
+//     * [GET] 가입된 아이디가 존재하나, INACTIVE 상태일 경우 같은 아이디로 가입을 허용
+//     * @return INACTIVE 상태면 존재하는 아이디로 가입 가능 -> true
+//     */
+//    public boolean checkInactiveUserById(String UserId) throws BaseException {
+//        User member = userRepository.findById(UserId)
+//                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
+//
+//        return member.getStatus() == User.Status.INACTIVE;
+//    }
 
     /**
      * 이메일 중복 확인
