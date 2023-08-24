@@ -170,12 +170,19 @@ public class FamilyController {
             return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
         }
 
+        for(String ids : userIds) {
+            System.out.println("\n + \n + \n + \n + \n + \n + \n + \n ");
+            System.out.println(ids);
+            System.out.println("\n + \n + \n + \n + \n + \n + \n + \n ");
+        }
+
         try {
             familyService.inviteUser(user, userIds, familyId);
             return new BaseResponse<>("초대 요청이 완료되었습니다.");
         } catch (IllegalAccessException e) {
             return new BaseResponse<>(false, e.getMessage(), HttpStatus.CONFLICT.value());
         } catch (NoSuchElementException e){
+            e.printStackTrace();
             return new BaseResponse<>(FIND_FAIL_USERNAME);
         }
     }

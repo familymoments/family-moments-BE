@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GetCommentsRes {
+    private Long postId;
 
     private Long commentId;
 
