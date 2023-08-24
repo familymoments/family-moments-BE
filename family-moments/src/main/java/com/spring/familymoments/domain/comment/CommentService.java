@@ -75,6 +75,7 @@ public class CommentService {
 
         List<GetCommentsRes> getCommentsResList = activeComments.stream()
                 .map(comment -> new GetCommentsRes(
+                        comment.getPostId().getPostId(),
                         comment.getCommentId(),
                         comment.getWriter().getNickname(),
                         comment.getWriter().getProfileImg(),
