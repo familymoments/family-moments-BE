@@ -32,6 +32,9 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(BaseException.class)
     protected BaseResponse<Object> handleBaseException(BaseException ex) {
+        if (ex.getStatus() == null) {
+            return new BaseResponse<>(false, ex.getMessage(), ex.getCode());
+        }
         return new BaseResponse<>(ex.getStatus());
     }
 
