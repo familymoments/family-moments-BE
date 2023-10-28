@@ -11,8 +11,7 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,12 +20,13 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+// @Transactional
 public class CommentService {
     private final CommentWithUserRepository commentWithUserRepository;
     private final PostWithUserRepository postWithUserRepository;
 
     // 댓글 생성하기
+    @Transactional
     public void createComment(User user, Long postId, PostCommentReq postCommentReq) throws BaseException {
 
         // 사용자
@@ -60,6 +60,7 @@ public class CommentService {
     }
 
     // 특정 게시물의 댓글 목록 조회
+    @Transactional
     public List<GetCommentsRes> getCommentsByPostId(Long postId) throws BaseException{
 
         // 게시글 존재 확인
@@ -74,6 +75,7 @@ public class CommentService {
 
         List<GetCommentsRes> getCommentsResList = activeComments.stream()
                 .map(comment -> new GetCommentsRes(
+                        comment.getPostId().getPostId(),
                         comment.getCommentId(),
                         comment.getWriter().getNickname(),
                         comment.getWriter().getProfileImg(),
@@ -87,6 +89,7 @@ public class CommentService {
     }
 
     // 댓글 삭제
+    @Transactional
     public void deleteComment(User user, Long commentId) throws BaseException{
 
         // 유저 존재 확인

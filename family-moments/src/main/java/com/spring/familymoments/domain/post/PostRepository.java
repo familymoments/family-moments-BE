@@ -23,7 +23,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
             "WHERE p.familyId.familyId = :familyId " +
             "AND p.status = 'ACTIVE' " +
-            "ORDER BY p.postId DESC")
+            "ORDER BY p.createdAt DESC")
     List<MultiPostRes> findByFamilyId(@Param("familyId") long familyId, @Param("userId") long userId, Pageable pageable);
 
     @Query("SELECT " +
@@ -33,7 +33,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "LEFT JOIN PostLove pl On p = pl.postId AND pl.userId.userId = :userId " +
             "WHERE p.familyId.familyId = :familyId AND p.postId < :postId " +
             "AND p.status = 'ACTIVE' " +
-            "ORDER BY p.postId DESC")
+            "ORDER BY p.createdAt DESC")
     List<MultiPostRes> findByFamilyId(@Param("familyId") long familyId, @Param("userId") long userId, @Param("postId") long postId, Pageable pageable);
 
     @Query("SELECT " +
@@ -44,7 +44,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "WHERE p.familyId.familyId = :familyId " +
             "AND p.status = 'ACTIVE' " +
             "AND FUNCTION('DATE', p.createdAt)  = FUNCTION('DATE', :date) " +
-            "ORDER BY p.postId DESC")
+            "ORDER BY p.createdAt DESC")
     List<MultiPostRes> findByFamilyIdWithDate(@Param("familyId") long familyId, @Param("userId") long userId, @Param("date") LocalDateTime date, Pageable pageable);
 
     @Query("SELECT " +
@@ -56,7 +56,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "AND p.status = 'ACTIVE' " +
             "AND FUNCTION('DATE', p.createdAt)  = FUNCTION('DATE', :date) " +
             "AND p.postId < :postId " +
-            "ORDER BY p.postId DESC")
+            "ORDER BY p.createdAt DESC")
     List<MultiPostRes> findByFamilyIdWithDateAfterPostId(@Param("familyId") long familyId, @Param("userId") long userId, @Param("date") LocalDateTime date, @Param("postId") long postId, Pageable pageable);
 
     @Modifying
@@ -81,7 +81,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p " +
             "WHERE p.familyId.familyId = :familyId AND p.status = :status " +
             "AND p.createdAt BETWEEN :startDate AND :endDate " +
-            "ORDER BY p.postId ASC ")
+            "ORDER BY p.createdAt ASC ")
     List<LocalDateTime> getDateExistPost(@Param("familyId") long familyId, @Param("status") BaseEntity.Status status, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     List<Post> findByFamilyIdAndStatusOrderByPostIdDesc(Family family, BaseEntity.Status status, Pageable pageable);
