@@ -14,6 +14,7 @@ import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -94,20 +95,15 @@ public class FamilyService {
     //특정 가족 정보 조회
     @Transactional
     public FamilyDto getFamily(Long id){
-        Optional<Family> family = familyRepository.findById(id);
-
-        if (family.isEmpty()) {
-            throw new NoSuchElementException("존재하지 않습니다");
-        }
-
-        return FamilyDto.builder()
-                .owner(family.get().getOwner().getNickname())
-                .familyName(family.get().getFamilyName())
-                .uploadCycle(family.get().getUploadCycle())
-                .inviteCode(family.get().getInviteCode())
-                .representImg(family.get().getRepresentImg())
-                .build();
-
+        return familyRepository.findById(id)
+                .map(family -> FamilyDto.builder()
+                        .owner(family.getOwner().getNickname())
+                        .familyName(family.getFamilyName())
+                        .uploadCycle(family.getUploadCycle())
+                        .inviteCode(family.getInviteCode())
+                        .representImg(family.getRepresentImg())
+                        .build())
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
     }
 
     // 닉네임 및 가족 생성일 조회
@@ -148,6 +144,7 @@ public class FamilyService {
     //초대코드로 가족 조회
     @Transactional
     public FamilyIdDto getFamilyByInviteCode(String inviteCode){
+        //TODO: 페이지네이션
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
 
         return family.map(value -> FamilyIdDto.builder()
@@ -158,7 +155,6 @@ public class FamilyService {
                 .inviteCode(value.getInviteCode())
                 .representImg(value.getRepresentImg())
                 .build()).orElse(null);
-
     }
 
 
