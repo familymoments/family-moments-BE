@@ -7,9 +7,18 @@ import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +32,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/families")
+@Tag(name = "Family", description = "가족 API Document")
 public class FamilyController {
 
     private final FamilyService familyService;
@@ -38,11 +48,30 @@ public class FamilyController {
      * @return BaseResponse<PostFamilyRes>
      */
     @ResponseBody
-    @PostMapping("/family")
-    public BaseResponse<PostFamilyRes> createFamily(@AuthenticationPrincipal User user,
-                                                    @RequestParam(name = "representImg") MultipartFile representImg,
-                                                    @RequestPart PostFamilyReq postFamilyReq,
-                                                    @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+    @PostMapping(value ="/family",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(schema = @Schema(implementation = PostFamilyRes.class))),
+            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+            @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
+    })
+    public BaseResponse<PostFamilyRes> createFamily(
+            @AuthenticationPrincipal User user,
+            @Parameter(
+                    name = "representImg",
+                    description = "가족 대표 이미지",
+                    required = true
+            ) @RequestParam(name = "representImg") MultipartFile representImg,
+            @Parameter(
+                    description = "가족 생성 요청 정보"
+            ) @RequestPart PostFamilyReq postFamilyReq,
+            @Parameter(
+                    description = "사용자 인증 토큰",
+                    required = true
+            ) @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
 
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
