@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -68,23 +70,9 @@ public class FamilyController {
      */
     @ResponseBody
     @GetMapping("/{familyId}")
-    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId,
-                                             @AuthenticationPrincipal User user,
-                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
-        //return new BaseResponse<>(familyService.getFamily(familyId));
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-
-        try {
-            FamilyDto familyDto = familyService.getFamily(familyId);
-            return new BaseResponse<>(familyDto);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }
+    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId){
+        FamilyDto familyDto = familyService.getFamily(familyId);
+        return new BaseResponse<>(familyDto);
     }
 
     /**
