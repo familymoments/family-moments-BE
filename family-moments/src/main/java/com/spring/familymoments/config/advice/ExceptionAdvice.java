@@ -7,6 +7,7 @@ import com.spring.familymoments.config.response.CommonResult;
 import com.spring.familymoments.config.response.ResponseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,4 +45,10 @@ public class ExceptionAdvice {
         return responseService.getFailResult(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
     }
 
+    /** validation exception **/
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    protected BaseResponse<Object> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
+        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return new BaseResponse<>(false, errorMessage, HttpStatus.BAD_REQUEST.value());
+    }
 }
