@@ -160,18 +160,14 @@ public class FamilyService {
 
     // 가족 초대
     @Transactional
-    public void inviteUser(User user, List<String> userIdList, Long familyId){
+    public void inviteUser(User user, List<String> userIds, Long familyId){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        // 1. 초대하려는 가족에 가입되어 있는지 확인 -> exception
-        // 2. 이미 있는 경우
-
-
-        for (String ids : userIdList) {
+        for (String userId : userIds) {
             // 매핑 테이블에 존재하는지 확인
-            List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(ids));
-            System.out.println(userRepository.findById(ids));
+            List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
+            System.out.println(userRepository.findById(userId));
 
             if(byUserIdList.size() != 0){
                 for (UserFamily userFamily : byUserIdList) {
@@ -182,54 +178,29 @@ public class FamilyService {
                 }
             }
 
-            Optional<User> invitedUser = userRepository.findById(ids);
-
-            if(invitedUser.isEmpty()){
-                throw new BaseException(FIND_FAIL_USER);
-            }
+            User invitedUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
             UserFamily userFamily = UserFamily.builder()
                     .familyId(family)
-                    .userId(invitedUser.get())
+                    .userId(invitedUser)
                     .inviteUserId(user)
                     .status(DEACCEPT).build();
 
             userFamilyRepository.save(userFamily);
-
-//                if (byUserId.isPresent() && byUserId.get().getStatus() == ACTIVE) {
-//                    throw new IllegalAccessException("이미 가족에 가입된 회원입니다.");
-//                }if(byUserId.isPresent() && byUserId.get().getStatus() == DEACCEPT && byUserId.get().getFamilyId() == family){
-//                    throw new IllegalAccessException("이미 초대 요청을 보낸 회원입니다.");
-//                } else {
-//                    User user = userRepository.findById(ids)
-//                            .orElseThrow(() -> new NoSuchElementException("유저를 찾을 수 없습니다."));
-//
-//                    UserFamily userFamily = UserFamily.builder()
-//                            .familyId(family)
-//                            .userId(user)
-//                            .status(DEACCEPT).build();
-//
-//                    userFamilyRepository.save(userFamily);
-//                }
         }
     }
 
     // 가족 초대 수락
     @Transactional
     public void acceptFamily(User user, Long familyId){
-        Optional<Family> family = familyRepository.findById(familyId);
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if(family.isEmpty()){
-            throw new BaseException(FIND_FAIL_FAMILY);
-        }
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+                .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
 
-        Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family.get());
-
-        if(userFamily.isEmpty()){
-            throw new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value());
-        }
-
-        UserFamily updatedUserFamily = userFamily.get().toBuilder()
+        UserFamily updatedUserFamily = userFamily.toBuilder()
                 .status(ACTIVE)
                 .build();
 
@@ -315,43 +286,37 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        // 1. 게시글 삭제
         List<Post> posts = postWithUserRepository.findPostByUserId(user.getUserId());
         for (Post post : posts) {
             post.updateStatus(BaseEntity.Status.INACTIVE);
         }
-        // 2. 댓글 삭제
+
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(user.getUserId());
         for (Comment comment : comments) {
             comment.updateStatus(Comment.Status.INACTIVE);
         }
-        // 3. 매핑 테이블에서 유저-가족 정보 삭제
+
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("가족에 가입되어 있지 않은 유저입니다.", HttpStatus.NOT_FOUND.value()));
 
-        // 매핑테이블에서 삭제
         userFamilyRepository.delete(userFamily);
     }
 
     // 가족 강제 탈퇴
     @Transactional
-    public void emissionFamily(User user, Long familyId, List<String> userIdList){
+    public void emissionFamily(User user, Long familyId, List<String> userIds){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        // 생성자 권한 확인
         if (!family.getOwner().equals(user)) {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
 
-        for (String ids : userIdList) {
-            Optional<User> emissionUser = userRepository.findById(ids);
-            if(emissionUser.isEmpty()){
-                throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
-            }
+        for (String userId : userIds) {
+            User emissionUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-            // 유저 탈퇴
-            withdrawFamily(emissionUser.get(), familyId);
+            withdrawFamily(emissionUser, familyId);
         }
     }
 
@@ -361,19 +326,14 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        // 유저 권환 확인
         if(!user.equals(family.getOwner())){
             throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
         }
 
-        // 권한 받을 사용자 존재 여부 확인
-        Optional<User> userToOwner = userRepository.findById(authUser);
-        if(userToOwner.isEmpty()){
-            throw new NoSuchElementException("존재하지 않는 사용자 입니다.");
-        }
+        User userToOwner = userRepository.findById(authUser)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        // 정보 수정
-        family.updateFamily(userToOwner.get());
+        family.updateFamily(userToOwner);
     }
 
     // 초대코드 -> 가족 가입
@@ -382,11 +342,10 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        // 매핑 테이블에 존재하는지 확인
-        Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(userRepository.findById(user.getId()));
+        Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(user);
 
         if (byUserId.isPresent()) {
-            throw new RuntimeException("이미 가족에 가입된 유저입니다.");
+            throw new BaseException("이미 가족에 가입된 유저입니다.", HttpStatus.CONFLICT.value());
         }
 
         UserFamily userFamily = UserFamily.builder()
