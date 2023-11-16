@@ -44,6 +44,11 @@ public class PostService {
         Family family = familyRepository.findById(postReq.getFamilyId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
+        // 가족의 구성원이 아닌 경우, val
+        if(!familyRepository.isFamilyMember(family, user))
+            throw new BaseException(minnie_FAMILY_INVALID_USER);
+
+
         // image 업로드
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
