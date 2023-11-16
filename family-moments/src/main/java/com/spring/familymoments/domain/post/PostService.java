@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.post;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.AlbumRes;
@@ -35,15 +36,23 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class PostService {
     private final PostRepository postRepository;
     private final AwsS3Service awsS3Service;
+    private final FamilyRepository familyRepository;
 
     @Transactional
-    public SinglePostRes createPosts(User user, PostReq postReq) throws BaseException {
+    public SinglePostRes createPosts(User user, PostReq postReq) {
+        // familyID 유효성 검사
+        Family family = familyRepository.findById(postReq.getFamilyId())
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        // image 업로드
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
+        // Post builder 생성
         Post.PostBuilder postBuilder = Post.builder()
-                .writer(user).familyId(new Family(postReq.getFamilyId()))
+                .writer(user).familyId(family)
                 .content(postReq.getContent());
 
+        // image url <-> post entity로 convert
         for(int i = 0 ; i < urls.size(); i++) {
             String url = urls.get(i);
 
@@ -64,24 +73,25 @@ public class PostService {
                     break;
             }
         }
+        // build
         Post params = postBuilder.build();
 
-        try {
-            Post result = postRepository.save(params);
+        Post result = postRepository.save(params);
 
-            // postId로 연관된 테이블을 다시 검색하지 않음
-            SinglePostRes singlePostRes = SinglePostRes.builder()
-                    .postId(result.getPostId())
-                    .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
-                    .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
-                    .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
-                    .build();
-
-            return singlePostRes;
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("유효하지 않은 familyId");
+        // 저장에 실패하는 경우 error 처리
+        if(result == null) {
+            throw new BaseException(minnie_POST_SAVE_FAIL);
         }
 
+        // postId로 연관된 테이블을 다시 검색하지 않음
+        SinglePostRes singlePostRes = SinglePostRes.builder()
+                .postId(result.getPostId())
+                .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
+                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
+                .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
+                .build();
+
+        return singlePostRes;
     }
 
     // post update
