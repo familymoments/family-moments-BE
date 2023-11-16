@@ -6,6 +6,8 @@ import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.INVALID_JWT;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/comments")
+@Tag(name = "Comment", description = "댓글 API Document")
 public class CommentController {
     private final CommentService commentService;
     private final AuthService authService;
@@ -29,6 +32,7 @@ public class CommentController {
      */
     @ResponseBody
     @PostMapping("")
+    @Operation(summary = "댓글 생성", description = "댓글을 생성합니다.")
     public BaseResponse<String> createComment(@AuthenticationPrincipal User user,
                                               @RequestParam("postId") Long postId,
                                               @RequestPart PostCommentReq postCommentReq,
@@ -53,6 +57,7 @@ public class CommentController {
      */
     @ResponseBody
     @GetMapping("")
+    @Operation(summary = "특정 게시물의 댓글 목록 조회", description = "특정 게시물의 댓글 목록을 조회합니다.")
     public BaseResponse<List<GetCommentsRes>> getCommentsByPostId(@RequestParam("postId") Long postId,
                                                                   @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
@@ -74,6 +79,7 @@ public class CommentController {
      */
     @ResponseBody
     @DeleteMapping("/{commentId}")
+    @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     public BaseResponse<String> deleteComment(@AuthenticationPrincipal User user,
                                               @PathVariable Long commentId,
                                               @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
