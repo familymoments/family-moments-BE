@@ -48,29 +48,13 @@ public class FamilyController {
      * @return BaseResponse<PostFamilyRes>
      */
     @ResponseBody
-    @PostMapping(value ="/family",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping("/family")
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = "OK",
-//                    content = @Content(schema = @Schema(implementation = PostFamilyRes.class))),
-//            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
-//            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
-//            @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
-//    })
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal User user,
-            @Parameter(
-                    name = "representImg",
-                    description = "가족 대표 이미지",
-                    required = true
-            )
             @RequestParam(name = "representImg") MultipartFile representImg,
-            @Parameter(description = "가족 생성 요청 정보") @RequestPart PostFamilyReq postFamilyReq,
-            @Parameter(
-                    description = "사용자 인증 토큰", required = true
-            ) @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-
+            @RequestPart PostFamilyReq postFamilyReq,
+            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -121,9 +105,11 @@ public class FamilyController {
      */
     @ResponseBody
     @GetMapping("/{familyId}/created")
-    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(@AuthenticationPrincipal User user,
-                                                                              @PathVariable Long familyId,
-                                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+    @Operation(summary = "닉네임 및 가족 생성일 조회", description = "메인 페이지의 닉네임 및 가족 생성일 정보를 조회합니다.")
+    public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long familyId,
+            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
             return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
         }
@@ -142,6 +128,7 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @GetMapping("/{familyId}/users")
+    @Operation(summary = "가족원 전체 조회", description = "현재 활동 중인 전체 가족 구성원을 조회합니다.")
     public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(@PathVariable Long familyId,
                                                             @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
@@ -245,6 +232,7 @@ public class FamilyController {
      * @return BaseResponse<String>
      */
     @PatchMapping("/{familyId}")
+    @Operation(summary = "업로드 주기 수정", description = "가족 업로드 알림 주기를 수정합니다.")
     public BaseResponse<String> updateUploadCycle(@AuthenticationPrincipal User user,
                                                   @PathVariable Long familyId,
                                                   @RequestParam("uploadCycle") int uploadCycle,
@@ -267,6 +255,7 @@ public class FamilyController {
      * @return BaseResponse<String>
      */
     @DeleteMapping("/{familyId}")
+    @Operation(summary = "가족 삭제", description = "가족을 삭제합니다. 댓글, 게시글, 가족이 일괄 삭제됩니다.")
     public BaseResponse<String> deleteFamily(@AuthenticationPrincipal User user,
                                              @PathVariable Long familyId,
                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
