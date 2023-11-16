@@ -51,26 +51,24 @@ public class FamilyController {
     @PostMapping(value ="/family",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK",
-                    content = @Content(schema = @Schema(implementation = PostFamilyRes.class))),
-            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
-            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
-            @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
-    })
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "OK",
+//                    content = @Content(schema = @Schema(implementation = PostFamilyRes.class))),
+//            @ApiResponse(responseCode = "400", description = "BAD REQUEST"),
+//            @ApiResponse(responseCode = "404", description = "NOT FOUND"),
+//            @ApiResponse(responseCode = "500", description = "INTERNAL SERVER ERROR")
+//    })
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal User user,
             @Parameter(
                     name = "representImg",
                     description = "가족 대표 이미지",
                     required = true
-            ) @RequestParam(name = "representImg") MultipartFile representImg,
+            )
+            @RequestParam(name = "representImg") MultipartFile representImg,
+            @Parameter(description = "가족 생성 요청 정보") @RequestPart PostFamilyReq postFamilyReq,
             @Parameter(
-                    description = "가족 생성 요청 정보"
-            ) @RequestPart PostFamilyReq postFamilyReq,
-            @Parameter(
-                    description = "사용자 인증 토큰",
-                    required = true
+                    description = "사용자 인증 토큰", required = true
             ) @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
 
         if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
