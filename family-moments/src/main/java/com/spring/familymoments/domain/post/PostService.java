@@ -96,7 +96,7 @@ public class PostService {
 
     // post update
     @Transactional
-    public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
+    public SinglePostRes editPost(User user, long postId, PostReq postReq) {
         Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
@@ -154,7 +154,7 @@ public class PostService {
 
     // post delete
     @Transactional
-    public void deletePost(User user, long postId) throws BaseException {
+    public void deletePost(User user, long postId) {
         Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(deletedPost.getStatus() == BaseEntity.Status.INACTIVE) {
@@ -169,7 +169,7 @@ public class PostService {
     }
 
     // 현재 가족의 모든 게시물 중 최근 10개를 조회
-    public List<MultiPostRes> getPosts(long userId, long familyId) throws BaseException {
+    public List<MultiPostRes> getPosts(long userId, long familyId) {
         Pageable pageable = PageRequest.of(0, 10);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, pageable);
 
@@ -181,7 +181,7 @@ public class PostService {
     }
 
     // 현재 가족의 모든 게시물 중 특정 postId 보다 작은 10개를 조회
-    public List<MultiPostRes> getPosts(long userId, long familyId, long postId) throws BaseException {
+    public List<MultiPostRes> getPosts(long userId, long familyId, long postId) {
         Pageable pageable = PageRequest.of(0, 10);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, postId, pageable);
 
@@ -194,7 +194,7 @@ public class PostService {
 
     // 특정 post 조회
     @Transactional
-    public SinglePostRes getPost(long userId, long postId) throws BaseException {
+    public SinglePostRes getPost(long userId, long postId) {
         // countLove 칼럼 갱신
         postRepository.updateCountLove(postId);
 
@@ -210,7 +210,7 @@ public class PostService {
 
     // 특정 일 최신 post 조회
     @Transactional
-    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) throws BaseException{
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
@@ -228,7 +228,7 @@ public class PostService {
 
     // 특정 일 postId 이후 post 조회
     @Transactional
-    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) throws BaseException{
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
@@ -245,7 +245,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<LocalDate> getDayExistsPost(long familyId, int year, int month) throws BaseException {
+    public List<LocalDate> getDayExistsPost(long familyId, int year, int month) {
         // date 정보 생성
         YearMonth month_info = YearMonth.of(year, month);
         LocalDate start_date = month_info.atDay(1);
@@ -269,7 +269,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<AlbumRes> getAlbum (long familyId) throws BaseException {
+    public List<AlbumRes> getAlbum (long familyId) {
         Pageable pageable = PageRequest.of(0, 30);
         List<Post> posts = postRepository.findByFamilyIdAndStatusOrderByPostIdDesc(new Family(familyId), BaseEntity.Status.ACTIVE, pageable);
 
@@ -287,7 +287,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<AlbumRes> getAlbum (long familyId, long postId) throws BaseException {
+    public List<AlbumRes> getAlbum (long familyId, long postId) {
         Pageable pageable = PageRequest.of(0, 30);
         List<Post> posts = postRepository.findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(new Family(familyId), postId, BaseEntity.Status.ACTIVE, pageable);
 
@@ -305,7 +305,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<String> getPostImages(long postId) throws BaseException {
+    public List<String> getPostImages(long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALID_POST_ID));
 
         List<String> imgs = post.getImgs();
