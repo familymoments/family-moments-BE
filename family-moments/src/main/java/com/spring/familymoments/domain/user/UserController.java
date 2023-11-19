@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
@@ -414,6 +415,7 @@ public class UserController {
      * [GET] /users/all
      * @return BaseResponse<List<User>>
      */
+    @NoAuthCheck
     @GetMapping("/users/all")
     public BaseResponse<List<User>> getAllUser() {
         List<User> userList = userService.getAllUser();
