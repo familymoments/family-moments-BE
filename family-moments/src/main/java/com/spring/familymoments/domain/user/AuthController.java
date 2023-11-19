@@ -12,10 +12,6 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-
-import java.util.NoSuchElementException;
-
-import static com.spring.familymoments.config.BaseResponseStatus.FAILED_TO_LOGIN;
 import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
 
 @Controller
@@ -33,12 +29,7 @@ public class AuthController {
     @PostMapping("/users/log-in")
     public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
         //User 등록 및 Refresh Token 저장
-        TokenDto tokenDto;
-        try {
-            tokenDto = authService.login(postLoginReq);
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.badRequest().body(new BaseResponse(FAILED_TO_LOGIN));
-        }
+        TokenDto tokenDto = authService.login(postLoginReq);
 
         //RefreshToken 쿠키에 저장
         HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
@@ -48,12 +39,7 @@ public class AuthController {
                 .build();
 
         //가입된 familyId 값 넘기기 -- 임시
-        PostLoginRes postLoginRes;
-        try {
-            postLoginRes = authService.login_familyId(postLoginReq.getId());
-        } catch (IllegalArgumentException e) {
-            postLoginRes = new PostLoginRes(null);
-        }
+        PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
@@ -88,31 +74,27 @@ public class AuthController {
     @PostMapping("/users/reissue")
     public ResponseEntity<?> reissue(@CookieValue(name = "refresh-token") String requestRefreshToken,
                                      @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        try {
-            TokenDto reissuedTokenDto = authService.reissue(requestAccessToken, requestRefreshToken);
+        TokenDto reissuedTokenDto = authService.reissue(requestAccessToken, requestRefreshToken);
 
-            if(reissuedTokenDto != null) { //토큰 재발급 성공
-                ResponseCookie responseCookie = ResponseCookie.from("refresh-token", reissuedTokenDto.getRefreshToken())
-                        .maxAge(COOKIE_EXPIRATION)
-                        .httpOnly(true)
-                        .secure(true)
-                        .build();
-                return ResponseEntity.status(HttpStatus.OK)
-                        .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                        .header("X-AUTH-TOKEN", reissuedTokenDto.getAccessToken())
-                        .build();
-            } else { //Refresh Token 탈취 가능성
-                ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
-                        .maxAge(0)
-                        .path("/")
-                        .build(); //쿠키 삭제 후 재로그인 유도
-                return ResponseEntity
-                        .status(471)
-                        .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                        .build();
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new BaseResponse(INVALID_USER_JWT));
+        if(reissuedTokenDto != null) { //토큰 재발급 성공
+            ResponseCookie responseCookie = ResponseCookie.from("refresh-token", reissuedTokenDto.getRefreshToken())
+                    .maxAge(COOKIE_EXPIRATION)
+                    .httpOnly(true)
+                    .secure(true)
+                    .build();
+            return ResponseEntity.status(HttpStatus.OK)
+                    .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                    .header("X-AUTH-TOKEN", reissuedTokenDto.getAccessToken())
+                    .build();
+        } else { //Refresh Token 탈취 가능성
+            ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
+                    .maxAge(0)
+                    .path("/")
+                    .build(); //쿠키 삭제 후 재로그인 유도
+            return ResponseEntity
+                    .status(471)
+                    .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                    .build();
         }
     }
     /**

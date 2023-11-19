@@ -33,7 +33,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -146,7 +145,7 @@ public class UserService {
         Long totalUpload = new Long(0);
         if(familyId != null) {
             Family family = familyRepository.findById(familyId)
-                    .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
+                    .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
             totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
         }
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
@@ -253,7 +252,7 @@ public class UserService {
      */
     public boolean authenticate(GetPwdReq getPwdReq, User user) {
         if(getPwdReq.getPassword() == null || getPwdReq.getPassword() == "") {
-            throw new NoSuchElementException("비밀번호를 입력하세요.");
+            throw new BaseException(EMPTY_PASSWORD);
         }
         return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
     }
@@ -273,7 +272,6 @@ public class UserService {
      */
     public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) throws BaseException {
         User user = userRepository.findById(id).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
-
         user.updatePassword(passwordEncoder.encode(patchPwdWithoutLoginReq.getPasswordA()));
         userRepository.save(user);
     }
@@ -293,14 +291,12 @@ public class UserService {
      * @return
      */
     @Transactional
-    public void deleteUser(User user) throws IllegalAccessException {
+    public void deleteUser(User user) {
         Long userId = user.getUserId();
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
         if(ownerFamilies != null) {
-            for(Family f : ownerFamilies) {
-                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
-            }
+            throw new BaseException(FAILED_TO_LEAVE); //생성자 권한을 다른 사람에게 넘기고 탈퇴
         }
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);

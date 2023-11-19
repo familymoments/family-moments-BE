@@ -44,8 +44,7 @@ public enum BaseResponseStatus {
     FIND_FAIL_USER_NAME_EMAIL(false,HttpStatus.NOT_FOUND.value(), "이름과 이메일이 정확히 입력되었는지 확인해주세요."),
     FIND_FAIL_ID(false, HttpStatus.NOT_FOUND.value(), "입력한 아이디와 일치하는 회원정보가 없습니다."),
     FIND_FAIL_INVITATION(false, HttpStatus.NOT_FOUND.value(), "초대 요청 목록이 존재하지 않습니다."),
-    FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디와 비밀번호가 일치하지 않습니다."),
-
+    FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(),"아이디나 비밀번호가 일치하지 않습니다."),
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
@@ -61,17 +60,16 @@ public enum BaseResponseStatus {
     DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
     SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
 
-    //[GET] /users
+
     FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
     FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
+    FIND_FAIL_FAMILY_IN_LIST(false, HttpStatus.NOT_FOUND.value(), "가입한 가족이 없습니다."),
     FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
     FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
+    FAILED_TO_LEAVE(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
 
     FIND_FAIL_USER(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 사용자입니다."),
-
-    //[PATCH] /users/{userIdx}
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
-
     PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 

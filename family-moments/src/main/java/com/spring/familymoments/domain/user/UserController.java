@@ -240,12 +240,8 @@ public class UserController {
     @RequestMapping("/users/profile")
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
                                                    @AuthenticationPrincipal User user) {
-        try {
-            GetProfileRes getProfileRes = userService.readProfile(user, familyId);
-            return new BaseResponse<>(getProfileRes);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
-        }
+        GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+        return new BaseResponse<>(getProfileRes);
     }
 
     /**
@@ -332,16 +328,11 @@ public class UserController {
     @PostMapping("/users/auth/compare-pwd")
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
                                              @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        try {
-            if(userService.authenticate(getPwdReq, user)) {
-                return new BaseResponse<>("비밀번호가 일치합니다.");
-            }
-            else {
-                return new BaseResponse<>(FAILED_AUTHENTICATION);
-            }
-        } catch(NoSuchElementException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(EMPTY_PASSWORD);
+        if(userService.authenticate(getPwdReq, user)) {
+            return new BaseResponse<>("비밀번호가 일치합니다.");
+        }
+        else {
+            return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
     }
     /**
@@ -376,12 +367,7 @@ public class UserController {
         userService.updatePassword(patchPwdReq, user);
 
         //2. 보안을 위해 로그아웃
-        try {
-            authService.logout(requestAccessToken);
-        } catch (IllegalAccessException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(INVALID_USER_JWT);
-        }
+        authService.logout(requestAccessToken);
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
     /**
@@ -442,20 +428,16 @@ public class UserController {
     @Transactional
     @DeleteMapping("/users")
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        try {
-            userService.deleteUser(user);
-            //Redis에 저장되어 있는 RT 삭제
-            String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
-            if(refreshTokenInRedis != null) {
-                redisService.deleteValues("RT(" + "SERVER" + "):" + user);
-            }
-            //Redis에 탈퇴 처리한 AT 저장
-            long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
-            redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
-
-            return new BaseResponse<>("계정을 삭제했습니다.");
-        } catch (IllegalAccessException e) {
-            return new BaseResponse<>(false, e.getMessage(), 500);
+        userService.deleteUser(user);
+        //Redis에 저장되어 있는 RT 삭제
+        String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
+        if(refreshTokenInRedis != null) {
+            redisService.deleteValues("RT(" + "SERVER" + "):" + user);
         }
+        //Redis에 탈퇴 처리한 AT 저장
+        long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
+        redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+
+        return new BaseResponse<>("계정을 삭제했습니다.");
     }
 }
