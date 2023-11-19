@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
@@ -142,32 +143,24 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user, Long familyId) {
-        Long totalUpload = new Long(0);
+        Long totalUpload = 0L;
         if(familyId != null) {
-            Family family = familyRepository.findById(familyId)
-                    .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+            Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
             totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
         }
+
+        String formatPattern = "yyyyMMdd"; //생년월일
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        String strBirth = user.getBirthDate().format(formatter);
+
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        StringBuilder sb = new StringBuilder(); //생년월일
-        sb.append(user.getBirthDate().getYear());
-        if(user.getBirthDate().getMonthValue() <= 9) {
-            sb.append(0);
-        }
-        sb.append(user.getBirthDate().getMonthValue());
-        if(user.getBirthDate().getDayOfMonth() <= 9) {
-            sb.append(0);
-        }
-        sb.append(user.getBirthDate().getDayOfMonth());
-        String strBirth = sb.toString();
-
         return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
-     * 유저 검색 API
+     * 유저 5명 검색 API
      * [GET] /users
      * @return
      */
@@ -189,7 +182,7 @@ public class UserService {
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
-                    System.out.println("UserFamily is null. Skipping...");
+                    log.info("UserFamily is null. Skipping...");
                     continue;
                 }
                 if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT) {
@@ -251,7 +244,7 @@ public class UserService {
      * @return true || false
      */
     public boolean authenticate(GetPwdReq getPwdReq, User user) {
-        if(getPwdReq.getPassword() == null || getPwdReq.getPassword() == "") {
+        if(getPwdReq.getPassword() == null || getPwdReq.getPassword().equals("")) {
             throw new BaseException(EMPTY_PASSWORD);
         }
         return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
@@ -281,8 +274,7 @@ public class UserService {
      * @return
      */
     public List<User> getAllUser() {
-        List<User> userList = userRepository.findAll();
-        return userList;
+        return userRepository.findAll();
     }
 
     /**
