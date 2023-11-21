@@ -9,6 +9,9 @@ import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -134,8 +137,14 @@ public class FamilyController {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
     @PostMapping(value = "/inviteCode", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<FamilyIdDto> getFamilyByInviteCode(@RequestBody String inviteCode){
-        FamilyIdDto familyIdDto = familyService.getFamilyByInviteCode(inviteCode);
+    public BaseResponse<FamilyIdDto> getFamilyByInviteCode(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            schema = @Schema(type = "object", example = "{\"inviteCode\": \"https://family-moment.com/invite/dsnj-548\"}")
+                    )
+            )
+            @RequestBody Map<String, String> inviteCodeReq){
+        FamilyIdDto familyIdDto = familyService.getFamilyByInviteCode(inviteCodeReq.get("inviteCode"));
         return new BaseResponse<>(familyIdDto);
     }
 

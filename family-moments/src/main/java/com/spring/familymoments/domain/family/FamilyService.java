@@ -144,7 +144,6 @@ public class FamilyService {
     //초대코드로 가족 조회
     @Transactional
     public FamilyIdDto getFamilyByInviteCode(String inviteCode){
-        //TODO: 페이지네이션
         Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
 
         return family.map(value -> FamilyIdDto.builder()
