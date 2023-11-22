@@ -10,7 +10,7 @@ import javax.validation.constraints.NotEmpty;
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Schema(description = "가족 정보 수정 Request")
-public class FamilyUpdateDto {
+public class FamilyUpdateRes {
 
     @Schema(description = "가족 권한자")
     private String owner;

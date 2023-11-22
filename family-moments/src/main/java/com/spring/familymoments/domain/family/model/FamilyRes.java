@@ -7,8 +7,8 @@ import lombok.*;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Schema(description = "가족 관련 dto - 가족 아이디 포함")
-public class FamilyIdDto {
+@Schema(description = "가족 관련 dto")
+public class FamilyRes {
 
     @Schema(description = "가족 id")
     private Long familyId;

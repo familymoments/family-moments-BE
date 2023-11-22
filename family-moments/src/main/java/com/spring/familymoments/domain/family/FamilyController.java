@@ -2,7 +2,6 @@ package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.AuthService;
@@ -10,7 +9,6 @@ import com.spring.familymoments.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -80,9 +78,9 @@ public class FamilyController {
             @ApiResponse(responseCode = "200", description = "Ok")
     })
     @GetMapping(value = "/{familyId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId){
-        FamilyDto familyDto = familyService.getFamily(familyId);
-        return new BaseResponse<>(familyDto);
+    public BaseResponse<FamilyRes> getFamily(@PathVariable Long familyId){
+        FamilyRes familyRes = familyService.getFamily(familyId);
+        return new BaseResponse<>(familyRes);
     }
 
     /**
@@ -137,15 +135,15 @@ public class FamilyController {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
     @PostMapping(value = "/inviteCode", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<FamilyIdDto> getFamilyByInviteCode(
+    public BaseResponse<FamilyRes> getFamilyByInviteCode(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     content = @Content(
                             schema = @Schema(type = "object", example = "{\"inviteCode\": \"https://family-moment.com/invite/dsnj-548\"}")
                     )
             )
             @RequestBody Map<String, String> inviteCodeReq){
-        FamilyIdDto familyIdDto = familyService.getFamilyByInviteCode(inviteCodeReq.get("inviteCode"));
-        return new BaseResponse<>(familyIdDto);
+        FamilyRes familyRes = familyService.getFamilyByInviteCode(inviteCodeReq.get("inviteCode"));
+        return new BaseResponse<>(familyRes);
     }
 
     /**
@@ -233,11 +231,11 @@ public class FamilyController {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
     @PatchMapping(value ="/{familyId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
-    public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
+    public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
                                                 @AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                @Valid @RequestBody FamilyUpdateDto familyUpdateDto){
-        FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyUpdateDto);
-        return new BaseResponse<>(resFamilyDto);
+                                                @Valid @RequestBody FamilyUpdateRes familyUpdateRes){
+        FamilyRes resFamilyRes = familyService.updateFamily(user, familyId, familyUpdateRes);
+        return new BaseResponse<>(resFamilyRes);
     }
 
     /** 가족 탈퇴 API
