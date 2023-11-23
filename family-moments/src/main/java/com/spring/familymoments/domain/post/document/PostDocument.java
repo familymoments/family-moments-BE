@@ -1,6 +1,5 @@
 package com.spring.familymoments.domain.post.document;
 
-import com.spring.familymoments.domain.common.MongoBaseTime;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -12,7 +11,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @Builder
-public class PostDocument extends MongoBaseTime {
+public class PostDocument {
     @Id
     private ObjectId docId;
     private Long entityId;
