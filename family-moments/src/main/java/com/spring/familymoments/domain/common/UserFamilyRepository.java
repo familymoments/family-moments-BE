@@ -15,7 +15,7 @@ import java.util.Optional;
 
 public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
 
-    Optional<UserFamily> findByUserId(Optional<User> user);
+    Optional<UserFamily> findByUserId(User user);
     @Query("SELECT uf FROM UserFamily uf WHERE uf.status = 'ACTIVE' AND uf.userId.id = :userId ORDER BY uf.createdAt ASC")
     List<UserFamily> findFirstActiveUserFamilyByUserId(@Param("userId") String userId, Pageable pageable);
 
