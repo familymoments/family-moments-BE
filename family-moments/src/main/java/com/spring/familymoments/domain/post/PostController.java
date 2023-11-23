@@ -43,7 +43,6 @@ public class PostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "게시글 생성", description = "게시글을 생성합니다.")
     public BaseResponse<SinglePostRes> createPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                   @RequestParam("familyId") long familyId,
                                                   @RequestPart("postInfo") PostInfoReq postInfoReq,
                                                   @RequestPart("img1")MultipartFile img1,
@@ -93,7 +92,6 @@ public class PostController {
     @PostMapping(value = "/{postId}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                 @PathVariable long postId,
                                                 @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
                                                 @RequestPart(name = "img1", required = false)MultipartFile img1,
@@ -130,7 +128,7 @@ public class PostController {
     @ResponseBody
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
-    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
         try {
             postService.deletePost(user, postId);
             return new BaseResponse<>(SUCCESS);
@@ -147,7 +145,7 @@ public class PostController {
     @ResponseBody
     @GetMapping(params = {"familyId"})
     @Operation(summary = "게시글 10건 조회", description = "최근 10개의 게시글을 조회합니다.")
-    public BaseResponse<List<MultiPostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId) {
+    public BaseResponse<List<MultiPostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId) {
         try {
             List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId);
             return new BaseResponse<>(multiPostRes);
@@ -164,7 +162,7 @@ public class PostController {
     @ResponseBody
     @GetMapping(params = {"familyId", "postId"})
     @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
-    public BaseResponse<List<MultiPostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+    public BaseResponse<List<MultiPostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         try {
             List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId, postId);
             return new BaseResponse<>(multiPostRes);
@@ -181,7 +179,7 @@ public class PostController {
     @ResponseBody
     @GetMapping("/{postId}")
     @Operation(summary = "게시글 조회", description = "게시글 1건을 조회합니다.")
-    public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
         try {
             SinglePostRes singlePostRes = postService.getPost(user.getUserId(), postId);
 
@@ -200,7 +198,6 @@ public class PostController {
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day"})
     @Operation(summary = "특정 일자 게시글 10건 조회", description = "특정 일자에 작성된 게시글을 최근 순으로 10건 조회합니다.")
     public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                               @RequestParam("familyId") long familyId,
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
@@ -222,7 +219,6 @@ public class PostController {
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day", "postId"})
     @Operation(summary = "특정 일자 게시글 10건 조회(with paging)", description = "특정 일자의 커서 이후 게시글을 10건 조회합니다.")
     public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                              @RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                                               @RequestParam("familyId") long familyId,
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
@@ -243,7 +239,7 @@ public class PostController {
      */
    @GetMapping(value = "/calendar", params = {"familyId", "year", "month"})
    @Operation(summary = "작성일자 리스트 조회", description = "해당 월 중 게시물이 작성된 날짜 리스트를 조회합니다.")
-   public BaseResponse<List<LocalDate>> getDatesExistPost(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("year") int year, @RequestParam("month") int month) {
+   public BaseResponse<List<LocalDate>> getDatesExistPost(@RequestParam("familyId") long familyId, @RequestParam("year") int year, @RequestParam("month") int month) {
        if(month < 1 || month > 12 || year > LocalDate.now().getYear()) {
            return new BaseResponse<>(minnie_POSTS_INVALID_POST_ID);
        }
@@ -264,7 +260,7 @@ public class PostController {
      */
     @GetMapping(value = "/album")
     @Operation(summary = "앨범 30건 조회", description = "최근 30건의 게시물을 앨범 형태에 맞춰 조회합니다.")
-    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId) {
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId) {
         try {
             List<AlbumRes> album = postService.getAlbum(familyId);
             return new BaseResponse<>(album);
@@ -280,7 +276,7 @@ public class PostController {
      */
     @GetMapping(value = "/album", params = {"familyId", "postId"})
     @Operation(summary = "앨범 30건 조회(with paging)", description = "커서 이전의 30건의 게시물을 앨범 형태에 맞춰 조회합니다.")
-    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+    public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         try {
             List<AlbumRes> album = postService.getAlbum(familyId, postId);
             return new BaseResponse<>(album);
@@ -296,7 +292,7 @@ public class PostController {
      */
     @GetMapping(value = "/album/{postId}")
     @Operation(summary = "앨범 상세 조회", description = "앨범의 상세 페이지를 조회합니다.")
-    public BaseResponse<List<String>> getAlbumImages(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+    public BaseResponse<List<String>> getAlbumImages(@PathVariable long postId) {
         try {
             List<String> imgs = postService.getPostImages(postId);
             return new BaseResponse<>(imgs);
@@ -313,7 +309,7 @@ public class PostController {
      */
     @GetMapping("/{postId}/post-loves")
     @Operation(summary = "좋아요 명단 조회", description = "특정 게시물의 좋아요를 누른 사람의 명단을 조회합니다.")
-    public BaseResponse<List<CommentRes>> getLovedList(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken, @PathVariable long postId) {
+    public BaseResponse<List<CommentRes>> getLovedList(@PathVariable long postId) {
         try {
             List<CommentRes> heartedList = postLoveService.getHeartList(postId);
 
