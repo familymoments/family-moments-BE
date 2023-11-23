@@ -52,11 +52,10 @@ dependencies {
 	implementation 'org.apache.commons:commons-lang3:3.12.0'
 	// jsch 라이브러리, for ssh tunneling
 	implementation 'com.github.mwiede:jsch:0.2.12'
-	// application.yml의 변수 사용을 위한 라이브러리
+	// application.yml의 환경 변수를 class에서 사용하기 위한 라이브러리
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	// swagger
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
-}
 
 tasks.named('test') {
 	useJUnitPlatform()
