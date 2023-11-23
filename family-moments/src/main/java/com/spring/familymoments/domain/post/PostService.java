@@ -124,13 +124,11 @@ public class PostService {
         }
 
         for(int i = 0 ; i < 4; i++) {
-            String url;
+            String url = null;
 
             if(postReq.getImgs().size() > i && postReq.getImgs().get(i) != null) {
                 MultipartFile img = postReq.getImgs().get(i);
                 url = awsS3Service.uploadImage(img);
-            } else {
-                url = null;
             }
 
             if(url != null) {
