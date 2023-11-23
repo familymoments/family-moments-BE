@@ -38,6 +38,9 @@ public class PostService {
     private final AwsS3Service awsS3Service;
     private final FamilyRepository familyRepository;
 
+    private static final int POST_PAGES = 10;
+    private static final int ALBUM_PAGES = 30;
+
     @Transactional
     public SinglePostRes createPosts(User user, PostReq postReq) {
         // familyID 유효성 검사
@@ -175,7 +178,7 @@ public class PostService {
 
     // 현재 가족의 모든 게시물 중 최근 10개를 조회
     public List<MultiPostRes> getPosts(long userId, long familyId) {
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, pageable);
 
         if(multiPostReses.isEmpty()) {
@@ -187,7 +190,7 @@ public class PostService {
 
     // 현재 가족의 모든 게시물 중 특정 postId 보다 작은 10개를 조회
     public List<MultiPostRes> getPosts(long userId, long familyId, long postId) {
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, postId, pageable);
 
         if(multiPostReses.isEmpty()) {
@@ -221,7 +224,7 @@ public class PostService {
 
         LocalDateTime dateTime = LocalDateTime.of(date, dummy);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> posts = postRepository.findByFamilyIdWithDate(familyId, userId, dateTime, pageable);
 
         if(posts.isEmpty()) {
@@ -239,7 +242,7 @@ public class PostService {
 
         LocalDateTime dateTime = LocalDateTime.of(date, dummy);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> posts = postRepository.findByFamilyIdWithDateAfterPostId(familyId, userId, dateTime, postId, pageable);
 
         if(posts.isEmpty()) {
@@ -275,7 +278,7 @@ public class PostService {
 
     @Transactional
     public List<AlbumRes> getAlbum (long familyId) {
-        Pageable pageable = PageRequest.of(0, 30);
+        Pageable pageable = PageRequest.of(0, ALBUM_PAGES);
         List<Post> posts = postRepository.findByFamilyIdAndStatusOrderByPostIdDesc(new Family(familyId), BaseEntity.Status.ACTIVE, pageable);
 
         if(posts.isEmpty()) {
@@ -293,7 +296,7 @@ public class PostService {
 
     @Transactional
     public List<AlbumRes> getAlbum (long familyId, long postId) {
-        Pageable pageable = PageRequest.of(0, 30);
+        Pageable pageable = PageRequest.of(0, ALBUM_PAGES);
         List<Post> posts = postRepository.findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(new Family(familyId), postId, BaseEntity.Status.ACTIVE, pageable);
 
         if(posts.isEmpty()) {
