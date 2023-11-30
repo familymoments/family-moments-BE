@@ -10,16 +10,10 @@ import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,8 +49,7 @@ public class FamilyController {
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal User user,
             @RequestParam(name = "representImg") MultipartFile representImg,
-            @RequestPart PostFamilyReq postFamilyReq,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @RequestPart PostFamilyReq postFamilyReq) {
         try{
             String fileUrl = awsS3Service.uploadImage(representImg);        // 대표 이미지 넣기
             PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
@@ -103,8 +96,7 @@ public class FamilyController {
     @Operation(summary = "닉네임 및 가족 생성일 조회", description = "메인 페이지의 닉네임 및 가족 생성일 정보를 조회합니다.")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(
             @AuthenticationPrincipal User user,
-            @PathVariable Long familyId,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @PathVariable Long familyId) {
         try {
             GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
             return new BaseResponse<>(getFamilyCreatedNicknameRes);
@@ -122,8 +114,7 @@ public class FamilyController {
     @GetMapping("/{familyId}/users")
     @Operation(summary = "가족원 전체 조회", description = "현재 활동 중인 전체 가족 구성원을 조회합니다.")
     public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(
-            @PathVariable Long familyId,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @PathVariable Long familyId) {
         try {
             List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
             return new BaseResponse<>(getFamilyAllRes);
@@ -226,8 +217,7 @@ public class FamilyController {
     public BaseResponse<String> updateUploadCycle(
             @AuthenticationPrincipal User user,
             @PathVariable Long familyId,
-            @RequestParam("uploadCycle") int uploadCycle,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @RequestParam("uploadCycle") int uploadCycle) {
         try {
             familyService.updateUploadCycle(user, familyId, uploadCycle);
             return new BaseResponse<>("업로드 주기가 수정되었습니다.");
@@ -246,8 +236,7 @@ public class FamilyController {
     @Operation(summary = "가족 삭제", description = "가족을 삭제합니다. 댓글, 게시글, 가족이 일괄 삭제됩니다.")
     public BaseResponse<String> deleteFamily(
             @AuthenticationPrincipal User user,
-            @PathVariable Long familyId,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @PathVariable Long familyId) {
         try {
             familyService.deleteFamily(user, familyId);
             return new BaseResponse<>("가족이 삭제되었습니다.");

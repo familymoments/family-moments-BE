@@ -15,9 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.spring.familymoments.config.BaseResponseStatus.INVALID_JWT;
-
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/comments")
@@ -38,8 +35,7 @@ public class CommentController {
     public BaseResponse<String> createComment(
             @AuthenticationPrincipal User user,
             @RequestParam("postId") Long postId,
-            @RequestPart PostCommentReq postCommentReq,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @RequestPart PostCommentReq postCommentReq) {
         try{
             commentService.createComment(user, postId, postCommentReq);
             return new BaseResponse<>("댓글이 업로드되었습니다.");
@@ -58,8 +54,7 @@ public class CommentController {
     @GetMapping("")
     @Operation(summary = "특정 게시물의 댓글 목록 조회", description = "특정 게시물의 댓글 목록을 조회합니다.")
     public BaseResponse<List<GetCommentsRes>> getCommentsByPostId(
-            @RequestParam("postId") Long postId,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+            @RequestParam("postId") Long postId) {
         try{
             List<GetCommentsRes> getCommentsRes = commentService.getCommentsByPostId(postId);
             return new BaseResponse<>(getCommentsRes);
@@ -79,8 +74,7 @@ public class CommentController {
     @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     public BaseResponse<String> deleteComment(
             @AuthenticationPrincipal User user,
-            @PathVariable Long commentId,
-            @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
+            @PathVariable Long commentId){
         try{
             commentService.deleteComment(user, commentId);
             return new BaseResponse<>("댓글이 삭제되었습니다.");
