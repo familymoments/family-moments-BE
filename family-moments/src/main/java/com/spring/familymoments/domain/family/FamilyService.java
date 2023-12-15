@@ -151,15 +151,11 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         for (String userId : userIds) {
-            // 매핑 테이블에 존재하는지 확인
             List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
 
-            if(byUserIdList.size() != 0){
-                for (UserFamily userFamily : byUserIdList) {
-                    // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
-                    if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
-                        throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
-                    }
+            for (UserFamily userFamily : byUserIdList) {
+                if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
+                    throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
                 }
             }
 
