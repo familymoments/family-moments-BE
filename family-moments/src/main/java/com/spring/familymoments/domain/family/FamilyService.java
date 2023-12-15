@@ -181,11 +181,8 @@ public class FamilyService {
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
 
-        UserFamily updatedUserFamily = userFamily.toBuilder()
-                .status(ACTIVE)
-                .build();
-
-        userFamilyRepository.save(updatedUserFamily);
+        userFamily.updateStatus(ACTIVE);
+        userFamilyRepository.save(userFamily);
     }
 
     // 업로드 주기 수정
@@ -308,7 +305,7 @@ public class FamilyService {
         User userToOwner = userRepository.findById(authUser)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        family.updateFamily(userToOwner);
+        family.updateFamilyOwner(userToOwner);
     }
 
     // 초대코드 -> 가족 가입

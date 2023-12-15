@@ -84,7 +84,7 @@ public class Family extends BaseEntity {
     /**
      * 가족 권한 수정 API 관련 메소드
      */
-    public void updateFamily(User owner) {
+    public void updateFamilyOwner(User owner) {
         this.owner = owner;
     }
 }
