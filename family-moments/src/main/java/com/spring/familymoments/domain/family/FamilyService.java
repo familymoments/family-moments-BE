@@ -91,7 +91,7 @@ public class FamilyService {
 
 
     //특정 가족 정보 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public FamilyRes getFamily(Long id){
         Family family = familyRepository.findById(id)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -135,7 +135,7 @@ public class FamilyService {
     }
 
     //초대코드로 가족 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public FamilyRes getFamilyByInviteCode(String inviteCode){
         Family family = familyRepository.findByInviteCode(inviteCode)
                 .orElse(null);
