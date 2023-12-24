@@ -137,10 +137,9 @@ public class FamilyService {
     //초대코드로 가족 조회
     @Transactional(readOnly = true)
     public FamilyRes getFamilyByInviteCode(String inviteCode){
-        Family family = familyRepository.findByInviteCode(inviteCode)
+        return familyRepository.findByInviteCode(inviteCode)
+                .map(Family::toFamilyRes)
                 .orElse(null);
-
-        return family.toFamilyRes();
     }
 
 
