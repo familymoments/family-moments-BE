@@ -280,8 +280,8 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if (!family.getOwner().equals(user)) {
-            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        if (!family.isOwner(user)) {
+            throw new BaseException(NOT_FAMILY_OWNER);
         }
 
         for (String userId : userIds) {
@@ -294,15 +294,15 @@ public class FamilyService {
 
     // 가족 권한 수정
     @Transactional
-    public void changeFamilyAuthority(User user, Long familyId, String authUser){
+    public void changeFamilyAuthority(User user, Long familyId, String newOwner){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if(!user.equals(family.getOwner())){
-            throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
+        if(!family.isOwner(user)){
+            throw new BaseException(NOT_FAMILY_OWNER);
         }
 
-        User userToOwner = userRepository.findById(authUser)
+        User userToOwner = userRepository.findById(newOwner)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
         family.updateFamilyOwner(userToOwner);
