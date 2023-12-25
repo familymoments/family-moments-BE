@@ -307,9 +307,8 @@ public class FamilyService {
         family.updateFamilyOwner(userToOwner);
     }
 
-    // 초대코드 -> 가족 가입
     @Transactional
-    public void insertMember(User user, Long familyId) {
+    public void joinFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 

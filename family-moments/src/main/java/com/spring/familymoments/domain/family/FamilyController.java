@@ -291,9 +291,9 @@ public class FamilyController {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
     @PostMapping(value = "/{familyId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
-    BaseResponse<String> insertMember(@PathVariable Long familyId,
+    BaseResponse<String> joinFamily(@PathVariable Long familyId,
                                                @AuthenticationPrincipal @Parameter(hidden = true) User user){
-        familyService.insertMember(user, familyId);
+        familyService.joinFamily(user, familyId);
         return new BaseResponse<>("가족에 가입되었습니다");
     }
 }
