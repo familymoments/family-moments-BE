@@ -155,7 +155,7 @@ public class FamilyController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PostMapping(value ="/{familyId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value ="/{familyId}/invitations", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<String> userIds,
                                            @AuthenticationPrincipal @Parameter(hidden = true) User user){
@@ -164,15 +164,15 @@ public class FamilyController {
     }
 
     /**
-     * 초대 승락 API
+     * 초대 수락 API
      * [GET] /{familyId}/invite-accept
      * @return BaseResponse<String>
      */
-    @Operation(summary = "가족 초대 승락 API")
+    @Operation(summary = "가족 초대 수락 API")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PatchMapping(value ="/{familyId}/invite-accept", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value ="/{familyId}/invitations/accept", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
                                              @AuthenticationPrincipal @Parameter(hidden = true) User user){
         familyService.acceptFamily(user, familyId);
@@ -262,7 +262,7 @@ public class FamilyController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @DeleteMapping(value ="/{familyId}/emission", produces = MediaType.APPLICATION_JSON_VALUE)
+    @DeleteMapping(value ="/{familyId}/users", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                @RequestParam List<String> userIds){
@@ -290,7 +290,7 @@ public class FamilyController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PostMapping(value = "/{familyId}/insertMember", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/{familyId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
     BaseResponse<String> insertMember(@PathVariable Long familyId,
                                                @AuthenticationPrincipal @Parameter(hidden = true) User user){
         familyService.insertMember(user, familyId);
