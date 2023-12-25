@@ -67,6 +67,8 @@ public enum BaseResponseStatus {
     FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
     FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
 
+    FIND_FAIL_USER(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 사용자입니다."),
+
     //[PATCH] /users/{userIdx}
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
 
