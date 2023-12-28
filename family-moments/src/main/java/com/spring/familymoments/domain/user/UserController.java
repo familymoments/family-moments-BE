@@ -28,7 +28,6 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -44,7 +43,6 @@ public class UserController {
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
-    private final RedisService redisService;
     private final JwtService jwtService;
 
     /**
@@ -354,12 +352,10 @@ public class UserController {
     })
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
                                              @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if(userService.authenticate(getPwdReq, user)) {
-            return new BaseResponse<>("비밀번호가 일치합니다.");
-        }
-        else {
+        if(!userService.authenticate(getPwdReq, user)) {
             return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
+        return new BaseResponse<>("비밀번호가 일치합니다.");
     }
     /**
      * 비밀번호 변경 API
@@ -466,16 +462,7 @@ public class UserController {
             //@ApiResponse(responseCode = "403", description = "유효한 사용자가 아닙니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"403\", \"message\":\"권한이 없는 유저의 접근입니다.\"}]")}))
     })
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        userService.deleteUser(user);
-        //Redis에 저장되어 있는 RT 삭제
-        String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
-        if(refreshTokenInRedis != null) {
-            redisService.deleteValues("RT(" + "SERVER" + "):" + user);
-        }
-        //Redis에 탈퇴 처리한 AT 저장
-        long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
-        redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
-
+        userService.deleteUserWithRedisProcess(user, requestAccessToken);
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
 }

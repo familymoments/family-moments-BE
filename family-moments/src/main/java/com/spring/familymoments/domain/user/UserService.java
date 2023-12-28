@@ -16,6 +16,7 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
+import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -33,6 +34,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
@@ -54,6 +56,7 @@ public class UserService {
     private final PostLoveRepository postLoveRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RedisService redisService;
 
     /**
      * createUser
@@ -244,7 +247,7 @@ public class UserService {
      * @return true || false
      */
     public boolean authenticate(GetPwdReq getPwdReq, User user) {
-        if(getPwdReq.getPassword() == null || getPwdReq.getPassword().equals("")) {
+        if(getPwdReq.getPassword().isEmpty()) {
             throw new BaseException(EMPTY_PASSWORD);
         }
         return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
@@ -287,7 +290,7 @@ public class UserService {
         Long userId = user.getUserId();
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
-        if(ownerFamilies != null) {
+        if(ownerFamilies.size() != 0) {
             throw new BaseException(FAILED_TO_LEAVE); //생성자 권한을 다른 사람에게 넘기고 탈퇴
         }
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
@@ -322,4 +325,17 @@ public class UserService {
         user.updateStatus(User.Status.INACTIVE);
         userRepository.save(user);
     }
+    @Transactional
+    public void deleteUserWithRedisProcess(User user, String requestAccessToken) {
+        this.deleteUser(user);
+        //Redis에 저장되어 있는 RT 삭제
+        String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
+        if(refreshTokenInRedis != null) {
+            redisService.deleteValues("RT(" + "SERVER" + "):" + user);
+        }
+        //Redis에 탈퇴 처리한 AT 저장
+        long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
+        redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+    }
+
 }

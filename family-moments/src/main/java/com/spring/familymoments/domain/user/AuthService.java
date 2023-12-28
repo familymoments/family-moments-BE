@@ -49,12 +49,12 @@ public class AuthService {
      */
     public TokenDto login(PostLoginReq postLoginReq) {
         User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new BaseException(FAILED_TO_LOGIN)); //아이디가 일치하지 않습니다.
+                .orElseThrow(() -> new BaseException(FAILED_TO_LOGIN_ID)); //아이디가 일치하지 않습니다.
         if(user.getStatus().equals(User.Status.INACTIVE)) {
             throw new BaseException(FAILED_TO_LOGIN); //탈퇴하거나 신고당한 유저입니다.
         }
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new BaseException(FAILED_TO_LOGIN); //비밀번호가 일치하지 않습니다.
+            throw new BaseException(FAILED_TO_LOGIN_PWD); //비밀번호가 일치하지 않습니다.
         }
 
         UsernamePasswordAuthenticationToken authenticationToken

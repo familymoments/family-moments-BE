@@ -98,17 +98,7 @@ public class AuthController {
                                      @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         TokenDto reissuedTokenDto = authService.reissue(requestAccessToken, requestRefreshToken);
 
-        if(reissuedTokenDto != null) { //토큰 재발급 성공
-            ResponseCookie responseCookie = ResponseCookie.from("refresh-token", reissuedTokenDto.getRefreshToken())
-                    .maxAge(COOKIE_EXPIRATION)
-                    .httpOnly(true)
-                    .secure(true)
-                    .build();
-            return ResponseEntity.status(HttpStatus.OK)
-                    .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                    .header("X-AUTH-TOKEN", reissuedTokenDto.getAccessToken())
-                    .build();
-        } else { //Refresh Token 탈취 가능성
+        if(reissuedTokenDto == null) {//Refresh Token 탈취 가능성
             ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
                     .maxAge(0)
                     .path("/")
@@ -118,6 +108,16 @@ public class AuthController {
                     .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
                     .build();
         }
+        //토큰 재발급 성공
+        ResponseCookie responseCookie = ResponseCookie.from("refresh-token", reissuedTokenDto.getRefreshToken())
+                .maxAge(COOKIE_EXPIRATION)
+                .httpOnly(true)
+                .secure(true)
+                .build();
+        return ResponseEntity.status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .header("X-AUTH-TOKEN", reissuedTokenDto.getAccessToken())
+                .build();
     }
     /**
      * 로그아웃 API
