@@ -8,9 +8,17 @@ import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +38,7 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User", description = "회원 API Document")
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
@@ -238,7 +247,11 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile")
+    @GetMapping(value = "/users/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+    })
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
                                                    @AuthenticationPrincipal User user) {
         GetProfileRes getProfileRes = userService.readProfile(user, familyId);
@@ -252,7 +265,11 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users")
+    @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 최대 5명 검색", description = "회원을 검색합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetSearchUserRes.class)))
+    })
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId,
                                                            @AuthenticationPrincipal User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
@@ -292,7 +309,11 @@ public class UserController {
      * @param profileImg
      * @return BaseResponse<PatchProfileReqRes>
      */
-    @PostMapping("/users/edit")
+    @PostMapping(value = "/users/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PatchProfileReqRes.class)))
+    })
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg", required = false) MultipartFile profileImg,
                                                           @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
                                                           @AuthenticationPrincipal User user) throws BaseException {
@@ -326,7 +347,11 @@ public class UserController {
      * [POST] /users/auth/compare-pwd
      * @return BaseResponse<String>
      */
-    @PostMapping("/users/auth/compare-pwd")
+    @PostMapping(value = "/users/auth/compare-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 인증", description = "비밀번호를 인증합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 일치합니다.\"}]")})),
+    })
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
                                              @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if(userService.authenticate(getPwdReq, user)) {
@@ -342,7 +367,11 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @PatchMapping("/users/modify-pwd")
+    @PatchMapping(value = "/users/modify-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 변경", description = "비밀번호를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 변경되고 로그아웃 됐습니다.\"}]")})),
+    })
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq,
                                                @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         //비밀번호 변경
@@ -428,7 +457,14 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @DeleteMapping("/users")
+    @DeleteMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"계정을 삭제했습니다.\"}]")})),
+            //@ApiResponse(responseCode = "500", description = "가족 생성자는 탈퇴할 수 없습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"500\", \"message\":\"가족 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.\"}]")})),
+            //@ApiResponse(responseCode = "461", description = "유효한 사용자이지만, 토큰의 유효기간이 만료됐습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"461\", \"message\":\"Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요\"}]")})),
+            //@ApiResponse(responseCode = "403", description = "유효한 사용자가 아닙니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"403\", \"message\":\"권한이 없는 유저의 접근입니다.\"}]")}))
+    })
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         userService.deleteUser(user);
         //Redis에 저장되어 있는 RT 삭제
