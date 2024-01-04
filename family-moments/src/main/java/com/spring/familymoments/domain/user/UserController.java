@@ -9,6 +9,7 @@ import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -251,7 +252,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
     })
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
-                                                   @AuthenticationPrincipal User user) {
+                                                   @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         GetProfileRes getProfileRes = userService.readProfile(user, familyId);
         return new BaseResponse<>(getProfileRes);
     }
@@ -269,7 +270,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetSearchUserRes.class)))
     })
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId,
-                                                           @AuthenticationPrincipal User user) {
+                                                           @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
@@ -314,7 +315,7 @@ public class UserController {
     })
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg", required = false) MultipartFile profileImg,
                                                           @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
-                                                          @AuthenticationPrincipal User user) throws BaseException {
+                                                          @AuthenticationPrincipal @Parameter(hidden = true) User user) throws BaseException {
         if(profileImg == null || profileImg.isEmpty()) { //이미지 비어있으면 원래 이미지 넣어주기
             patchProfileReqRes.setProfileImg(user.getProfileImg());
         } else {
@@ -351,7 +352,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 일치합니다.\"}]")})),
     })
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
-                                             @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+                                             @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         if(!userService.authenticate(getPwdReq, user)) {
             return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
@@ -369,7 +370,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 변경되고 로그아웃 됐습니다.\"}]")})),
     })
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq,
-                                               @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         //비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user, requestAccessToken).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(false, "비밀번호가 올바르지 않습니다.", 4000); //<- 403
@@ -461,7 +462,7 @@ public class UserController {
             //@ApiResponse(responseCode = "461", description = "유효한 사용자이지만, 토큰의 유효기간이 만료됐습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"461\", \"message\":\"Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요\"}]")})),
             //@ApiResponse(responseCode = "403", description = "유효한 사용자가 아닙니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"403\", \"message\":\"권한이 없는 유저의 접근입니다.\"}]")}))
     })
-    public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+    public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         userService.deleteUserWithRedisProcess(user, requestAccessToken);
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
