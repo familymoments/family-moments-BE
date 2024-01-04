@@ -14,7 +14,9 @@ public class PostUserReq {
         @NotBlank(message = "아이디를 입력해주세요.")
         private String id;
         @NotBlank(message = "비밀번호를 입력해주세요.")
-        private String password;
+        private String passwordA;
+        @NotBlank(message = "비밀번호를 한 번 더 입력해주세요.")
+        private String passwordB;
         @NotBlank(message = "이름을 입력해주세요.")
         private String name;
         @NotBlank(message = "이메일을 입력해주세요.")

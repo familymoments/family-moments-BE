@@ -59,55 +59,61 @@ public class UserController {
                                                 @Parameter(description = "새로운 회원의 프로필 이미지")
                                                     @RequestPart("profileImg") MultipartFile profileImage) {
         //아이디
-        if(postUserReq.getId() == null || postUserReq.getId().isEmpty()) {
+        if (postUserReq.getId().isEmpty()) {
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
         }
-        if(!isRegexId(postUserReq.getId())) {
+        if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
-        //아이디 중복 체크
-        if(userService.checkDuplicateId(postUserReq.getId())){
+        // TODO: 아이디 중복 체크
+        if (userService.checkDuplicateId(postUserReq.getId())) {
             // log.info("[createUser]: 이미 존재하는 아이디입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if(!isRegexPw(postUserReq.getPassword())) {
+        if (postUserReq.getPasswordA().isEmpty() || postUserReq.getPasswordB().isEmpty()) {
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+        if (!isRegexPw(postUserReq.getPasswordA()) || !isRegexPw(postUserReq.getPasswordB())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
+        if(!postUserReq.getPasswordA().equals(postUserReq.getPasswordB())) {
+            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+        }
         //이름
-        if(postUserReq.getName() == null || postUserReq.getName().isEmpty()) {
+        if (postUserReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(postUserReq.getEmail() == null || postUserReq.getEmail().isEmpty()) {
+        if (postUserReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
-        if(!isRegexEmail(postUserReq.getEmail())) {
+        if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
         // TODO: 이메일 중복 체크
-        if(userService.checkDuplicateEmail(postUserReq.getEmail())){
+        if (userService.checkDuplicateEmail(postUserReq.getEmail())) {
             // log.info("[createUser]: 이미 존재하는 이메일입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
-        if(postUserReq.getStrBirthDate() == null || postUserReq.getStrBirthDate().isEmpty()) {
+        if (postUserReq.getStrBirthDate().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
         }
-        if(!isRegexBirth(postUserReq.getStrBirthDate())) {
+        if (!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if(postUserReq.getNickname() == null || postUserReq.getNickname().isEmpty()) {
+        if (postUserReq.getNickname().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
         }
-        if(!isRegexNickName(postUserReq.getNickname())) {
+        if (!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
 
         String fileUrl = null;
 
-        if(postUserReq.getProfileImg() == null){
+        if (postUserReq.getProfileImg() == null) {
             fileUrl = awsS3Service.uploadImage(profileImage);
         }
 
