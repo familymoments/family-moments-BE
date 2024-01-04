@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.user.model.PostEmailReq;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class EmailController {
      * [POST] /users/auth/send-email
      * @return BaseResponse<String>
      */
+    @NoAuthCheck
     @PostMapping("/users/auth/send-email")
     public BaseResponse<String> sendVerificationEmail(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws BaseException, MessagingException, UnsupportedEncodingException {
