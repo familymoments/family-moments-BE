@@ -1,5 +1,6 @@
 package com.spring.familymoments.domain.user;
 
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
@@ -22,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 /**
  * 요청 -> AT 검사 -> AT 유효 -> 요청 실행
@@ -46,12 +49,12 @@ public class AuthService {
      */
     public TokenDto login(PostLoginReq postLoginReq) {
         User user = userRepository.findById(postLoginReq.getId())
-                .orElseThrow(() -> new NoSuchElementException("아이디가 일치하지 않습니다."));
+                .orElseThrow(() -> new BaseException(FAILED_TO_LOGIN_ID)); //아이디가 일치하지 않습니다.
         if(user.getStatus().equals(User.Status.INACTIVE)) {
-            throw new NoSuchElementException("탈퇴하거나 신고당한 유저입니다.");
+            throw new BaseException(FAILED_TO_LOGIN); //탈퇴하거나 신고당한 유저입니다.
         }
         if(!passwordEncoder.matches(postLoginReq.getPassword(), user.getPassword())) {
-            throw new NoSuchElementException("비밀번호가 일치하지 않습니다.");
+            throw new BaseException(FAILED_TO_LOGIN_PWD); //비밀번호가 일치하지 않습니다.
         }
 
         UsernamePasswordAuthenticationToken authenticationToken
@@ -68,7 +71,7 @@ public class AuthService {
     public PostLoginRes login_familyId(String id) {
         List<UserFamily> userFamilyList = userFamilyRepository.findFirstActiveUserFamilyByUserId(id, PageRequest.of(0,1));
         if(userFamilyList.size() == 0) {
-            throw new IllegalArgumentException("가입한 가족이 없습니다.");
+            throw new BaseException(FIND_FAIL_FAMILY_IN_LIST);
         }
         return new PostLoginRes(userFamilyList.get(0).getFamilyId().getFamilyId());
     }
@@ -86,11 +89,11 @@ public class AuthService {
      * : validate 메서드가 true 반환할 때만 사용
      * -> Access Token, Refresh Token 재발급
      */
-    public TokenDto reissue(String requestAccessTokenInHeader, String requestRefreshToken) throws IllegalAccessException {
+    public TokenDto reissue(String requestAccessTokenInHeader, String requestRefreshToken) {
         Authentication authentication = jwtService.getAuthentication(requestAccessTokenInHeader);
         String principal = getPrincipal(requestAccessTokenInHeader);
         if(principal == null) {
-            throw new IllegalAccessException("토큰을 확인해주세요");
+            throw new BaseException(INVALID_USER_JWT);
         }
 
         String refreshTokenInRedis = redisService.getValues("RT(" + SERVER + "):" + principal);
@@ -152,10 +155,10 @@ public class AuthService {
      * : Redis에 있는
      */
     @Transactional
-    public void logout(String requestAccessTokenInHeader) throws IllegalAccessException {
+    public void logout(String requestAccessTokenInHeader) {
         String principal = getPrincipal(requestAccessTokenInHeader);
         if(principal == null) {
-            throw new IllegalAccessException("토큰을 확인해주세요");
+            throw new BaseException(INVALID_USER_JWT);
         }
         //Redis에 저장되어 있는 RT 삭제
         String refreshTokenInRedis = redisService.getValues("RT(" + SERVER + "):" + principal);

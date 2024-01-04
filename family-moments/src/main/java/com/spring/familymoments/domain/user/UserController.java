@@ -2,14 +2,24 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +29,6 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -29,12 +38,12 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User", description = "회원 API Document")
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
-    private final RedisService redisService;
     private final JwtService jwtService;
 
     /**
@@ -237,21 +246,15 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile")
+    @GetMapping(value = "/users/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+    })
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
-                                                   @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            GetProfileRes getProfileRes = userService.readProfile(user, familyId);
-            return new BaseResponse<>(getProfileRes);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
-        }
+                                                   @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+        return new BaseResponse<>(getProfileRes);
     }
 
     /**
@@ -261,15 +264,13 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users")
+    @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 최대 5명 검색", description = "회원을 검색합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetSearchUserRes.class)))
+    })
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId,
-                                                           @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                                           @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
@@ -307,16 +308,14 @@ public class UserController {
      * @param profileImg
      * @return BaseResponse<PatchProfileReqRes>
      */
-    @PostMapping("/users/edit")
+    @PostMapping(value = "/users/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PatchProfileReqRes.class)))
+    })
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg", required = false) MultipartFile profileImg,
                                                           @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
-                                                          @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                                          @AuthenticationPrincipal @Parameter(hidden = true) User user) throws BaseException {
         if(profileImg == null || profileImg.isEmpty()) { //이미지 비어있으면 원래 이미지 넣어주기
             patchProfileReqRes.setProfileImg(user.getProfileImg());
         } else {
@@ -347,26 +346,17 @@ public class UserController {
      * [POST] /users/auth/compare-pwd
      * @return BaseResponse<String>
      */
-    @PostMapping("/users/auth/compare-pwd")
+    @PostMapping(value = "/users/auth/compare-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 인증", description = "비밀번호를 인증합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 일치합니다.\"}]")})),
+    })
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
-                                             @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+                                             @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+        if(!userService.authenticate(getPwdReq, user)) {
+            return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            if(userService.authenticate(getPwdReq, user)) {
-                return new BaseResponse<>("비밀번호가 일치합니다.");
-            }
-            else {
-                return new BaseResponse<>(FAILED_AUTHENTICATION);
-            }
-        } catch(NoSuchElementException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
+        return new BaseResponse<>("비밀번호가 일치합니다.");
     }
     /**
      * 비밀번호 변경 API
@@ -374,15 +364,13 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @PatchMapping("/users/modify-pwd")
+    @PatchMapping(value = "/users/modify-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 변경", description = "비밀번호를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 변경되고 로그아웃 됐습니다.\"}]")})),
+    })
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq,
-                                               @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨. -> 461
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         //비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user, requestAccessToken).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(false, "비밀번호가 올바르지 않습니다.", 4000); //<- 403
@@ -406,12 +394,7 @@ public class UserController {
         userService.updatePassword(patchPwdReq, user);
 
         //2. 보안을 위해 로그아웃
-        try {
-            authService.logout(requestAccessToken);
-        } catch (IllegalAccessException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(INVALID_USER_JWT);
-        }
+        authService.logout(requestAccessToken);
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
     /**
@@ -458,6 +441,7 @@ public class UserController {
      * [GET] /users/all
      * @return BaseResponse<List<User>>
      */
+    @NoAuthCheck
     @GetMapping("/users/all")
     public BaseResponse<List<User>> getAllUser() {
         List<User> userList = userService.getAllUser();
@@ -470,28 +454,16 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @DeleteMapping("/users")
-    public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            userService.deleteUser(user);
-            //Redis에 저장되어 있는 RT 삭제
-            String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
-            if(refreshTokenInRedis != null) {
-                redisService.deleteValues("RT(" + "SERVER" + "):" + user);
-            }
-            //Redis에 탈퇴 처리한 AT 저장
-            long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
-            redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
-
-            return new BaseResponse<>("계정을 삭제했습니다.");
-        } catch (IllegalAccessException e) {
-            return new BaseResponse<>(false, e.getMessage(), 500);
-        }
+    @DeleteMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"계정을 삭제했습니다.\"}]")})),
+            //@ApiResponse(responseCode = "500", description = "가족 생성자는 탈퇴할 수 없습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"500\", \"message\":\"가족 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.\"}]")})),
+            //@ApiResponse(responseCode = "461", description = "유효한 사용자이지만, 토큰의 유효기간이 만료됐습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"461\", \"message\":\"Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요\"}]")})),
+            //@ApiResponse(responseCode = "403", description = "유효한 사용자가 아닙니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"403\", \"message\":\"권한이 없는 유저의 접근입니다.\"}]")}))
+    })
+    public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+        userService.deleteUserWithRedisProcess(user, requestAccessToken);
+        return new BaseResponse<>("계정을 삭제했습니다.");
     }
 }
