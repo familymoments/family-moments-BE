@@ -57,6 +57,7 @@ dependencies {
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 	// swagger
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
+
 	// mongoDB
 	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 }

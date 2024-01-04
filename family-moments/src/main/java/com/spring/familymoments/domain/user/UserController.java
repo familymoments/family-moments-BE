@@ -2,14 +2,24 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +29,6 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -29,12 +38,12 @@ import static com.spring.familymoments.utils.ValidationRegex.*;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "User", description = "회원 API Document")
 public class UserController {
     private final UserService userService;
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
-    private final RedisService redisService;
     private final JwtService jwtService;
 
     /**
@@ -45,66 +54,76 @@ public class UserController {
      * @return BaseResponse<PostUserRes>
      */
     @ResponseBody
-    @PostMapping("/users/sign-up")
-    public BaseResponse<PostUserRes> createUser(@RequestPart("newUser") PostUserReq.joinUser postUserReq,
-                                                @RequestPart("profileImg") MultipartFile profileImage) throws BaseException {
+    @PostMapping(value = "/users/sign-up",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 가입", description = "회원 가입에 사용되는 API 입니다.")
+    public BaseResponse<PostUserRes> createUser(@Parameter(description = "새로운 회원의 가입 정보")
+                                                    @RequestPart("newUser") PostUserReq.joinUser postUserReq,
+                                                @Parameter(description = "새로운 회원의 프로필 이미지")
+                                                    @RequestPart("profileImg") MultipartFile profileImage) {
         //아이디
-        if(postUserReq.getId() == null || postUserReq.getId().isEmpty()) {
+        if (postUserReq.getId().isEmpty()) {
             return new BaseResponse<>(USERS_EMPTY_USER_ID);
         }
-        if(!isRegexId(postUserReq.getId())) {
+        if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
         // TODO: 아이디 중복 체크
-        if(userService.checkDuplicateId(postUserReq.getId())){
-            log.info("[createUser]: 이미 존재하는 아이디입니다!");
+        if (userService.checkDuplicateId(postUserReq.getId())) {
+            // log.info("[createUser]: 이미 존재하는 아이디입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if(!isRegexPw(postUserReq.getPassword())) {
+        if (postUserReq.getPasswordA().isEmpty() || postUserReq.getPasswordB().isEmpty()) {
+            return new BaseResponse<>(EMPTY_PASSWORD);
+        }
+        if (!isRegexPw(postUserReq.getPasswordA()) || !isRegexPw(postUserReq.getPasswordB())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
+        if(!postUserReq.getPasswordA().equals(postUserReq.getPasswordB())) {
+            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
+        }
         //이름
-        if(postUserReq.getName() == null || postUserReq.getName().isEmpty()) {
+        if (postUserReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(postUserReq.getEmail() == null || postUserReq.getEmail().isEmpty()) {
+        if (postUserReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
-        if(!isRegexEmail(postUserReq.getEmail())) {
+        if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
         // TODO: 이메일 중복 체크
-        if(userService.checkDuplicateEmail(postUserReq.getEmail())){
-            log.info("[createUser]: 이미 존재하는 이메일입니다!");
+        if (userService.checkDuplicateEmail(postUserReq.getEmail())) {
+            // log.info("[createUser]: 이미 존재하는 이메일입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
-        if(postUserReq.getStrBirthDate() == null || postUserReq.getStrBirthDate().isEmpty()) {
+        if (postUserReq.getStrBirthDate().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
         }
-        if(!isRegexBirth(postUserReq.getStrBirthDate())) {
+        if (!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if(postUserReq.getNickname() == null || postUserReq.getNickname().isEmpty()) {
+        if (postUserReq.getNickname().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
         }
-        if(!isRegexNickName(postUserReq.getNickname())) {
+        if (!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
 
         String fileUrl = null;
 
-        if(postUserReq.getProfileImg() == null){
+        if (postUserReq.getProfileImg() == null) {
             fileUrl = awsS3Service.uploadImage(profileImage);
         }
 
         postUserReq.setProfileImg(fileUrl);
 
         PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
-        log.info("[createUser]: PostUserRes 생성 완료!");
+        // log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>(postUserRes);
     }
 
@@ -113,8 +132,11 @@ public class UserController {
      * [GET] /users/check-id
      * @return BaseResponse<String>
      */
+    @NoAuthCheck
     @PostMapping("/users/check-id")
-    public BaseResponse<String> checkDuplicateId(@RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) throws BaseException {
+    @Operation(summary = "아이디 중복 확인", description = "회원 가입 단계에서 아이디 중복 확인에 사용되는 API입니다.")
+    public BaseResponse<String> checkDuplicateId(@Parameter(description = "회원 가입할 때 중복 검사를 할 아이디")
+                                                     @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
         try{
             if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
                 return new BaseResponse<>("사용 가능한 아이디입니다.");
@@ -131,8 +153,11 @@ public class UserController {
      * [GET] /users/check-email
      * @return BaseResponse<String>
      */
+    @NoAuthCheck
     @PostMapping("/users/check-email")
-    public BaseResponse<String> checkDuplicateEmail(@RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) throws BaseException {
+    @Operation(summary = "이메일 중복 확인", description = "회원 가입 단계에서 이메일 중복 확인에 사용되는 API입니다.")
+    public BaseResponse<String> checkDuplicateEmail(@Parameter(description = "회원 가입할 때 중복 검사를 할 이메일")
+                                                        @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
         try{
             if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
                 return new BaseResponse<>("사용 가능한 이메일입니다.");
@@ -148,9 +173,12 @@ public class UserController {
      * [POST] /users/auth/find-id
      * @return BaseResponse<GetUserIdRes>
      */
+    @NoAuthCheck
     @PostMapping("/users/auth/find-id")
-    public BaseResponse<GetUserIdRes> findUserId(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws MessagingException, BaseException {
+    @Operation(summary = "아이디 찾기", description = "아이디 찾기에 사용되는 API이며, 중간에 이메일 인증 과정을 거칩니다.")
+    public BaseResponse<GetUserIdRes> findUserId(@Parameter(description = "이메일 전송을 위해 아이디를 찾을 계정의 이름과 이메일을 입력")
+                                                     @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws MessagingException {
 
         //이름
         if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
@@ -182,8 +210,11 @@ public class UserController {
      * [POST] /users/auth/check-id
      * @return BaseResponse<String>
      */
+    @NoAuthCheck
     @PostMapping("/users/auth/check-id")
-    public BaseResponse<String> findUserIdBeforeUpdatePwd(@RequestBody GetUserIdReq getUserIdReq)
+    @Operation(summary = "비밀번호 찾기(아이디 존재 여부 확인)", description = "비밀번호 찾기 단계 중 아이디 존재 여부 확인 API입니다.")
+    public BaseResponse<String> findUserIdBeforeUpdatePwd(@Parameter(description = "비밀번호를 찾을 계정의 아이디를 입력")
+                                                              @RequestBody GetUserIdReq getUserIdReq)
             throws MessagingException, BaseException {
         try {
             if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
@@ -202,9 +233,12 @@ public class UserController {
      * [POST] /users/auth/find-pwd
      * @return BaseResponse<String>
      */
+    @NoAuthCheck
     @PostMapping("/users/auth/find-pwd")
-    public BaseResponse<String> findUserPwd(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
-            throws MessagingException, BaseException {
+    @Operation(summary = "비밀번호 찾기(이메일 인증 확인)", description = "비밀번호 찾기 단계 중 이메일 인증 API입니다.")
+    public BaseResponse<String> findUserPwd(@Parameter(description = "이메일 전송을 위해 비밀번호를 찾을 계정의 이름과 이메일을 입력")
+                                                @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+            throws MessagingException {
 
         //이름
         if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
@@ -237,21 +271,15 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<GetProfileRes>
      */
-    @RequestMapping("/users/profile")
+    @GetMapping(value = "/users/profile", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 조회", description = "회원 정보를 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+    })
     public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
-                                                   @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            GetProfileRes getProfileRes = userService.readProfile(user, familyId);
-            return new BaseResponse<>(getProfileRes);
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
-        }
+                                                   @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+        return new BaseResponse<>(getProfileRes);
     }
 
     /**
@@ -261,15 +289,13 @@ public class UserController {
      * @param familyId null 가능
      * @return BaseResponse<List<GetSearchUserRes>>
      */
-    @GetMapping("/users")
+    @GetMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 최대 5명 검색", description = "회원을 검색합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetSearchUserRes.class)))
+    })
     public BaseResponse<List<GetSearchUserRes>> searchUser(@RequestParam(value = "keyword", required = false) String keyword, @RequestParam(value = "familyId", required = false) Long familyId,
-                                                           @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                                           @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         List<GetSearchUserRes> getSearchUserRes = userService.searchUserById(keyword, familyId, user);
         return new BaseResponse<>(getSearchUserRes);
     }
@@ -279,15 +305,8 @@ public class UserController {
      * @return BaseResponse<List<GetInvitationRes>>
      */
     @GetMapping("/users/invitation")
-    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal User user,
-                                                                  @RequestHeader("X-AUTH-TOKEN") String requestAccessToken){
-        if (authService.validate(requestAccessToken)) {
-            return new BaseResponse<>(INVALID_JWT);
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT);
-        }
-
+    @Operation(summary = "초대 리스트 확인", description = "사용자가 받은 모든 초대 리스트를 확인할 수 있는 API입니다.")
+    public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal @Parameter(hidden=true) User user){
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
 
@@ -307,16 +326,14 @@ public class UserController {
      * @param profileImg
      * @return BaseResponse<PatchProfileReqRes>
      */
-    @PostMapping("/users/edit")
+    @PostMapping(value = "/users/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 정보 수정", description = "회원 정보를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PatchProfileReqRes.class)))
+    })
     public BaseResponse<PatchProfileReqRes> updateProfile(@RequestPart(name = "profileImg", required = false) MultipartFile profileImg,
                                                           @RequestPart(name = "PatchProfileReqRes") PatchProfileReqRes patchProfileReqRes,
-                                                          @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) throws BaseException {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                                          @AuthenticationPrincipal @Parameter(hidden = true) User user) throws BaseException {
         if(profileImg == null || profileImg.isEmpty()) { //이미지 비어있으면 원래 이미지 넣어주기
             patchProfileReqRes.setProfileImg(user.getProfileImg());
         } else {
@@ -347,26 +364,17 @@ public class UserController {
      * [POST] /users/auth/compare-pwd
      * @return BaseResponse<String>
      */
-    @PostMapping("/users/auth/compare-pwd")
+    @PostMapping(value = "/users/auth/compare-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 인증", description = "비밀번호를 인증합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 일치합니다.\"}]")})),
+    })
     public BaseResponse<String> authenticate(@RequestBody GetPwdReq getPwdReq,
-                                             @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
+                                             @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+        if(!userService.authenticate(getPwdReq, user)) {
+            return new BaseResponse<>(FAILED_AUTHENTICATION);
         }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            if(userService.authenticate(getPwdReq, user)) {
-                return new BaseResponse<>("비밀번호가 일치합니다.");
-            }
-            else {
-                return new BaseResponse<>(FAILED_AUTHENTICATION);
-            }
-        } catch(NoSuchElementException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
+        return new BaseResponse<>("비밀번호가 일치합니다.");
     }
     /**
      * 비밀번호 변경 API
@@ -374,15 +382,13 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @PatchMapping("/users/modify-pwd")
+    @PatchMapping(value = "/users/modify-pwd", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "비밀번호 변경", description = "비밀번호를 수정합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"비밀번호가 변경되고 로그아웃 됐습니다.\"}]")})),
+    })
     public BaseResponse<String> updatePassword(@RequestBody PatchPwdReq patchPwdReq,
-                                               @AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨. -> 461
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         //비밀번호 변경
         if(!authenticate(new GetPwdReq(patchPwdReq.getPassword()), user, requestAccessToken).getIsSuccess()) { //비밀번호 인증
             return new BaseResponse<>(false, "비밀번호가 올바르지 않습니다.", 4000); //<- 403
@@ -406,12 +412,7 @@ public class UserController {
         userService.updatePassword(patchPwdReq, user);
 
         //2. 보안을 위해 로그아웃
-        try {
-            authService.logout(requestAccessToken);
-        } catch (IllegalAccessException e) {
-            System.out.println(e.getMessage());
-            return new BaseResponse<>(INVALID_USER_JWT);
-        }
+        authService.logout(requestAccessToken);
         return new BaseResponse<>("비밀번호가 변경되고 로그아웃 됐습니다.");
     }
     /**
@@ -420,8 +421,11 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
+    @NoAuthCheck
     @PatchMapping("/users/auth/modify-pwd")
-    public BaseResponse<String> updatePasswordWithoutLogin(@RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
+    @Operation(summary = "비밀번호 재설정", description = "로그인을 하지 않은 상태에서 비밀번호를 재설정하는 API입니다.")
+    public BaseResponse<String> updatePasswordWithoutLogin(@Parameter(description = "비밀번호 재설정을 위해 입력한 두 비밀번호의 일치 여부를 확인합니다.")
+                                                               @RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
                                                            @RequestParam String id) throws BaseException{
 
         String memberId = emailService.getUserId(id);
@@ -458,6 +462,7 @@ public class UserController {
      * [GET] /users/all
      * @return BaseResponse<List<User>>
      */
+    @NoAuthCheck
     @GetMapping("/users/all")
     public BaseResponse<List<User>> getAllUser() {
         List<User> userList = userService.getAllUser();
@@ -470,28 +475,16 @@ public class UserController {
      * @return BaseResponse<String>
      */
     @Transactional
-    @DeleteMapping("/users")
-    public BaseResponse<String> deleteUser(@AuthenticationPrincipal User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        if (authService.validate(requestAccessToken)) { //유효한 사용자라 true가 반환됩니다 !!
-            return new BaseResponse<>(INVALID_JWT); //401 error : 유효한 사용자이지만, 토큰의 유효 기간이 만료됨.
-        }
-        if(user == null) {
-            return new BaseResponse<>(INVALID_USER_JWT); //403 error : 유효한 사용자가 아님.
-        }
-        try {
-            userService.deleteUser(user);
-            //Redis에 저장되어 있는 RT 삭제
-            String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
-            if(refreshTokenInRedis != null) {
-                redisService.deleteValues("RT(" + "SERVER" + "):" + user);
-            }
-            //Redis에 탈퇴 처리한 AT 저장
-            long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
-            redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
-
-            return new BaseResponse<>("계정을 삭제했습니다.");
-        } catch (IllegalAccessException e) {
-            return new BaseResponse<>(false, e.getMessage(), 500);
-        }
+    @DeleteMapping(value = "/users", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"true\", \"code\":\"200\", \"message\":\"요청에 성공하였습니다.\", \"result\":\"계정을 삭제했습니다.\"}]")})),
+            //@ApiResponse(responseCode = "500", description = "가족 생성자는 탈퇴할 수 없습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"500\", \"message\":\"가족 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.\"}]")})),
+            //@ApiResponse(responseCode = "461", description = "유효한 사용자이지만, 토큰의 유효기간이 만료됐습니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"461\", \"message\":\"Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요\"}]")})),
+            //@ApiResponse(responseCode = "403", description = "유효한 사용자가 아닙니다.", content = @Content(examples = {@ExampleObject(value = "[{\"isSuccess\": \"false\", \"code\":\"403\", \"message\":\"권한이 없는 유저의 접근입니다.\"}]")}))
+    })
+    public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+        userService.deleteUserWithRedisProcess(user, requestAccessToken);
+        return new BaseResponse<>("계정을 삭제했습니다.");
     }
 }

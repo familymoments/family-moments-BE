@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.family.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.family.model.FamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -46,6 +47,17 @@ public class Family extends BaseEntity {
     public Family(Long familyId) {
         this.familyId = familyId;
     }
+
+    public FamilyRes toFamilyRes(){
+        return FamilyRes.builder()
+                .owner(owner.getNickname())
+                .familyName(familyName)
+                .uploadCycle(uploadCycle)
+                .inviteCode(inviteCode)
+                .representImg(representImg)
+                .build();
+    }
+
 
     /**
      * 가족 삭제 API 관련 메소드
