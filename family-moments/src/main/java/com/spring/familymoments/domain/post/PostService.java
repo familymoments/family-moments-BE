@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.post;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.AlbumRes;
@@ -35,15 +36,31 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class PostService {
     private final PostRepository postRepository;
     private final AwsS3Service awsS3Service;
+    private final FamilyRepository familyRepository;
+
+    private static final int POST_PAGES = 10;
+    private static final int ALBUM_PAGES = 30;
 
     @Transactional
-    public SinglePostRes createPosts(User user, PostReq postReq) throws BaseException {
+    public SinglePostRes createPosts(User user, PostReq postReq) {
+        // familyID 유효성 검사
+        Family family = familyRepository.findById(postReq.getFamilyId())
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        // 가족의 구성원이 아닌 경우, val
+        if(!familyRepository.isFamilyMember(family, user))
+            throw new BaseException(minnie_FAMILY_INVALID_USER);
+
+
+        // image 업로드
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
+        // Post builder 생성
         Post.PostBuilder postBuilder = Post.builder()
-                .writer(user).familyId(new Family(postReq.getFamilyId()))
+                .writer(user).familyId(family)
                 .content(postReq.getContent());
 
+        // image url <-> post entity로 convert
         for(int i = 0 ; i < urls.size(); i++) {
             String url = urls.get(i);
 
@@ -64,29 +81,30 @@ public class PostService {
                     break;
             }
         }
+        // build
         Post params = postBuilder.build();
 
-        try {
-            Post result = postRepository.save(params);
+        Post result = postRepository.save(params);
 
-            // postId로 연관된 테이블을 다시 검색하지 않음
-            SinglePostRes singlePostRes = SinglePostRes.builder()
-                    .postId(result.getPostId())
-                    .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
-                    .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
-                    .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
-                    .build();
-
-            return singlePostRes;
-        } catch (DataIntegrityViolationException e) {
-            throw new RuntimeException("유효하지 않은 familyId");
+        // 저장에 실패하는 경우 error 처리
+        if(result == null) {
+            throw new BaseException(minnie_POST_SAVE_FAIL);
         }
 
+        // postId로 연관된 테이블을 다시 검색하지 않음
+        SinglePostRes singlePostRes = SinglePostRes.builder()
+                .postId(result.getPostId())
+                .writer(result.getWriter().getNickname()).profileImg(result.getWriter().getProfileImg())
+                .content(result.getContent()).imgs(result.getImgs()).createdAt(result.getCreatedAt().toLocalDate())
+                .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
+                .build();
+
+        return singlePostRes;
     }
 
     // post update
     @Transactional
-    public SinglePostRes editPost(User user, long postId, PostReq postReq) throws BaseException {
+    public SinglePostRes editPost(User user, long postId, PostReq postReq) {
         Post editedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
@@ -106,13 +124,11 @@ public class PostService {
         }
 
         for(int i = 0 ; i < 4; i++) {
-            String url;
+            String url = null;
 
             if(postReq.getImgs().size() > i && postReq.getImgs().get(i) != null) {
                 MultipartFile img = postReq.getImgs().get(i);
                 url = awsS3Service.uploadImage(img);
-            } else {
-                url = null;
             }
 
             if(url != null) {
@@ -144,7 +160,7 @@ public class PostService {
 
     // post delete
     @Transactional
-    public void deletePost(User user, long postId) throws BaseException {
+    public void deletePost(User user, long postId) {
         Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(deletedPost.getStatus() == BaseEntity.Status.INACTIVE) {
@@ -159,8 +175,8 @@ public class PostService {
     }
 
     // 현재 가족의 모든 게시물 중 최근 10개를 조회
-    public List<MultiPostRes> getPosts(long userId, long familyId) throws BaseException {
-        Pageable pageable = PageRequest.of(0, 10);
+    public List<MultiPostRes> getPosts(long userId, long familyId) {
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, pageable);
 
         if(multiPostReses.isEmpty()) {
@@ -171,8 +187,8 @@ public class PostService {
     }
 
     // 현재 가족의 모든 게시물 중 특정 postId 보다 작은 10개를 조회
-    public List<MultiPostRes> getPosts(long userId, long familyId, long postId) throws BaseException {
-        Pageable pageable = PageRequest.of(0, 10);
+    public List<MultiPostRes> getPosts(long userId, long familyId, long postId) {
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> multiPostReses = postRepository.findByFamilyId(familyId, userId, postId, pageable);
 
         if(multiPostReses.isEmpty()) {
@@ -184,7 +200,7 @@ public class PostService {
 
     // 특정 post 조회
     @Transactional
-    public SinglePostRes getPost(long userId, long postId) throws BaseException {
+    public SinglePostRes getPost(long userId, long postId) {
         // countLove 칼럼 갱신
         postRepository.updateCountLove(postId);
 
@@ -200,13 +216,13 @@ public class PostService {
 
     // 특정 일 최신 post 조회
     @Transactional
-    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) throws BaseException{
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
         LocalDateTime dateTime = LocalDateTime.of(date, dummy);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> posts = postRepository.findByFamilyIdWithDate(familyId, userId, dateTime, pageable);
 
         if(posts.isEmpty()) {
@@ -218,13 +234,13 @@ public class PostService {
 
     // 특정 일 postId 이후 post 조회
     @Transactional
-    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) throws BaseException{
+    public List<MultiPostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
         LocalDateTime dateTime = LocalDateTime.of(date, dummy);
 
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<MultiPostRes> posts = postRepository.findByFamilyIdWithDateAfterPostId(familyId, userId, dateTime, postId, pageable);
 
         if(posts.isEmpty()) {
@@ -235,7 +251,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<LocalDate> getDayExistsPost(long familyId, int year, int month) throws BaseException {
+    public List<LocalDate> getDayExistsPost(long familyId, int year, int month) {
         // date 정보 생성
         YearMonth month_info = YearMonth.of(year, month);
         LocalDate start_date = month_info.atDay(1);
@@ -259,8 +275,8 @@ public class PostService {
     }
 
     @Transactional
-    public List<AlbumRes> getAlbum (long familyId) throws BaseException {
-        Pageable pageable = PageRequest.of(0, 30);
+    public List<AlbumRes> getAlbum (long familyId) {
+        Pageable pageable = PageRequest.of(0, ALBUM_PAGES);
         List<Post> posts = postRepository.findByFamilyIdAndStatusOrderByPostIdDesc(new Family(familyId), BaseEntity.Status.ACTIVE, pageable);
 
         if(posts.isEmpty()) {
@@ -277,8 +293,8 @@ public class PostService {
     }
 
     @Transactional
-    public List<AlbumRes> getAlbum (long familyId, long postId) throws BaseException {
-        Pageable pageable = PageRequest.of(0, 30);
+    public List<AlbumRes> getAlbum (long familyId, long postId) {
+        Pageable pageable = PageRequest.of(0, ALBUM_PAGES);
         List<Post> posts = postRepository.findByFamilyIdAndPostIdLessThanAndStatusOrderByPostIdDesc(new Family(familyId), postId, BaseEntity.Status.ACTIVE, pageable);
 
         if(posts.isEmpty()) {
@@ -295,7 +311,7 @@ public class PostService {
     }
 
     @Transactional
-    public List<String> getPostImages(long postId) throws BaseException {
+    public List<String> getPostImages(long postId) {
         Post post = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_INVALID_POST_ID));
 
         List<String> imgs = post.getImgs();

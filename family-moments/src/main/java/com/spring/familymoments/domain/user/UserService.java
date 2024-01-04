@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
@@ -15,6 +16,7 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
+import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -32,8 +34,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -54,6 +56,7 @@ public class UserService {
     private final PostLoveRepository postLoveRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final RedisService redisService;
 
     /**
      * createUser
@@ -143,32 +146,24 @@ public class UserService {
      * @return
      */
     public GetProfileRes readProfile(User user, Long familyId) {
-        Long totalUpload = new Long(0);
+        Long totalUpload = 0L;
         if(familyId != null) {
-            Family family = familyRepository.findById(familyId)
-                    .orElseThrow(() -> new NoSuchElementException("현재 가족정보를 불러오지 못했습니다."));
+            Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
             totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
         }
+
+        String formatPattern = "yyyyMMdd"; //생년월일
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        String strBirth = user.getBirthDate().format(formatter);
+
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        StringBuilder sb = new StringBuilder(); //생년월일
-        sb.append(user.getBirthDate().getYear());
-        if(user.getBirthDate().getMonthValue() <= 9) {
-            sb.append(0);
-        }
-        sb.append(user.getBirthDate().getMonthValue());
-        if(user.getBirthDate().getDayOfMonth() <= 9) {
-            sb.append(0);
-        }
-        sb.append(user.getBirthDate().getDayOfMonth());
-        String strBirth = sb.toString();
-
         return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
-     * 유저 검색 API
+     * 유저 5명 검색 API
      * [GET] /users
      * @return
      */
@@ -190,7 +185,7 @@ public class UserService {
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
-                    System.out.println("UserFamily is null. Skipping...");
+                    log.info("UserFamily is null. Skipping...");
                     continue;
                 }
                 if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT) {
@@ -252,8 +247,8 @@ public class UserService {
      * @return true || false
      */
     public boolean authenticate(GetPwdReq getPwdReq, User user) {
-        if(getPwdReq.getPassword() == null || getPwdReq.getPassword() == "") {
-            throw new NoSuchElementException("비밀번호를 입력하세요.");
+        if(getPwdReq.getPassword().isEmpty()) {
+            throw new BaseException(EMPTY_PASSWORD);
         }
         return passwordEncoder.matches(getPwdReq.getPassword(), user.getPassword());
     }
@@ -273,7 +268,6 @@ public class UserService {
      */
     public void updatePasswordWithoutLogin(PatchPwdWithoutLoginReq patchPwdWithoutLoginReq, String id) throws BaseException {
         User user = userRepository.findById(id).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
-
         user.updatePassword(passwordEncoder.encode(patchPwdWithoutLoginReq.getPasswordA()));
         userRepository.save(user);
     }
@@ -283,8 +277,7 @@ public class UserService {
      * @return
      */
     public List<User> getAllUser() {
-        List<User> userList = userRepository.findAll();
-        return userList;
+        return userRepository.findAll();
     }
 
     /**
@@ -293,14 +286,12 @@ public class UserService {
      * @return
      */
     @Transactional
-    public void deleteUser(User user) throws IllegalAccessException {
+    public void deleteUser(User user) {
         Long userId = user.getUserId();
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
-        if(ownerFamilies != null) {
-            for(Family f : ownerFamilies) {
-                throw new IllegalAccessException("["+f.getFamilyName()+"] 속 생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다.");
-            }
+        if(ownerFamilies.size() != 0) {
+            throw new BaseException(FAILED_TO_LEAVE); //생성자 권한을 다른 사람에게 넘기고 탈퇴
         }
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
@@ -334,4 +325,17 @@ public class UserService {
         user.updateStatus(User.Status.INACTIVE);
         userRepository.save(user);
     }
+    @Transactional
+    public void deleteUserWithRedisProcess(User user, String requestAccessToken) {
+        this.deleteUser(user);
+        //Redis에 저장되어 있는 RT 삭제
+        String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
+        if(refreshTokenInRedis != null) {
+            redisService.deleteValues("RT(" + "SERVER" + "):" + user);
+        }
+        //Redis에 탈퇴 처리한 AT 저장
+        long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
+        redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+    }
+
 }
