@@ -27,7 +27,7 @@ public enum BaseResponseStatus {
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
 
     // users
-    USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "유저 아이디 값을 확인해주세요."),
+    USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디를 입력해주세요."),
 
     POST_USERS_INVALID_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디 형식을 확인해주세요."),
     POST_USERS_EXISTS_ID(false,HttpStatus.BAD_REQUEST.value(),"이미 가입한 아이디가 존재합니다."),

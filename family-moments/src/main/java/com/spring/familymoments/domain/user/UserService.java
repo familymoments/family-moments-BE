@@ -89,7 +89,7 @@ public class UserService {
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
-                .password(passwordEncoder.encode(postUserReq.getPassword()))
+                .password(passwordEncoder.encode(postUserReq.getPasswordA()))
                 .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
                 .birthDate(parsedBirthDate)
