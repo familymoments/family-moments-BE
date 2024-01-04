@@ -12,7 +12,6 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -94,16 +92,11 @@ public class FamilyService {
 
     //특정 가족 정보 조회
     @Transactional
-    public FamilyDto getFamily(Long id){
-        return familyRepository.findById(id)
-                .map(family -> FamilyDto.builder()
-                        .owner(family.getOwner().getNickname())
-                        .familyName(family.getFamilyName())
-                        .uploadCycle(family.getUploadCycle())
-                        .inviteCode(family.getInviteCode())
-                        .representImg(family.getRepresentImg())
-                        .build())
+    public FamilyRes getFamily(Long id){
+        Family family = familyRepository.findById(id)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        return family.toFamilyRes();
     }
 
     // 닉네임 및 가족 생성일 조회
@@ -143,18 +136,11 @@ public class FamilyService {
 
     //초대코드로 가족 조회
     @Transactional
-    public FamilyIdDto getFamilyByInviteCode(String inviteCode){
-        //TODO: 페이지네이션
-        Optional<Family> family = familyRepository.findByInviteCode(inviteCode);
+    public FamilyRes getFamilyByInviteCode(String inviteCode){
+        Family family = familyRepository.findByInviteCode(inviteCode)
+                .orElse(null);
 
-        return family.map(value -> FamilyIdDto.builder()
-                .familyId(value.getFamilyId())
-                .owner(value.getOwner().getNickname())
-                .familyName(value.getFamilyName())
-                .uploadCycle(value.getUploadCycle())
-                .inviteCode(value.getInviteCode())
-                .representImg(value.getRepresentImg())
-                .build()).orElse(null);
+        return family.toFamilyRes();
     }
 
 
@@ -167,7 +153,6 @@ public class FamilyService {
         for (String userId : userIds) {
             // 매핑 테이블에 존재하는지 확인
             List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
-            System.out.println(userRepository.findById(userId));
 
             if(byUserIdList.size() != 0){
                 for (UserFamily userFamily : byUserIdList) {
@@ -258,26 +243,20 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyDto updateFamily(User user, Long familyId, FamilyUpdateDto familyUpdateDto){
+    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateRes familyUpdateRes){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-        User userToOwner = userRepository.findById(familyUpdateDto.getOwner())
+        User userToOwner = userRepository.findById(familyUpdateRes.getOwner())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
         if(!user.equals(family.getOwner())){
             throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
         }
 
-        family.updateFamily(userToOwner, familyUpdateDto.getFamilyName());
+        family.updateFamily(userToOwner, familyUpdateRes.getFamilyName());
         familyRepository.save(family);
 
-        return FamilyDto.builder()
-                .owner(family.getOwner().getNickname())
-                .familyName(family.getFamilyName())
-                .uploadCycle(family.getUploadCycle())
-                .inviteCode(family.getInviteCode())
-                .representImg(family.getRepresentImg())
-                .build();
+        return family.toFamilyRes();
     }
 
     // 가족 탈퇴

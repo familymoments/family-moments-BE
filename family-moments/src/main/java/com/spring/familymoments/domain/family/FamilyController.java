@@ -2,15 +2,20 @@ package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.NoAuthCheck;
-import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,17 +23,16 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/families")
+@Tag(name = "Family", description = "가족 API Document")
 public class FamilyController {
 
     private final FamilyService familyService;
-    private final JwtService jwtService;
     private final AuthService authService;
     @Autowired
     private final AwsS3Service awsS3Service;
@@ -69,10 +73,14 @@ public class FamilyController {
      * @return BaseResponse<FamilyDto>
      */
     @ResponseBody
-    @GetMapping("/{familyId}")
-    public BaseResponse<FamilyDto> getFamily(@PathVariable Long familyId){
-        FamilyDto familyDto = familyService.getFamily(familyId);
-        return new BaseResponse<>(familyDto);
+    @Operation(summary = "가족 정보 조회", description = "가족아이디로 가족 정보 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Ok")
+    })
+    @GetMapping(value = "/{familyId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<FamilyRes> getFamily(@PathVariable Long familyId){
+        FamilyRes familyRes = familyService.getFamily(familyId);
+        return new BaseResponse<>(familyRes);
     }
 
     /**
@@ -122,10 +130,20 @@ public class FamilyController {
      * [GET] /{inviteCode}/inviteCode
      * @return BaseResponse<FamilyDto>
      */
-    @PostMapping("/inviteCode")
-    public BaseResponse<FamilyIdDto> getFamilyByInviteCode(@RequestBody String inviteCode){
-        FamilyIdDto familyIdDto = familyService.getFamilyByInviteCode(inviteCode);
-        return new BaseResponse<>(familyIdDto);
+    @Operation(summary = "초대코드로 가족 정보 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PostMapping(value = "/inviteCode", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<FamilyRes> getFamilyByInviteCode(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            schema = @Schema(type = "object", example = "{\"inviteCode\": \"https://family-moment.com/invite/dsnj-548\"}")
+                    )
+            )
+            @RequestBody Map<String, String> inviteCodeReq){
+        FamilyRes familyRes = familyService.getFamilyByInviteCode(inviteCodeReq.get("inviteCode"));
+        return new BaseResponse<>(familyRes);
     }
 
     /**
@@ -133,10 +151,14 @@ public class FamilyController {
      * [GET] /familyId
      * @return BaseResponse<String>
      */
-    @PostMapping("/{familyId}")
+    @Operation(summary = "가족 초대 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PostMapping(value ="/{familyId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> inviteUser(@PathVariable Long familyId,
                                            @RequestParam List<String> userIds,
-                                           @AuthenticationPrincipal User user){
+                                           @AuthenticationPrincipal @Parameter(hidden = true) User user){
         familyService.inviteUser(user, userIds, familyId);
         return new BaseResponse<>("초대 요청이 완료되었습니다.");
     }
@@ -146,9 +168,13 @@ public class FamilyController {
      * [GET] /{familyId}/invite-accept
      * @return BaseResponse<String>
      */
-    @PatchMapping("/{familyId}/invite-accept")
+    @Operation(summary = "가족 초대 승락 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PatchMapping(value ="/{familyId}/invite-accept", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> acceptFamily(@PathVariable Long familyId,
-                                             @AuthenticationPrincipal User user){
+                                             @AuthenticationPrincipal @Parameter(hidden = true) User user){
         familyService.acceptFamily(user, familyId);
         return new BaseResponse<>("초대가 수락되었습니다.");
     }
@@ -200,21 +226,29 @@ public class FamilyController {
      * [GET] /families/{familyId}
      * @return BaseResponse<FamilyDto>
      */
-    @PatchMapping("/{familyId}/update")
-    public BaseResponse<FamilyDto> updateFamily(@PathVariable Long familyId,
-                                                @AuthenticationPrincipal User user,
-                                                @Valid @RequestBody FamilyUpdateDto familyUpdateDto){
-        FamilyDto resFamilyDto = familyService.updateFamily(user, familyId, familyUpdateDto);
-        return new BaseResponse<>(resFamilyDto);
+    @Operation(summary = "가족 정보 수정")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PatchMapping(value ="/{familyId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
+                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                                @Valid @RequestBody FamilyUpdateRes familyUpdateRes){
+        FamilyRes resFamilyRes = familyService.updateFamily(user, familyId, familyUpdateRes);
+        return new BaseResponse<>(resFamilyRes);
     }
 
     /** 가족 탈퇴 API
      * [DELETE] /families/{familyId}/withdraw
      * @return BaseResponse<String>
      */
-    @DeleteMapping("/{familyId}/withdraw")
+    @Operation(summary = "가족 탈퇴")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @DeleteMapping(value = "/{familyId}/withdraw", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> withdrawFamily(@PathVariable Long familyId,
-                                               @AuthenticationPrincipal User user){
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user){
 
         familyService.withdrawFamily(user, familyId);
         return new BaseResponse<>("가족에서 탈퇴되었습니다.");
@@ -224,9 +258,13 @@ public class FamilyController {
      * [DELETE] /families/{familyId}/emission
      * @return BaseResponse<String>
      */
-    @DeleteMapping("/{familyId}/emission")
+    @Operation(summary = "가족 강제 탈퇴")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @DeleteMapping(value ="/{familyId}/emission", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> emissionFamily(@PathVariable Long familyId,
-                                               @AuthenticationPrincipal User user,
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                @RequestParam List<String> userIds){
 
         familyService.emissionFamily(user, familyId, userIds);
@@ -236,17 +274,25 @@ public class FamilyController {
     /** 가족 권한 수정 API
      * [DELETE] /faimlies/{familyId}/authority
      */
-    @PatchMapping("/{familyId}/authority")
+    @Operation(summary = "가족 권한 수정")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PatchMapping(value = "/{familyId}/authority", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> changeFamilyAuthority(@PathVariable Long familyId,
-                                               @AuthenticationPrincipal User user,
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                @RequestBody Map<String, String> map){
         familyService.changeFamilyAuthority(user, familyId, map.get("userId"));
-        return new BaseResponse<>("가족 대표가 변경되었습니다..");
+        return new BaseResponse<>("가족 대표가 변경되었습니다.");
     }
 
-    @PostMapping("/{familyId}/insertMember")
+    @Operation(summary = "가족에 가입")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PostMapping(value = "/{familyId}/insertMember", produces = MediaType.APPLICATION_JSON_VALUE)
     BaseResponse<String> insertMember(@PathVariable Long familyId,
-                                               @AuthenticationPrincipal User user){
+                                               @AuthenticationPrincipal @Parameter(hidden = true) User user){
         familyService.insertMember(user, familyId);
         return new BaseResponse<>("가족에 가입되었습니다");
     }
