@@ -1,4 +1,4 @@
-package com.spring.familymoments.config.advice;
+package com.spring.familymoments.domain.chat;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
