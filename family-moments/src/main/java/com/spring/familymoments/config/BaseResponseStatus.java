@@ -65,7 +65,6 @@ public enum BaseResponseStatus {
 
     FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
     FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
-    FIND_FAIL_FAMILY_IN_LIST(false, HttpStatus.NOT_FOUND.value(), "가입한 가족이 없습니다."),
     FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
     FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
     FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
