@@ -265,9 +265,6 @@ public class FamilyService {
     // 가족 삭제
     @Transactional
     public void deleteFamily(User user, Long familyId) throws BaseException{
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
-
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 

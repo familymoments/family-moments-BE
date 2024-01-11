@@ -54,6 +54,8 @@ dependencies {
 	//Swagger springdoc
 	implementation 'org.springdoc:springdoc-openapi-ui:1.7.0'
 
+	// Mysql
+	implementation 'mysql:mysql-connector-java:8.0.30'
 }
 
 tasks.named('test') {
