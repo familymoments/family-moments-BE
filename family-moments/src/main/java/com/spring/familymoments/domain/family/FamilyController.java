@@ -53,7 +53,7 @@ public class FamilyController {
     @PostMapping("/family")
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
     public BaseResponse<PostFamilyRes> createFamily(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @RequestParam(name = "representImg") MultipartFile representImg,
             @RequestPart PostFamilyReq postFamilyReq) {
         try{
@@ -91,7 +91,7 @@ public class FamilyController {
     @GetMapping("/{familyId}/created")
     @Operation(summary = "닉네임 및 가족 생성일 조회", description = "메인 페이지의 닉네임 및 가족 생성일 정보를 조회합니다.")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId) {
         try {
             GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
@@ -182,7 +182,7 @@ public class FamilyController {
     @PatchMapping("/{familyId}")
     @Operation(summary = "업로드 주기 수정", description = "가족 업로드 알림 주기를 수정합니다.")
     public BaseResponse<String> updateUploadCycle(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId,
             @RequestParam("uploadCycle") int uploadCycle) {
         try {
@@ -202,7 +202,7 @@ public class FamilyController {
     @DeleteMapping("/{familyId}")
     @Operation(summary = "가족 삭제", description = "가족을 삭제합니다. 댓글, 게시글, 가족이 일괄 삭제됩니다.")
     public BaseResponse<String> deleteFamily(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId) {
         try {
             familyService.deleteFamily(user, familyId);

@@ -8,6 +8,7 @@ import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,7 +34,7 @@ public class CommentController {
     @PostMapping("")
     @Operation(summary = "댓글 생성", description = "댓글을 생성합니다.")
     public BaseResponse<String> createComment(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @RequestParam("postId") Long postId,
             @RequestPart PostCommentReq postCommentReq) {
         try{
@@ -73,7 +74,7 @@ public class CommentController {
     @DeleteMapping("/{commentId}")
     @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     public BaseResponse<String> deleteComment(
-            @AuthenticationPrincipal User user,
+            @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long commentId){
         try{
             commentService.deleteComment(user, commentId);
