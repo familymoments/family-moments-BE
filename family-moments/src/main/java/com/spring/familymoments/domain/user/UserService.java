@@ -89,7 +89,7 @@ public class UserService {
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
-                .password(passwordEncoder.encode(postUserReq.getPasswordA()))
+                .password(passwordEncoder.encode(postUserReq.getPassword()))
                 .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
                 .birthDate(parsedBirthDate)
@@ -204,7 +204,7 @@ public class UserService {
      * [GET] /users/invitation
      * @return List<GetInvitationRes>: 회원이 받은 초대 요청 리스트
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public List<GetInvitationRes> getInvitationList(User loginUser){
         List<GetInvitationRes> getInvitationResList = new ArrayList<>();
         List<UserFamily> userFamilyList = userFamilyRepository.findAllByUserIdOrderByCreatedAtDesc(loginUser);
