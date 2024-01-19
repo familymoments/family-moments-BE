@@ -91,7 +91,7 @@ public class FamilyService {
 
 
     //특정 가족 정보 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public FamilyRes getFamily(Long id){
         Family family = familyRepository.findById(id)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -135,12 +135,11 @@ public class FamilyService {
     }
 
     //초대코드로 가족 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public FamilyRes getFamilyByInviteCode(String inviteCode){
-        Family family = familyRepository.findByInviteCode(inviteCode)
+        return familyRepository.findByInviteCode(inviteCode)
+                .map(Family::toFamilyRes)
                 .orElse(null);
-
-        return family.toFamilyRes();
     }
 
 
@@ -151,15 +150,11 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         for (String userId : userIds) {
-            // 매핑 테이블에 존재하는지 확인
             List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
 
-            if(byUserIdList.size() != 0){
-                for (UserFamily userFamily : byUserIdList) {
-                    // 이미 다른 가족에 초대 대기 중이거나 초대 당한 사람
-                    if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
-                        throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
-                    }
+            for (UserFamily userFamily : byUserIdList) {
+                if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
+                    throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
                 }
             }
 
@@ -185,11 +180,8 @@ public class FamilyService {
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
 
-        UserFamily updatedUserFamily = userFamily.toBuilder()
-                .status(ACTIVE)
-                .build();
-
-        userFamilyRepository.save(updatedUserFamily);
+        userFamily.updateStatus(ACTIVE);
+        userFamilyRepository.save(userFamily);
     }
 
     // 업로드 주기 수정
@@ -287,8 +279,8 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if (!family.getOwner().equals(user)) {
-            throw new BaseException(FAILED_USERSS_UNATHORIZED);
+        if (!family.isOwner(user)) {
+            throw new BaseException(NOT_FAMILY_OWNER);
         }
 
         for (String userId : userIds) {
@@ -301,23 +293,22 @@ public class FamilyService {
 
     // 가족 권한 수정
     @Transactional
-    public void changeFamilyAuthority(User user, Long familyId, String authUser){
+    public void changeFamilyAuthority(User user, Long familyId, String newOwner){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if(!user.equals(family.getOwner())){
-            throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
+        if(!family.isOwner(user)){
+            throw new BaseException(NOT_FAMILY_OWNER);
         }
 
-        User userToOwner = userRepository.findById(authUser)
+        User userToOwner = userRepository.findById(newOwner)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        family.updateFamily(userToOwner);
+        family.updateFamilyOwner(userToOwner);
     }
 
-    // 초대코드 -> 가족 가입
     @Transactional
-    public void insertMember(User user, Long familyId) {
+    public void joinFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
