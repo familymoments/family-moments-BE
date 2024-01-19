@@ -1,12 +1,15 @@
 package com.spring.familymoments.domain.family.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.model.FamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.http.HttpStatus;
+
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
@@ -84,8 +87,12 @@ public class Family extends BaseEntity {
     /**
      * 가족 권한 수정 API 관련 메소드
      */
-    public void updateFamily(User owner) {
+    public void updateFamilyOwner(User owner) {
         this.owner = owner;
+    }
+
+    public boolean isOwner(User user){
+        return user.equals(owner);
     }
 }
 

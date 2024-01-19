@@ -99,7 +99,7 @@ public class CommentService {
 
         // 댓글 존재 확인
         Comment comment = commentWithUserRepository.findById(commentId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
 
         // 생성자 권한 확인
         if (!comment.getWriter().getUserId().equals(user.getUserId())) {
