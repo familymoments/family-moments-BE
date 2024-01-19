@@ -74,14 +74,11 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if (postUserReq.getPasswordA().isEmpty() || postUserReq.getPasswordB().isEmpty()) {
+        if (postUserReq.getPassword().isEmpty()) {
             return new BaseResponse<>(EMPTY_PASSWORD);
         }
-        if (!isRegexPw(postUserReq.getPasswordA()) || !isRegexPw(postUserReq.getPasswordB())) {
+        if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
-        }
-        if(!postUserReq.getPasswordA().equals(postUserReq.getPasswordB())) {
-            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
         }
         //이름
         if (postUserReq.getName().isEmpty()) {
@@ -181,11 +178,11 @@ public class UserController {
             throws MessagingException {
 
         //이름
-        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
+        if(sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
+        if(sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -241,11 +238,11 @@ public class UserController {
             throws MessagingException {
 
         //이름
-        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
+        if(sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
+        if(sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -432,14 +429,11 @@ public class UserController {
 
         try {
             if(userService.checkDuplicateId(memberId)) {
+                if(patchPwdWithoutLoginReq.getPasswordA().isEmpty() || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
                 if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
-                }
-                if(patchPwdWithoutLoginReq.getPasswordA() == "" || patchPwdWithoutLoginReq.getPasswordA().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
-                }
-                if(patchPwdWithoutLoginReq.getPasswordB() == "" || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
                 }
                 if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
