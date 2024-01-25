@@ -6,8 +6,9 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.28/a2ff5da8bcd8b1b26f36b806ced63213362c6dcc/lombok-1.18.28.jar" />
+          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.springframework.boot/spring-boot-configuration-processor/2.7.13/7447e272307e17bdb0c86c7c49b66544f2bef5bf/spring-boot-configuration-processor-2.7.13.jar" />
         </processorPath>
-        <module name="com.family-moments.family-moments-server.main" />
+        <module name="family-moments-server.main" />
       </profile>
     </annotationProcessing>
   </component>
