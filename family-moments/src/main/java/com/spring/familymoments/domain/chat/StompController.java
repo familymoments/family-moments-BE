@@ -18,16 +18,12 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class StompController {
     @Autowired
-    private SimpMessagingTemplate simpMessagingTemplate;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ChatService chatService;
 
     @MessageMapping("{familyId}.send")
     public void handleSend(@DestinationVariable("familyId") long familyId, MessageReq messageReq) {
-        MessageRes messageRes = MessageRes.builder()
-                .type(MessageRes.MessageType.MESSAGE)
-                .sender(messageReq.getSender())
-                .message(messageReq.getMessage())
-                .sendedTime(LocalDateTime.now())
-                .build();
+        MessageRes messageRes = chatService.createChat(familyId, messageReq);
         simpMessagingTemplate.convertAndSend("/sub/" + familyId, messageRes);
     }
 }
