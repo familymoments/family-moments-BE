@@ -169,4 +169,16 @@ public class AuthService {
         long expiration = jwtService.getTokenExpirationTime(requestAccessTokenInHeader) - new Date().getTime();
         redisService.setValuesWithTimeout(requestAccessTokenInHeader, "logout", expiration);
     }
+
+    /**
+     * SocialToken(AT, RT)을 Redis에 저장 - 1
+     *
+     * Naver, Kakao, Google
+     */
+    @Transactional
+    public void saveSocialToken(String provider, String principal, String token, Long timeout) {
+        redisService.setValuesWithTimeout(provider + principal, //key
+                token, //value
+                timeout); //timeout(millis)
+    }
 }
