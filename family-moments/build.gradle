@@ -73,6 +73,9 @@ dependencies {
 
 	// OpenFeign - social login
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+	// Mysql
+	implementation 'mysql:mysql-connector-java:8.0.30'
 }
 
 tasks.named('test') {

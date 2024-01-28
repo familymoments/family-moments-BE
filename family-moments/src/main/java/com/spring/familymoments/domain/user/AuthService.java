@@ -70,10 +70,12 @@ public class AuthService {
      */
     public PostLoginRes login_familyId(String id) {
         List<UserFamily> userFamilyList = userFamilyRepository.findFirstActiveUserFamilyByUserId(id, PageRequest.of(0,1));
-        if(userFamilyList.size() == 0) {
-            throw new BaseException(FIND_FAIL_FAMILY_IN_LIST);
+
+        Long familyId = null;
+        if(userFamilyList.size() != 0) {
+            familyId = userFamilyList.get(0).getFamilyId().getFamilyId();
         }
-        return new PostLoginRes(userFamilyList.get(0).getFamilyId().getFamilyId());
+        return new PostLoginRes(familyId);
     }
     /**
      * 재발급 필요 여부 확인

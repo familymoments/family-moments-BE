@@ -38,11 +38,11 @@ public class EmailController {
             throws BaseException, MessagingException, UnsupportedEncodingException {
 
         //이름
-        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
+        if(sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
+        if(sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
