@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.domain.socialInfo.feign.kakao.KakaoAuthApi;
 import com.spring.familymoments.domain.socialInfo.feign.kakao.KakaoUserApi;
+import com.spring.familymoments.domain.socialInfo.model.KaKaoDeleteDto;
 import com.spring.familymoments.domain.socialInfo.model.KaKaoLoginResponse;
 import com.spring.familymoments.domain.socialInfo.model.SocialAuthResponse;
 import com.spring.familymoments.domain.socialInfo.model.SocialUserResponse;
@@ -75,5 +76,16 @@ public class KakaoLoginServiceImpl implements SocialLoginService {
                 .build();
     }
 
+    public String unlink(String accessToken, Long target_id) {
+        ResponseEntity<String> response = kakaoUserApi.unlink(
+                accessToken,
+                KaKaoDeleteDto.builder()
+                        .target_id_type("user_id")
+                        .target_id(target_id)
+                        .build()
+        );
 
+        log.info("kakao unlink response {}", response.toString());
+        return response.getBody();
+    }
 }

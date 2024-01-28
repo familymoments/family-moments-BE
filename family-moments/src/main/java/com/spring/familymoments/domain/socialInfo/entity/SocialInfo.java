@@ -32,4 +32,11 @@ public class SocialInfo extends BaseEntity {
     private UserType type = UserType.NORMAL;
     @Column(columnDefinition = "TEXT", nullable = false)
     private String snsUserId;
+
+    /**
+     * 회원 탈퇴 API 관련 메소드
+     */
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }

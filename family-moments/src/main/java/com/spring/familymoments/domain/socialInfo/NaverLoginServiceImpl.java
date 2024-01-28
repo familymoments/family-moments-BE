@@ -76,4 +76,16 @@ public class NaverLoginServiceImpl implements SocialLoginService {
                 .picture(naverUserInfo.getProfile_image())
                 .build();
     }
+
+    public String unlink(String accessToken) {
+        ResponseEntity<String> response = naverUserApi.unlink(
+                naverAppKey,
+                naverAppSecret,
+                accessToken,
+                naverGrantType
+        );
+
+        log.info("naver unlink response {}", response.toString());
+        return response.getBody();
+    }
 }

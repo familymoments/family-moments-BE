@@ -2,10 +2,7 @@ package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.domain.socialInfo.feign.google.GoogleAuthApi;
 import com.spring.familymoments.domain.socialInfo.feign.google.GoogleUserApi;
-import com.spring.familymoments.domain.socialInfo.model.GoogleLoginResponse;
-import com.spring.familymoments.domain.socialInfo.model.GoogleRequestAccessTokenDto;
-import com.spring.familymoments.domain.socialInfo.model.SocialAuthResponse;
-import com.spring.familymoments.domain.socialInfo.model.SocialUserResponse;
+import com.spring.familymoments.domain.socialInfo.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -65,5 +62,11 @@ public class GoogleLoginServiceImpl implements SocialLoginService {
                 .picture(googleLoginResponse.getPicture())
                 .email(googleLoginResponse.getEmail())
                 .build();
+    }
+
+    public String unlink(GoogleDeleteDto googleDeleteDto) {
+        ResponseEntity<String> response = googleAuthApi.unlink(googleDeleteDto);
+        log.info("google unlink response {}", response);
+        return response.getBody();
     }
 }

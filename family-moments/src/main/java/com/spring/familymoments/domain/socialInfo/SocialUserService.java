@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
+import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.socialInfo.entity.SocialInfo;
 import com.spring.familymoments.domain.socialInfo.model.*;
 import com.spring.familymoments.domain.user.AuthService;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Random;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
+import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
 import static com.spring.familymoments.domain.user.entity.User.Status.ACTIVE;
 
 @Service
@@ -44,6 +46,10 @@ public class SocialUserService {
     private final PasswordEncoder passwordEncoder;
     @Value("${spring.security.oauth2.client.info.password}")
     private String password;
+    private final RedisService redisService;
+    private final KakaoLoginServiceImpl kakaoLoginService;
+    private final NaverLoginServiceImpl naverLoginService;
+    private final GoogleLoginServiceImpl googleLoginService;
 
     @Transactional
     public SocialLoginOrJoinResponse doSocialLogin(SocialLoginRequest request) {
@@ -201,5 +207,58 @@ public class SocialUserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return authService.generateToken(SERVER, authentication.getName());
+    }
+
+    @Transactional
+    public void deleteSocialUserWithRedisProcess(User user) {
+        List<SocialInfo> socialInfos = socialUserRepository.findSocialInfoByUser(user);
+
+        if(socialInfos.size() != 0) {
+            for (SocialInfo socialInfo : socialInfos) {
+                socialInfo.updateStatus(INACTIVE);
+
+                UserType type = socialInfo.getType();
+                String socialName = "NORMAL";
+                if(type == UserType.KAKAO) {
+                    socialName = "KAKAO";
+                } else if (type == UserType.NAVER) {
+                    socialName = "NAVER";
+                } else if (type == UserType.GOOGLE) {
+                    socialName = "GOOGLE";
+                }
+                String snsUserId = socialInfo.getSnsUserId();
+
+                String accessTokenInRedis = redisService.getValues("AT(" + socialName + "):" + snsUserId);
+
+                if(accessTokenInRedis == null) {
+                    //AT 만료 : 해당 소셜 로그인으로 재로그인 요청
+                    throw new BaseException(EXPIRED_AT_ERROR);
+                } else {
+                    //네이버, 카카오, 구글과의 연결 끊기
+                    String result = "";
+                    if(type == UserType.KAKAO) {
+                        StringBuilder bearerToken = new StringBuilder();
+                        bearerToken.append("Bearer ");
+                        bearerToken.append(accessTokenInRedis);
+                        result = kakaoLoginService.unlink(bearerToken.toString(), Long.parseLong(snsUserId));
+                    } else if (type == UserType.NAVER) {
+                        result = naverLoginService.unlink(accessTokenInRedis);
+                    } else if (type == UserType.GOOGLE) {
+                        result = googleLoginService.unlink(
+                                GoogleDeleteDto.builder()
+                                        .token(accessTokenInRedis).build()
+                        );
+                    }
+                    log.info("result {}", result);
+                }
+
+                //탈퇴 시 AT, RT 전부 삭제
+                redisService.deleteValues("AT(" + socialName + "):" + snsUserId);
+                String refreshTokenInRedis = redisService.getValues("RT(" + socialName + "):" + snsUserId);
+                if(refreshTokenInRedis != null) {
+                    redisService.deleteValues("RT(" + socialName + "):" + snsUserId);
+                }
+            }
+        }
     }
 }
