@@ -13,12 +13,14 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -324,5 +326,16 @@ public class FamilyService {
         userFamilyRepository.save(userFamily);
     }
 
+    @Transactional(readOnly = true)
+    public List<MyFamilyRes> getMyFamilies(User user){
+        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
+        List<MyFamilyRes> MyFamilies = new ArrayList<>();
+
+        for (Family myFamily : activeFamilies) {
+            MyFamilies.add(myFamily.toMyFamilyRes());
+        }
+
+        return MyFamilies;
+    }
 
 }

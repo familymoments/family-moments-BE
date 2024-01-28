@@ -3,7 +3,9 @@ package com.spring.familymoments.domain.family.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.common.BaseEntity;
+import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.model.FamilyRes;
+import com.spring.familymoments.domain.family.model.MyFamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
@@ -12,6 +14,8 @@ import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -47,6 +51,9 @@ public class Family extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
 
+    @OneToMany(mappedBy = "familyId")
+    private List<UserFamily> userFamilies = new ArrayList<>();
+
     public Family(Long familyId) {
         this.familyId = familyId;
     }
@@ -57,6 +64,14 @@ public class Family extends BaseEntity {
                 .familyName(familyName)
                 .uploadCycle(uploadCycle)
                 .inviteCode(inviteCode)
+                .representImg(representImg)
+                .build();
+    }
+
+    public MyFamilyRes toMyFamilyRes(){
+        return MyFamilyRes.builder()
+                .familyId(familyId)
+                .familyName(familyName)
                 .representImg(representImg)
                 .build();
     }
