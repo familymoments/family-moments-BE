@@ -154,24 +154,29 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         for (String userId : userIds) {
-            List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
-
-            for (UserFamily userFamily : byUserIdList) {
-                if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
-                    throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
-                }
-            }
-
-            User invitedUser = userRepository.findById(userId)
+            User inviteUser = userRepository.findById(userId)
                     .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-            UserFamily userFamily = UserFamily.builder()
-                    .familyId(family)
-                    .userId(invitedUser)
-                    .inviteUserId(user)
-                    .status(DEACCEPT).build();
+            Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(inviteUser, family);
 
-            userFamilyRepository.save(userFamily);
+            userFamily.ifPresentOrElse(
+                    existingUserFamily -> {
+                        if (existingUserFamily.getStatus() == ACTIVE || existingUserFamily.getStatus() == DEACCEPT) {
+                            throw new BaseException("이미 초대 요청을 받은 회원이 있습니다.", HttpStatus.CONFLICT.value());
+                        }
+                        existingUserFamily.updateStatus(DEACCEPT);
+                    },
+                    () -> {
+                        UserFamily newUserFamily = UserFamily.builder()
+                                .familyId(family)
+                                .userId(inviteUser)
+                                .inviteUserId(user)
+                                .status(DEACCEPT)
+                                .build();
+
+                        userFamilyRepository.save(newUserFamily);
+                    }
+            );
         }
     }
 
