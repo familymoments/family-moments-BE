@@ -40,6 +40,8 @@ public class FamilyService {
     private final PostWithUserRepository postWithUserRepository;
     private final CommentWithUserRepository commentWithUserRepository;
 
+    private final int MAX_FAMILY_COUNT = 5;
+
     // 가족 생성하기
     @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
@@ -181,6 +183,12 @@ public class FamilyService {
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
+
+        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
+
+        if (activeFamilies.size() >= MAX_FAMILY_COUNT){
+            throw new BaseException(FAMILY_LIMIT_EXCEEDED);
+        }
 
         userFamily.updateStatus(ACTIVE);
         userFamilyRepository.save(userFamily);
@@ -326,6 +334,7 @@ public class FamilyService {
         userFamilyRepository.save(userFamily);
     }
 
+    // 내 가족 리스트 조회
     @Transactional(readOnly = true)
     public List<MyFamilyRes> getMyFamilies(User user){
         List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);

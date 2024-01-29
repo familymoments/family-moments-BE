@@ -49,6 +49,7 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(), "탈퇴하거나 신고당한 유저입니다."),
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
+    FAMILY_LIMIT_EXCEEDED(false, HttpStatus.CONFLICT.value(), "가족은 최대 5개까지만 가능합니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
