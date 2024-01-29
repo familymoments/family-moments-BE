@@ -3,7 +3,6 @@ package com.spring.familymoments.domain.family;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
-import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.AuthService;
@@ -16,8 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -38,7 +35,6 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class FamilyController {
 
     private final FamilyService familyService;
-    private final AuthService authService;
     @Autowired
     private final AwsS3Service awsS3Service;
 
