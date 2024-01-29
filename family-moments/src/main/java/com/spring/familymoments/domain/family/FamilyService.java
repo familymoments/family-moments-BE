@@ -13,7 +13,6 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -319,22 +318,30 @@ public class FamilyService {
 
     @Transactional
     public void joinFamily(User user, Long familyId) {
+        checkFamilyLimit(user);
+
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(user);
+        Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family);
 
-        if (byUserId.isPresent()) {
-            throw new BaseException("이미 가족에 가입된 유저입니다.", HttpStatus.CONFLICT.value());
-        }
+        userFamily.ifPresentOrElse(
+                existingUserFamily -> {
+                    if (existingUserFamily.getStatus() == ACTIVE) {
+                        throw new BaseException("이미 가입된 가족입니다.", HttpStatus.CONFLICT.value());
+                    }
+                    existingUserFamily.updateStatus(ACTIVE);
+                },
+                () -> {
+                    UserFamily newUserFamily = UserFamily.builder()
+                            .familyId(family)
+                            .userId(user)
+                            .inviteUserId(user)
+                            .status(ACTIVE).build();
 
-        UserFamily userFamily = UserFamily.builder()
-                .familyId(family)
-                .userId(user)
-                .inviteUserId(user)
-                .status(ACTIVE).build();
-
-        userFamilyRepository.save(userFamily);
+                    userFamilyRepository.save(newUserFamily);
+                }
+        );
     }
 
     // 내 가족 리스트 조회
@@ -350,14 +357,12 @@ public class FamilyService {
         return MyFamilies;
     }
 
-    private boolean checkFamilyLimit(User user){
+    private void checkFamilyLimit(User user){
         List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
 
         if (activeFamilies.size() >= MAX_FAMILY_COUNT){
             throw new BaseException(FAMILY_LIMIT_EXCEEDED);
         }
-
-        return true;
     }
 
 }
