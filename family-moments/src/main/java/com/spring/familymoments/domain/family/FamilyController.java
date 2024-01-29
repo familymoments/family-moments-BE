@@ -315,6 +315,12 @@ public class FamilyController {
     @GetMapping(value = "/myfamilies", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<Object> getFamily(@AuthenticationPrincipal @Parameter(hidden = true) User user) {
         List<MyFamilyRes> myFamilies = familyService.getMyFamilies(user);
-        return new BaseResponse<>(myFamilies);
+
+        Map<String, Object> result = Map.of(
+                "count", myFamilies.size(),
+                "list", myFamilies
+        );
+
+        return new BaseResponse<>(result);
     }
 }
