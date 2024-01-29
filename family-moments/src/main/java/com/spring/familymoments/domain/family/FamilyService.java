@@ -51,6 +51,8 @@ public class FamilyService {
 //        User owner = userRepository.findById(userId)
 //                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
+        checkFamilyLimit(owner);
+
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
         String inviteLink = "https://family-moments.com/invite/"+ invitationCode;
@@ -189,11 +191,7 @@ public class FamilyService {
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
 
-        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
-
-        if (activeFamilies.size() >= MAX_FAMILY_COUNT){
-            throw new BaseException(FAMILY_LIMIT_EXCEEDED);
-        }
+        checkFamilyLimit(user);
 
         userFamily.updateStatus(ACTIVE);
         userFamilyRepository.save(userFamily);
@@ -350,6 +348,16 @@ public class FamilyService {
         }
 
         return MyFamilies;
+    }
+
+    private boolean checkFamilyLimit(User user){
+        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
+
+        if (activeFamilies.size() >= MAX_FAMILY_COUNT){
+            throw new BaseException(FAMILY_LIMIT_EXCEEDED);
+        }
+
+        return true;
     }
 
 }
