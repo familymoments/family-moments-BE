@@ -23,7 +23,7 @@ public enum BaseResponseStatus {
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
     INVALID_JWT(false, 461, "Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요"),
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
-    RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
+    TOKEN_RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
 
     // users
@@ -49,13 +49,14 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(), "탈퇴하거나 신고당한 유저입니다."),
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
+    FAILED_SOCIAL_JOIN(false, HttpStatus.CONFLICT.value(), "이미 해당 소셜 계정이 있는 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
     FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
     FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
     NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
-
+    EXPIRED_AT_ERROR(false, 471, "탈퇴를 위해 가입했던 소셜 계정으로 재로그인 하세요"),
     /**
      * 500 : Database, Server 오류
      */
