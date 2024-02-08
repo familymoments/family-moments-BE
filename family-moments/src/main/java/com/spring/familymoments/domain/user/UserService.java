@@ -17,6 +17,7 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
+import com.spring.familymoments.domain.socialInfo.SocialUserService;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -57,6 +58,7 @@ public class UserService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
+    private final SocialUserService socialUserService;
 
     /**
      * createUser
@@ -336,6 +338,9 @@ public class UserService {
         //Redis에 탈퇴 처리한 AT 저장
         long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
         redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+
+        //소셜 회원 탈퇴 처리
+        socialUserService.deleteSocialUserWithRedisProcess(user);
     }
 
 }
