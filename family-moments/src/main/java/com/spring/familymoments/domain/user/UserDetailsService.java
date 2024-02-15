@@ -1,11 +1,12 @@
 package com.spring.familymoments.domain.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
     /**
      * springsecurity에서 유저를 찾는 메소드를 제공하는 UserDetailsService를 implements
@@ -13,8 +14,7 @@ public class UserDetailsService implements org.springframework.security.core.use
      * 이 메소드의 username == '사용자 uuid'
      *
      */
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepository.findUserByUuid(username)
