@@ -22,6 +22,10 @@ public class PostLoginReq {
     @Schema(description = "비밀번호", example = "family1212")
     private String password;
 
+    @NotBlank(message = "FCM 토큰을 전송해주세요.")
+    @Schema(description = "FCM 토큰", example = "ADFIAPFJWPKJ132983J2LKM32FJ0DFJ0A9")
+    private String fcmToken;
+
     public User toEntity() {
         return User.builder()
                 .id(this.id)

@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
+import com.spring.familymoments.domain.fcm.FCMService;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
 import com.spring.familymoments.domain.user.model.PostLoginRes;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
+
 import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
 
 @Controller
@@ -26,6 +29,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JW
 public class AuthController {
     private final long COOKIE_EXPIRATION = JwtSecret.COOKIE_EXPIRATION_TIME;
     private final AuthService authService;
+    private final FCMService fcmService;
     /**
      * 로그인 API -> token 발급
      * [POST] /users/log-in
@@ -40,6 +44,7 @@ public class AuthController {
             //@ApiResponse(responseCode = "404", description = "NOT FOUND", content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     })
     public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
+//    public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
         //User 등록 및 Refresh Token 저장
         TokenDto tokenDto = authService.login(postLoginReq);
 
@@ -52,6 +57,9 @@ public class AuthController {
 
         //가입된 familyId 값 넘기기 -- 임시
         PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
+
+        // FCM Token 저장
+        fcmService.saveToken(postLoginReq.getId(), postLoginReq.getFcmToken());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
