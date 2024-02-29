@@ -44,7 +44,6 @@ public class AuthController {
             //@ApiResponse(responseCode = "404", description = "NOT FOUND", content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     })
     public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
-//    public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
         //User 등록 및 Refresh Token 저장
         TokenDto tokenDto = authService.login(postLoginReq);
 
