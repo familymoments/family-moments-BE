@@ -37,4 +37,7 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
             "WHERE m.status = 'ACTIVE' " +
             "AND f.familyId = :familyId")
     List<User> findActiveUsersByFamilyId(@Param("familyId") Long familyId);
+
+    @Query("SELECT f.familyName FROM UserFamily uf JOIN Family f ON uf.familyId.familyId = f.familyId WHERE uf.userId.userId = :userId")
+    String findFamilyNameByUserId(@Param("userId") Long userId);
 }
