@@ -6,20 +6,19 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
-import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.fcm.model.FCMReq;
 import com.spring.familymoments.domain.fcm.model.MessageTemplate;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FCMTOKEN;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class FCMService  implements NotificationService {
     private final FirebaseMessaging firebaseMessaging;
@@ -27,7 +26,7 @@ public class FCMService  implements NotificationService {
     private final UserFamilyRepository userFamilyRepository;
     private final FCMTokenDao fcmTokenDao;
 
-    public void sendUploadAlarm(FCMReq requestDto) {
+    public void sendUploadAlram() {
 //        User user = userRepository.findById(requestDto.getTargetUserld())   // User 존재 여부 확인
 //                .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
@@ -35,8 +34,6 @@ public class FCMService  implements NotificationService {
         for (User user : receiveUsers) {
             sendMessage(user, MessageTemplate.UPLOAD_ALARM);    // 템플릿 선택: 업로드 알림
         }
-
-//        return null;
     }
 
     private void sendMessage(User user, MessageTemplate template) {
@@ -47,19 +44,15 @@ public class FCMService  implements NotificationService {
         String token = getToken(user.getId());
 
         // 메시지 전송
-        if (token != null) {
-            try {
-                firebaseMessaging.send(createMessage(user, template, token));
-                System.out.println("알림 전송 성공. targetUserId=" + user.getId());
-//                    return "알림 전송 성공. targetUserId=" + user.getId();
-            } catch (FirebaseMessagingException e) {
-                e.printStackTrace();
-                System.out.println("알림 전송 실패. targetUserId=" + user.getId());
-//                    return "알림 전송 실패. targetUserId=" + user.getId();
-            }
-        } else {
-            throw new BaseException(FIND_FAIL_FCMTOKEN);
+        try {
+            firebaseMessaging.send(createMessage(user, template, token));
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+            log.error("Failed to send Upload Alram. Target userId = " + user.getId());
+            return;
         }
+        log.info("Upload Alram successfully sent.");
+        System.out.println("알림 전송 성공. targetUserId=" + user.getId());
     }
 
     private Message createMessage(User user, MessageTemplate template, String token) {

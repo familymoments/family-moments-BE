@@ -1,13 +1,12 @@
 package com.spring.familymoments.domain.fcm;
 
-import com.spring.familymoments.domain.fcm.model.FCMReq;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RequiredArgsConstructor
-@RestController
-public class FCMController {
+public class FCMScheduler {
     private final FCMService fcmService;
 
     /**
@@ -18,12 +17,8 @@ public class FCMController {
     @Scheduled(initialDelay = 0, fixedDelay = 60000)    // 초기 지연: 0밀리초, 실행 간격: 60초
 //    @Scheduled(cron = "0 0 10 * * *")
     public void sendUploadAlarm() {
-        FCMReq requestDto = FCMReq.builder()
-                .title("게시물을 업로드 해주세요!")
-                .body("바디바디")
-                .build();
-//        String result = fcmService.sendUploadAlarm(requestDto);
-        fcmService.sendUploadAlarm(requestDto);
-//        System.out.println(result);
+        log.info("=== UPLOAD ALRAM START ===");
+        fcmService.sendUploadAlram();
+        log.info("=== UPLOAD ALRAM END ===");
     }
 }
