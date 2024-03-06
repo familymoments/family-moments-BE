@@ -41,18 +41,16 @@ public class FCMService  implements NotificationService {
         if (!hasKey(user.getId())) {
             throw new BaseException(FIND_FAIL_FCMTOKEN);
         }
-        String token = getToken(user.getId());
 
         // 메시지 전송
         try {
-            firebaseMessaging.send(createMessage(user, template, token));
+            firebaseMessaging.send(createMessage(user, template, getToken(user.getId())));
         } catch (FirebaseMessagingException e) {
             e.printStackTrace();
             log.error("Failed to send Upload Alram. Target userId = " + user.getId());
             return;
         }
         log.info("Upload Alram successfully sent.");
-        System.out.println("알림 전송 성공. targetUserId=" + user.getId());
     }
 
     private Message createMessage(User user, MessageTemplate template, String token) {
@@ -75,6 +73,10 @@ public class FCMService  implements NotificationService {
                 getFamilyNameByUserId(user.getUserId()));
     }
 
+    public String getFamilyNameByUserId(Long userId) {
+        return userFamilyRepository.findFamilyNameByUserId(userId);
+    }
+
     public void saveToken(String id, String fcmToken) { fcmTokenDao.saveToken(id, fcmToken); }
 
     public void deleteToken(String id) {
@@ -87,10 +89,6 @@ public class FCMService  implements NotificationService {
 
     private boolean hasKey(String id) {
         return fcmTokenDao.hasKey(id);
-    }
-
-    public String getFamilyNameByUserId(Long userId) {
-        return userFamilyRepository.findFamilyNameByUserId(userId);
     }
 
 }

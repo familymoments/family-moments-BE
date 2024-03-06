@@ -136,6 +136,7 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "쿠키의 내용 지우면서 로그아웃합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
+//        fcmService.deleteToken(postLoginReq.getId());     // FCM Token 삭제
         try {
             authService.logout(requestAccessToken);
             ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")

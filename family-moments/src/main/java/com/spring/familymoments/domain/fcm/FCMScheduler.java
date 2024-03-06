@@ -2,9 +2,11 @@ package com.spring.familymoments.domain.fcm;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.Scheduled;
 
 @Slf4j
+@Configuration
 @RequiredArgsConstructor
 public class FCMScheduler {
     private final FCMService fcmService;
