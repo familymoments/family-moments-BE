@@ -60,7 +60,7 @@ public class AuthController {
         PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
 
         // FCM Token 저장
-        if (postLoginReq.getFcmToken().isEmpty()) {
+        if (postLoginReq.getFcmToken().isEmpty() || postLoginReq.getFcmToken() == null) {
             return ResponseEntity.badRequest().body(new BaseResponse(FIND_FAIL_FCMTOKEN));
         }
         fcmService.saveToken(postLoginReq.getId(), postLoginReq.getFcmToken());
