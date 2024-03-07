@@ -21,7 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FCMTOKEN;
 import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
+import static com.spring.familymoments.config.BaseResponseStatus.POST_USERS_EMPTY_BIRTH;
 
 @Controller
 @RequiredArgsConstructor
@@ -58,6 +60,9 @@ public class AuthController {
         PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
 
         // FCM Token 저장
+        if (postLoginReq.getFcmToken().isEmpty()) {
+            return ResponseEntity.badRequest().body(new BaseResponse(FIND_FAIL_FCMTOKEN));
+        }
         fcmService.saveToken(postLoginReq.getId(), postLoginReq.getFcmToken());
 
         return ResponseEntity.ok()

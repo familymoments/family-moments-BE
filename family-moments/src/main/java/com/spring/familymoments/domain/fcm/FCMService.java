@@ -34,12 +34,14 @@ public class FCMService  implements NotificationService {
         for (User user : receiveUsers) {
             sendMessage(user, MessageTemplate.UPLOAD_ALARM);    // 템플릿 선택: 업로드 알림
         }
+        log.info("Upload Alram successfully sent.");
     }
 
     private void sendMessage(User user, MessageTemplate template) {
-        // FCM 토큰 존재 여부 확인
+        // FCM 토큰 존재 여부 확인. 로그아웃(FCM 토큰 삭제)된 경우 알람 전송하지 않음.
         if (!hasKey(user.getId())) {
-            throw new BaseException(FIND_FAIL_FCMTOKEN);
+            log.warn("FCM token not found for user with ID: " + user.getId());
+            return;
         }
 
         // 메시지 전송
@@ -48,9 +50,7 @@ public class FCMService  implements NotificationService {
         } catch (FirebaseMessagingException e) {
             e.printStackTrace();
             log.error("Failed to send Upload Alram. Target userId = " + user.getId());
-            return;
         }
-        log.info("Upload Alram successfully sent.");
     }
 
     private Message createMessage(User user, MessageTemplate template, String token) {
