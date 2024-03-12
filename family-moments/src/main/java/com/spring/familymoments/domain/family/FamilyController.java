@@ -26,8 +26,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
-import static com.spring.familymoments.config.BaseResponseStatus.*;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/families")
@@ -46,7 +44,6 @@ public class FamilyController {
      * @return BaseResponse<PostFamilyRes>
      */
     @ResponseBody
-    @NoAuthCheck
     @PostMapping("/family")
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
     public BaseResponse<PostFamilyRes> createFamily(
