@@ -44,7 +44,8 @@ public class FamilyController {
      * @return BaseResponse<PostFamilyRes>
      */
     @ResponseBody
-    @PostMapping("/family")
+    @NoAuthCheck
+    @PostMapping(value ="/family", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
