@@ -215,12 +215,13 @@ public class FamilyController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PatchMapping(value ="/{familyId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value ="/{familyId}/update",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
-                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                @Valid @RequestBody FamilyUpdateRes familyUpdateRes){
-        FamilyRes resFamilyRes = familyService.updateFamily(user, familyId, familyUpdateRes);
-        return new BaseResponse<>(resFamilyRes);
+                                                @RequestParam(name = "representImg") MultipartFile representImg,
+                                                @Valid @RequestPart FamilyUpdateReq familyUpdateReq){
+        String fileUrl = awsS3Service.uploadImage(representImg);
+        FamilyRes familyRes = familyService.updateFamily(familyId, familyUpdateReq, fileUrl);
+        return new BaseResponse<>(familyRes);
     }
 
     /** 가족 탈퇴 API
