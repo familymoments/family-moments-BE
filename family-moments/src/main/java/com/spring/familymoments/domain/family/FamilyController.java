@@ -3,7 +3,6 @@ package com.spring.familymoments.domain.family;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
-import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.AuthService;
@@ -16,8 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -28,8 +25,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
-
-import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,7 +45,7 @@ public class FamilyController {
      */
     @ResponseBody
     @NoAuthCheck
-    @PostMapping("/family")
+    @PostMapping(value ="/family", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
@@ -220,12 +215,13 @@ public class FamilyController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PatchMapping(value ="/{familyId}/update", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PatchMapping(value ="/{familyId}/update",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
-                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                @Valid @RequestBody FamilyUpdateRes familyUpdateRes){
-        FamilyRes resFamilyRes = familyService.updateFamily(user, familyId, familyUpdateRes);
-        return new BaseResponse<>(resFamilyRes);
+                                                @RequestParam(name = "representImg") MultipartFile representImg,
+                                                @Valid @RequestPart FamilyUpdateReq familyUpdateReq){
+        String fileUrl = awsS3Service.uploadImage(representImg);
+        FamilyRes familyRes = familyService.updateFamily(familyId, familyUpdateReq, fileUrl);
+        return new BaseResponse<>(familyRes);
     }
 
     /** 가족 탈퇴 API
