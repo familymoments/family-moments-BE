@@ -302,7 +302,7 @@ public class UserController {
      * @return BaseResponse<List<GetInvitationRes>>
      */
     @GetMapping("/users/invitation")
-    @Operation(summary = "초대 리스트 확인", description = "사용자가 받은 모든 초대 리스트를 확인할 수 있는 API입니다.")
+    @Operation(summary = "초대 리스트 확인", description = "사용자가 아직 수락하지 않은 초대 리스트를 확인할 수 있는 API입니다.")
     public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal @Parameter(hidden=true) User user){
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
