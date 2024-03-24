@@ -93,5 +93,12 @@ public class Family extends BaseEntity {
     public void updateFamily(User owner) {
         this.owner = owner;
     }
+
+    /**
+     * 게시물 생성 API 관련 메소드
+     */
+    public void updateLatestUploadAt() {
+        this.latestUploadAt = LocalDateTime.now();
+    }
 }
 

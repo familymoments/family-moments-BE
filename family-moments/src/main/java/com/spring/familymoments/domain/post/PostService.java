@@ -91,6 +91,9 @@ public class PostService {
             throw new BaseException(minnie_POST_SAVE_FAIL);
         }
 
+        // '최근 게시물 업로드 시각' 현재 시각으로 업데이트
+        family.updateLatestUploadAt();
+
         // postId로 연관된 테이블을 다시 검색하지 않음
         SinglePostRes singlePostRes = SinglePostRes.builder()
                 .postId(result.getPostId())
