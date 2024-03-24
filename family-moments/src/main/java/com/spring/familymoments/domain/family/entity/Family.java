@@ -5,10 +5,12 @@ import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.model.FamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import javax.persistence.*;
 import javax.validation.constraints.*;
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -43,6 +45,10 @@ public class Family extends BaseEntity {
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
+
+    @CreationTimestamp
+    @Column(name = "latestUploadAt", nullable = false)
+    private LocalDateTime latestUploadAt;
 
     public Family(Long familyId) {
         this.familyId = familyId;
