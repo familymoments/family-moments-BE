@@ -46,9 +46,16 @@ public class Family extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
 
-    @CreationTimestamp
     @Column(name = "latestUploadAt", nullable = false)
     private LocalDateTime latestUploadAt;
+
+    @PrePersist
+    public void prePersist() {
+        // latestUploadAt 초기화
+        if (latestUploadAt == null) {
+            latestUploadAt = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        }
+    }
 
     public Family(Long familyId) {
         this.familyId = familyId;
@@ -98,7 +105,7 @@ public class Family extends BaseEntity {
      * 게시물 생성 API 관련 메소드
      */
     public void updateLatestUploadAt() {
-        this.latestUploadAt = LocalDateTime.now();
+        this.latestUploadAt = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
     }
 }
 
