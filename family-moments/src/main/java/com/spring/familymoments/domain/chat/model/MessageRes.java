@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class MessageRes {
     @NotNull
     private MessageType type;
+    private Long familyId;
     @NotNull
     private String sender;
     @NotNull
