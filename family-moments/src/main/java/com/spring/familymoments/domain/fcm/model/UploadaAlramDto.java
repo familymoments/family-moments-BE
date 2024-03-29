@@ -5,14 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Builder
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FamilyLatestPostDto {
-    private Long familyId;
-    private LocalDateTime latestPostDate;
-    private Integer uploadCycle;
+public class UploadaAlramDto {
+    private String id;
+    private String nickname;
+    private String familyName;
+    private MessageTemplate template;
 }

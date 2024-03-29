@@ -1,13 +1,12 @@
 package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.fcm.model.FamilyLatestPostDto;
 import com.spring.familymoments.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -25,18 +24,14 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
             "WHERE (uf.familyId = :family) AND (uf.userId = :user)")
     Boolean isFamilyMember(@Param("family") Family family, @Param("user") User user);
 
-//    @Query("SELECT f " +
-//            "FROM Family f " +
-//            "LEFT JOIN Post p ON f.familyId = p.familyId.familyId " +
-//            "GROUP BY f.familyId " +
-//            "HAVING MAX(p.createdAt) < DATE_ADD(CURRENT_DATE(), INTERVAL -f.uploadCycle DAY)")
-//    List<Family> findFamiliesWithRecentPostsBeforeThresholdDate(@Param("today") LocalDate today);
-
-
-    @Query("SELECT f.familyId as familyId, MAX(p.createdAt) as latestPostDate, f.uploadCycle as uploadCycle " +
+    @Query(value = "SELECT u.id, u.nickname, f.familyName  " +
             "FROM Family f " +
-            "LEFT JOIN Post p ON f.familyId = p.familyId.familyId " +
-            "GROUP BY f.familyId")
-    List<Map<String, Object>> findLatestPostDate();
+            "INNER JOIN UserFamilyMapping m ON f.familyId = m.familyId " +
+            "INNER JOIN User u ON m.userId = u.userId " +
+            "WHERE f.status = 'ACTIVE' " +
+            "AND u.status = 'ACTIVE' " +
+            "AND DATE_ADD(f.latestUploadAt, INTERVAL f.uploadCycle DAY) <= :currentDate",
+            nativeQuery = true)
+    List<Map<String, Object>> findFamiliesWithUploadCycle(@Param("currentDate") LocalDateTime currentDate);
 
 }
