@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class FCMService  implements NotificationService {
+public class FCMService implements NotificationService {
     private final FirebaseMessaging firebaseMessaging;
     private final FamilyRepository familyRepository;
     private final FCMTokenDao fcmTokenDao;

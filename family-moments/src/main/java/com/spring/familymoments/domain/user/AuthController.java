@@ -45,7 +45,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PostLoginRes.class)))
             //@ApiResponse(responseCode = "404", description = "NOT FOUND", content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     })
-    public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
+    public ResponseEntity<?> login(@RequestHeader(value = "FCM-Token", required = false) String fcmToken, @RequestBody PostLoginReq postLoginReq) {
         //User 등록 및 Refresh Token 저장
         TokenDto tokenDto = authService.login(postLoginReq);
 
@@ -60,10 +60,10 @@ public class AuthController {
         PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
 
         // FCM Token 저장
-        if (postLoginReq.getFcmToken().isEmpty() || postLoginReq.getFcmToken() == null) {
+        if (fcmToken == null || fcmToken.isEmpty()) {
             return ResponseEntity.badRequest().body(new BaseResponse(FIND_FAIL_FCMTOKEN));
         }
-        fcmService.saveToken(postLoginReq.getId(), postLoginReq.getFcmToken());
+        fcmService.saveToken(postLoginReq.getId(), fcmToken);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
