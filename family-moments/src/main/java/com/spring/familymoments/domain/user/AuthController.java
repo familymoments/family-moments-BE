@@ -4,9 +4,11 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.fcm.FCMService;
+import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
 import com.spring.familymoments.domain.user.model.PostLoginRes;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -140,8 +143,9 @@ public class AuthController {
     @PostMapping(value = "/users/log-out", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "로그아웃", description = "쿠키의 내용 지우면서 로그아웃합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-//        fcmService.deleteToken(postLoginReq.getId());     // FCM Token 삭제
+    public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
+                                    @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
         try {
             authService.logout(requestAccessToken);
             ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")

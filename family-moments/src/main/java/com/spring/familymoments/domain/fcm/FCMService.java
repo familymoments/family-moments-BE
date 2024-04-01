@@ -78,7 +78,7 @@ public class FCMService implements NotificationService {
         fcmTokenDao.deleteToken(id);
     }
 
-    private String getToken(String id) {
+    public String getToken(String id) {
         return fcmTokenDao.getToken(id);
     }
 
