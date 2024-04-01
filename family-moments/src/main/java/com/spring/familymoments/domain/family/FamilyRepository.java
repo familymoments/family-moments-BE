@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,8 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
             "FROM UserFamily uf " +
             "WHERE (uf.familyId = :family) AND (uf.userId = :user)")
     Boolean isFamilyMember(@Param("family") Family family, @Param("user") User user);
+
+    @Query("SELECT f FROM Family f JOIN f.userFamilies uf WHERE uf.userId = :user AND uf.status = 'ACTIVE' ORDER BY uf.createdAt ASC")
+    List<Family> findActiveFamilyByUserId(@Param("user") User user);
+
 }
