@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.socialInfo.entity.SocialInfo;
@@ -13,6 +14,10 @@ import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -50,6 +55,7 @@ public class SocialUserService {
     private final KakaoLoginServiceImpl kakaoLoginService;
     private final NaverLoginServiceImpl naverLoginService;
     private final GoogleLoginServiceImpl googleLoginService;
+    private final long COOKIE_EXPIRATION = JwtSecret.COOKIE_EXPIRATION_TIME;
 
     @Transactional
     public SocialLoginOrJoinResponse doSocialLogin(SocialLoginRequest request) {
@@ -261,4 +267,33 @@ public class SocialUserService {
             }
         }
     }
+
+    @Transactional
+    public TokenDto createSocialSdkUser(SocialLoginSdkRequest socialLoginSdkRequest) {
+        String snsId = socialLoginSdkRequest.getSnsId();
+        String email = socialLoginSdkRequest.getEmail();
+
+        User existedU = socialUserRepository.findUserByEmailAndSnsId(email, snsId);
+        if(existedU == null) {
+            throw new BaseException(NEED_TO_JOIN_AS_THIS_SOCIAL); //소셜 회원가입 유도 : 481 error
+        }
+
+        return setAuthenticationInSocial(existedU);
+    }
+
+    @Transactional
+    public ResponseEntity<?> sendAtRtTokenInfo(TokenDto tokenDto) {
+        //RefreshToken 쿠키에 저장
+        HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
+                .maxAge(COOKIE_EXPIRATION)
+                .httpOnly(true)
+                .secure(true)
+                .build();
+
+        //로그인
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
+                .header("X-AUTH-TOKEN", tokenDto.getAccessToken()).build();
+    }
+
 }
