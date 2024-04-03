@@ -36,7 +36,19 @@ public class StompInterceptor implements ChannelInterceptor {
 
                 redisService.setValues(PREFIX_USER_ID + userId, sessionId);
                 redisService.setValues(PREFIX_SESSION_ID + sessionId, userId);
+            } else {
+                String subscriptionId = headerAccessor.getSubscriptionId();
+                String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
+                String key = PREFIX_FAMILY_ID + subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1) + ":";
+
+                redisService.addValues(key, userId);
             }
+        } else if(command.equals(StompCommand.UNSUBSCRIBE)) {
+          String subscriptionId = headerAccessor.getSubscriptionId();
+          String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
+          String key = PREFIX_FAMILY_ID + subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1) + ":";
+
+          redisService.removeMember(key, userId);
         } else if(command.equals(StompCommand.DISCONNECT)) {
             String sessionId = headerAccessor.getSessionId();
             String userId = String.valueOf(redisService.getValues(PREFIX_SESSION_ID + sessionId));
