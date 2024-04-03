@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.alarmSetting.AlarmSettingService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
@@ -57,6 +58,7 @@ public class UserService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
+    private final AlarmSettingService alarmSettingService;
 
     /**
      * createUser
@@ -97,6 +99,7 @@ public class UserService {
                 .status(User.Status.ACTIVE)
                 .build();
         userRepository.save(user);
+        alarmSettingService.createAlarmSetting(user);   // 알림 ON으로 설정(채팅알림, 업로드주기알림, 포스팅알림)
 
         return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg());
     }

@@ -1,4 +1,4 @@
-package com.spring.familymoments.domain.fcm.entity;
+package com.spring.familymoments.domain.alarmSetting.entity;
 
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.user.entity.User;
