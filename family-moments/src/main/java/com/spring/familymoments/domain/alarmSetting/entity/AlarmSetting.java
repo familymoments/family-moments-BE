@@ -50,4 +50,12 @@ public class AlarmSetting extends BaseEntity {
         CYCLE, POSTING, CHAT;
     }
 
+    /**
+     * 알림 활성/비활성 API 관련 메소드
+     */
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+
 }
