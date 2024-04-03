@@ -26,8 +26,6 @@ import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 
-import static com.spring.familymoments.config.BaseResponseStatus.*;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/families")

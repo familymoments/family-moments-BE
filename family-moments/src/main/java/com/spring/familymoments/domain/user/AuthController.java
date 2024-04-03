@@ -4,9 +4,12 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
+import com.spring.familymoments.domain.fcm.FCMService;
+import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
 import com.spring.familymoments.domain.user.model.PostLoginRes;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,12 +25,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import static com.spring.familymoments.config.BaseResponseStatus.SUCCESS;
 
+import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FCMTOKEN;
+import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
+
 @Controller
 @RequiredArgsConstructor
 @Tag(name = "User-Auth", description = "인증토큰 API Document")
 public class AuthController {
     private final long COOKIE_EXPIRATION = JwtSecret.COOKIE_EXPIRATION_TIME;
     private final AuthService authService;
+    private final FCMService fcmService;
     /**
      * 로그인 API -> token 발급
      * [POST] /users/log-in
@@ -40,7 +48,7 @@ public class AuthController {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = PostLoginRes.class)))
             //@ApiResponse(responseCode = "404", description = "NOT FOUND", content = @Content(schema = @Schema(implementation = BaseResponse.class)))
     })
-    public ResponseEntity<?> login(@RequestBody PostLoginReq postLoginReq) {
+    public ResponseEntity<?> login(@RequestHeader(value = "FCM-Token", required = false) String fcmToken, @RequestBody PostLoginReq postLoginReq) {
         //User 등록 및 Refresh Token 저장
         TokenDto tokenDto = authService.login(postLoginReq);
 
@@ -53,6 +61,12 @@ public class AuthController {
 
         //가입된 familyId 값 넘기기 -- 임시
         PostLoginRes postLoginRes = authService.login_familyId(postLoginReq.getId());
+
+        // FCM Token 저장
+        if (fcmToken == null || fcmToken.isEmpty()) {
+            return ResponseEntity.badRequest().body(new BaseResponse(FIND_FAIL_FCMTOKEN));
+        }
+        fcmService.saveToken(postLoginReq.getId(), fcmToken);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
@@ -130,8 +144,9 @@ public class AuthController {
     @PostMapping(value = "/users/log-out", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "로그아웃", description = "쿠키의 내용 지우면서 로그아웃합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
-    public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        authService.logout(requestAccessToken);
+    public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
+                                    @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제authService.logout(requestAccessToken);
         ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
                 .maxAge(0)
                 .path("/")
