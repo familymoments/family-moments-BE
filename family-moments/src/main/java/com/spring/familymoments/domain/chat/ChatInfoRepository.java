@@ -9,7 +9,5 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ChatInfoRepository extends JpaRepository<ChatInfo, Long> {
-    List<ChatInfo> findFamilyMemberList(Family family);
-
     Optional<ChatInfo> findChatInfoByUserAndFamily(User user, Family family);
 }

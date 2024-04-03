@@ -1,25 +1,36 @@
 package com.spring.familymoments.domain.chat;
 
+import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.domain.chat.document.ChatDocument;
 import com.spring.familymoments.domain.chat.model.MessageReq;
 import com.spring.familymoments.domain.chat.model.MessageRes;
+import com.spring.familymoments.domain.family.FamilyRepository;
+import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.redis.RedisService;
+import com.spring.familymoments.domain.user.UserRepository;
+import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    private static final String PREFIX_USER_ID = "UI:";
-    private static final String PREFIX_SESSION_ID = "SI:";
+    private static final String PREFIX_USER_ID = "UI)";
+    private static final String PREFIX_SESSION_ID = "SI)";
     private static final String PREFIX_FAMILY_ID = "FM";
 
     private final ChatDocumentRepository chatDocumentRepository;
     private final RedisService redisService;
+    private final ChatInfoService chatInfoService;
+    private final UserRepository userRepository;
+    private final FamilyRepository familyRepository;
 
     // chat Document에 저장
     public MessageRes createChat(Long familyId, MessageReq messageReq) {
@@ -50,9 +61,23 @@ public class ChatService {
 
     // 유저의 세션 정보 삭제
     public void deleteSessionInfo(String sessionId) {
-        String userId = String.valueOf(redisService.getValues(PREFIX_SESSION_ID + sessionId));
+        String userId = redisService.getValues(PREFIX_SESSION_ID + sessionId);
 
-        // user의 가족 목록 load, redis에서 connect 여부 확인
+        // user의 가족 목록 load, redis에서 connect 여부 확인 -> 연결 종료되지 않은 내역이 있다면 lastAccessedTime 갱신
+        User user = userRepository.findById(userId).orElseThrow(() -> {
+            throw new BaseException(BaseResponseStatus.FIND_FAIL_USER);
+        });
+        List<Family> familyList = familyRepository.findActiveFamilyByUserId(user);
+
+        for(Family family : familyList) {
+            String key = PREFIX_FAMILY_ID + family.getFamilyId() + ":";
+            Set<String> online_members = redisService.getMembers(key);
+
+            if(online_members.contains(userId)) {
+                redisService.removeMember(key, userId);
+                chatInfoService.renewLastAccessedTime(user, family);
+            }
+        }
 
         // disconnect 시 session 정보 삭제
         redisService.deleteValues(PREFIX_SESSION_ID + sessionId);
@@ -62,13 +87,14 @@ public class ChatService {
 
     // 현재 접속 중 멤버 리스트에 user를 추가
     public void enterChatRoom(String userId, String familyId) {
-        String key = PREFIX_FAMILY_ID + familyId + ":";
+        String key = PREFIX_FAMILY_ID + familyId + ")";
         redisService.addValues(key, userId);
     }
 
     // 현재 접속 중 멤버 리스트에서 user를 제외
     public void leaveChatRoom(String userId, String familyId) {
-        String key = PREFIX_FAMILY_ID + familyId + ":";
+        String key = PREFIX_FAMILY_ID + familyId + ")";
         redisService.removeMember(key, userId);
+        chatInfoService.renewLastAccessedTime(userId, Long.valueOf(familyId));
     }
 }

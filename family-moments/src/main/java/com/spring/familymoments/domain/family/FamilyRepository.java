@@ -21,4 +21,8 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
             "FROM UserFamily uf " +
             "WHERE (uf.familyId = :family) AND (uf.userId = :user)")
     Boolean isFamilyMember(@Param("family") Family family, @Param("user") User user);
+
+
+    @Query("SELECT f FROM Family f JOIN UserFamily uf ON f = uf.familyId WHERE uf.userId = :user AND uf.status = 'ACTIVE' ORDER BY uf.createdAt ASC")
+    List<Family> findActiveFamilyByUserId(@Param("user") User user);
 }
