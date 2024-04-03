@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class RedisService {
     private final RedisTemplate<String, String> redisTemplate;
+
     public void setValues(String key, String value) {
         redisTemplate.opsForValue().set(key, value);
     }
@@ -25,11 +26,11 @@ public class RedisService {
     public void setValuesWithTimeout(String key, String value, long timeout) { // 만료 시간을 설정해서 자동 삭제 가능
         redisTemplate.opsForValue().set(key, value, timeout, TimeUnit.MILLISECONDS);
     }
-    public Object getValues(String key) {
+    public String getValues(String key) {
         return redisTemplate.opsForValue().get(key);
     }
 
-    public Set<Object> getMembers(String key) {
+    public Set<String> getMembers(String key) {
         return redisTemplate.opsForSet().members(key);
     }
 
