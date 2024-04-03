@@ -6,7 +6,6 @@ import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.fcm.FCMService;
-import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,8 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import java.util.NoSuchElementException;

@@ -1,14 +1,12 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.alarmSetting.AlarmSettingService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
 import com.spring.familymoments.domain.commentLove.entity.CommentLove;
-import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;

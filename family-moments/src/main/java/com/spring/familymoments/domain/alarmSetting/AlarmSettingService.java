@@ -2,7 +2,6 @@ package com.spring.familymoments.domain.alarmSetting;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.alarmSetting.entity.AlarmSetting;
-import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
