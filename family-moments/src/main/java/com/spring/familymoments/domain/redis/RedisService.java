@@ -33,6 +33,10 @@ public class RedisService {
         return redisTemplate.opsForSet().members(key);
     }
 
+    public void removeMember(String key, String member) {
+        redisTemplate.opsForSet().remove(key, member);
+    }
+
     public void deleteValues(String key) {
         redisTemplate.delete(key);
     }
