@@ -1,6 +1,5 @@
 package com.spring.familymoments.domain.chat;
 
-import com.spring.familymoments.domain.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -9,55 +8,40 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Component
 @RequiredArgsConstructor
 public class StompInterceptor implements ChannelInterceptor {
-    private final RedisService redisService;
+    private static final String NOTIFICATION = "notification";
 
-    private static final String PREFIX_USER_ID = "UI:";
-    private static final String PREFIX_SESSION_ID = "SI:";
-    private static final String PREFIX_FAMILY_ID = "FM";
-
+    private final ChatService chatService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
         StompCommand command = headerAccessor.getCommand();
+        String destination = headerAccessor.getDestination();
 
         if(command.equals(StompCommand.SUBSCRIBE)) {
-            String destination = headerAccessor.getDestination();
-
-            if(destination.substring(destination.lastIndexOf("/")).equals("/notification")) {
+            if(destination.contains(NOTIFICATION)) { // 알림 채널 구독
                 String userId = destination.replace("/sub/", "").replace("/notification", "");
                 String sessionId = headerAccessor.getSessionId();
 
-                redisService.setValues(PREFIX_USER_ID + userId, sessionId);
-                redisService.setValues(PREFIX_SESSION_ID + sessionId, userId);
-            } else {
+                chatService.saveSessionInfo(userId, sessionId);
+            } else { // 가족 채팅방 구독
                 String subscriptionId = headerAccessor.getSubscriptionId();
                 String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-                String key = PREFIX_FAMILY_ID + subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1) + ":";
+                String familyId = subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1);
 
-                redisService.addValues(key, userId);
+                chatService.enterChatRoom(userId, familyId);
             }
-        } else if(command.equals(StompCommand.UNSUBSCRIBE)) {
+        } else if(command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) { // 가족 채팅 구독 해제
           String subscriptionId = headerAccessor.getSubscriptionId();
           String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-          String key = PREFIX_FAMILY_ID + subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1) + ":";
 
-          redisService.removeMember(key, userId);
-        } else if(command.equals(StompCommand.DISCONNECT)) {
+          chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
+        } else if(command.equals(StompCommand.DISCONNECT)) { // 연결 해제
             String sessionId = headerAccessor.getSessionId();
-            String userId = String.valueOf(redisService.getValues(PREFIX_SESSION_ID + sessionId));
-
-            // user의 가족 목록 load, redis에서 connect 여부 확인
-
-            // disconnect 시 session 정보 삭제
-            redisService.deleteValues(PREFIX_SESSION_ID + sessionId);
-            redisService.deleteValues(PREFIX_USER_ID + userId);
+            chatService.deleteSessionInfo(sessionId);
         }
 
         return message;
