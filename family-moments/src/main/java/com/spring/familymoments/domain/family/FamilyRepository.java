@@ -28,8 +28,11 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
             "FROM Family f " +
             "INNER JOIN UserFamilyMapping m ON f.familyId = m.familyId " +
             "INNER JOIN User u ON m.userId = u.userId " +
+            "INNER JOIN AlarmSetting a ON u.userId = a.userId " +
             "WHERE f.status = 'ACTIVE' " +
             "AND u.status = 'ACTIVE' " +
+            "AND a.alarmType = 'CYCLE' " +
+            "AND a.status = 'ACTIVE' " +
             "AND DATE_ADD(f.latestUploadAt, INTERVAL f.uploadCycle DAY) <= :currentDate",
             nativeQuery = true)
     List<Map<String, Object>> findFamiliesWithUploadCycle(@Param("currentDate") LocalDateTime currentDate);

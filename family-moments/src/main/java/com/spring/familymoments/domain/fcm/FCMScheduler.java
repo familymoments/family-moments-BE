@@ -16,7 +16,7 @@ public class FCMScheduler {
      * Cron 표현식을 사용한 작업 예약
      * 초(0-59) 분(0-59) 시간(0-23) 일(1-31) 월(1-12) 요일(0-7)
      */
-//    @Scheduled(initialDelay = 0, fixedDelay = 60000)    // 초기 지연: 0밀리초, 실행 간격: 60초
+    @Scheduled(initialDelay = 0, fixedDelay = 60000)    // 초기 지연: 0밀리초, 실행 간격: 60초
 //    @Scheduled(cron = "0 0 10 * * *")
     public void sendUploadAlarm() {
         log.info("=== UPLOAD ALRAM START ===");

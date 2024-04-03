@@ -34,7 +34,10 @@ public class FCMService implements NotificationService {
                             (String) user.get("familyName"),
                             MessageTemplate.UPLOAD_ALARM)
                     );
+                    System.out.println("---id---"+user.get("id")+"---familyName---"+user.get("familyName"));
                 });
+
+
 
         log.info("Upload Alram successfully sent.");
     }
