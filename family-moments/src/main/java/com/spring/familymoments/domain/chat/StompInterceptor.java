@@ -16,7 +16,7 @@ public class StompInterceptor implements ChannelInterceptor {
     private final ChatService chatService;
 
     @Override
-    public Message<?> preSend(Message<?> message, MessageChannel channel) {
+    public Message<?> postReceive(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
         StompCommand command = headerAccessor.getCommand();
         String destination = headerAccessor.getDestination();
@@ -35,13 +35,15 @@ public class StompInterceptor implements ChannelInterceptor {
                 chatService.enterChatRoom(userId, familyId);
             }
         } else if(command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) { // 가족 채팅 구독 해제
-          String subscriptionId = headerAccessor.getSubscriptionId();
-          String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
+            String subscriptionId = headerAccessor.getSubscriptionId();
+            String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
 
-          chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
+            chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
         } else if(command.equals(StompCommand.DISCONNECT)) { // 연결 해제
             String sessionId = headerAccessor.getSessionId();
             chatService.deleteSessionInfo(sessionId);
+
+            return null;
         }
 
         return message;
