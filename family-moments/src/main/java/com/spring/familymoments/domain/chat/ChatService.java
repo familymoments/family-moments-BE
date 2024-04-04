@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.chat;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.domain.chat.document.ChatDocument;
+import com.spring.familymoments.domain.chat.model.ChatRoomInfo;
 import com.spring.familymoments.domain.chat.model.MessageReq;
 import com.spring.familymoments.domain.chat.model.MessageRes;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -44,7 +45,7 @@ public class ChatService {
         chatDocument = chatDocumentRepository.save(chatDocument);
 
         MessageRes messageRes = MessageRes.builder()
-                .type(MessageRes.MessageType.MESSAGE)
+                .messageId(chatDocument.getId().toString())
                 .sender(chatDocument.getSender())
                 .message(chatDocument.getMessage())
                 .sendedTime(chatDocument.getSendedTime())
@@ -96,5 +97,25 @@ public class ChatService {
         String key = PREFIX_FAMILY_ID + familyId + ")";
         redisService.removeMember(key, userId);
         chatInfoService.renewLastAccessedTime(userId, Long.valueOf(familyId));
+    }
+
+    // 메세지 목록 조회 - 읽지 않은 메세지(마지막 접속 기록 기준)
+    public List<MessageRes> getUnreadMessages(User user, Long familyId) {
+        return null;
+    }
+
+    // 메세지 목록 조회 - messageId 이전 메세지
+    public List<MessageRes> getPreviousMessages(User user, Long familyId, String messageId) {
+        return null;
+    }
+
+    // 채팅방 목록 조회
+    public List<ChatRoomInfo> getMyChatRooms(User user) {
+        return null;
+    }
+
+    // 현재 채팅방 정보 조회 - 유저 정보, 채팅방 정보
+    public ChatRoomInfo getChatRoomInfo(User user, Long familyId) {
+        return null;
     }
 }
