@@ -88,7 +88,7 @@ public enum BaseResponseStatus {
     minnie_POSTS_NON_EXISTS_POST(false, HttpStatus.NOT_FOUND.value(), "post가 존재하지 않습니다."),
     minnie_POSTS_EMPTY_UPDATE(false, HttpStatus.BAD_REQUEST.value(), "수정할 내용을 보내주세요."),
     minnie_POSTS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST.value(), "내용을 입력해주세요."),
-    minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "img1에 이미지를 지정해주세요."),
+    minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "업로드할 이미지를 선택해주세요."),
     minnie_POSTS_FULL_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "한 게시물에 포함할 수 있는 이미지의 개수는 최대 10장입니다."),
     minnie_POSTS_EMPTY_POST_INFO(false, HttpStatus.BAD_REQUEST.value(), "postInfo가 포함되어야 합니다."),
     minnie_POST_SAVE_FAIL(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "게시물 저장에 실패했습니다."),
