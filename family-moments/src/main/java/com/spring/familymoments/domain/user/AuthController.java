@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import static com.spring.familymoments.config.BaseResponseStatus.SUCCESS;
 
 import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FCMTOKEN;
-import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
 
 @Controller
 @RequiredArgsConstructor
@@ -146,7 +145,8 @@ public class AuthController {
     @ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken,
                                     @AuthenticationPrincipal @Parameter(hidden = true) User user) {
-        fcmService.deleteToken(user.getId());     // FCM Token 삭제authService.logout(requestAccessToken);
+        authService.logout(requestAccessToken);
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
         ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
                 .maxAge(0)
                 .path("/")

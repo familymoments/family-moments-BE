@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.fcm;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.google.firebase.messaging.Message;
+import com.google.firebase.messaging.MessagingErrorCode;
 import com.google.firebase.messaging.Notification;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.fcm.model.MessageTemplate;
@@ -49,8 +50,15 @@ public class FCMService implements NotificationService {
         try {
             firebaseMessaging.send(createMessage(dto));
         } catch (FirebaseMessagingException e) {
-            e.printStackTrace();
-            log.error("Failed to send Upload Alram. Target userId = " + dto.getId());
+            if (e.getMessagingErrorCode() == MessagingErrorCode.UNREGISTERED) {
+                // FCM 토큰이 더 이상 유효하지 않은 경우에 대한 처리
+                // 예: 토큰을 데이터베이스에서 삭제하거나 다시 등록 요청을 보내는 등의 작업 수행
+                log.error("FCM token for user {} is invalid or unregistered", dto.getId());
+                deleteToken(dto.getId());     // FCM Token 삭제
+            } else {
+                // 그 외의 FCM 예외 처리
+                log.error("Failed to send FCM message to user {}", dto.getId());
+            }
         }
     }
 
