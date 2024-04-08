@@ -45,7 +45,7 @@ public class CommentController {
             commentService.createComment(user, postId, postCommentReq);
             return new BaseResponse<>("댓글이 업로드되었습니다.");
         }catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
+            return new BaseResponse<>(e.getStatus());
         }
     }
 
@@ -63,7 +63,7 @@ public class CommentController {
             List<GetCommentsRes> getCommentsRes = commentService.getCommentsByPostId(postId);
             return new BaseResponse<>(getCommentsRes);
         }catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
+            return new BaseResponse<>(e.getStatus());
         }
     }
 
@@ -83,7 +83,7 @@ public class CommentController {
             commentService.deleteComment(user, commentId);
             return new BaseResponse<>("댓글이 삭제되었습니다.");
         }catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
+            return new BaseResponse<>(e.getStatus());
         }
     }
 
