@@ -6,7 +6,6 @@ import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
-import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -40,6 +39,9 @@ public class CommentController {
             @RequestParam("postId") Long postId,
             @RequestPart PostCommentReq postCommentReq) {
         try{
+            if(postCommentReq.getContent()==null || postCommentReq.getContent().isEmpty()) {
+                return new BaseResponse<>(COMMENTS_EMPTY_CONTENT);
+            }
             commentService.createComment(user, postId, postCommentReq);
             return new BaseResponse<>("댓글이 업로드되었습니다.");
         }catch (BaseException e) {
@@ -95,12 +97,12 @@ public class CommentController {
     @Operation(summary = "댓글 수정", description = "댓글을 수정합니다.")
     public BaseResponse<String> updateComment(
             @PathVariable Long commentId,
-            @RequestBody PatchCommentReq postCommentReq) {
+            @RequestBody PatchCommentReq patchCommentReq) {
         try{
-            if(postCommentReq.getContent()==null || postCommentReq.getContent().isEmpty()) {
+            if(patchCommentReq.getContent()==null || patchCommentReq.getContent().isEmpty()) {
                 return new BaseResponse<>(COMMENTS_EMPTY_CONTENT);
             }
-            commentService.updateComment(commentId, postCommentReq);
+            commentService.updateComment(commentId, patchCommentReq);
             return new BaseResponse<>("댓글이 수정되었습니다.");
         }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
