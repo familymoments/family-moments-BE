@@ -45,10 +45,17 @@ public class Comment extends BaseEntity {
     private int countLove;
 
     /**
-     * 가족 삭제 API 관련 메소드
+     * 댓글 삭제 API 관련 메소드
      */
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    /**
+     * 댓글 수정 API 관련 메소드
+     */
+    public void updateContent(String content) {
+        this.content = content;
     }
 }
 
