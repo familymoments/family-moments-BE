@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.comment;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.domain.alarmSetting.entity.AlarmSetting;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PatchCommentReq;
