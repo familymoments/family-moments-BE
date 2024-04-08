@@ -127,7 +127,7 @@ public class FamilyService {
     // 가족원 전체 조회
     @Transactional
     public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
-        Family family = familyRepository.findById(familyId)
+        familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
