@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,22 +107,13 @@ public class FamilyService {
 
     // 닉네임 및 가족 생성일 조회
     @Transactional
-    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) throws BaseException{
-
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
-
-        Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-
-        LocalDate createdAt = family.getCreatedAt().toLocalDate();
-        LocalDate now = LocalDate.now();
-
-        Period period = Period.between(createdAt, now);
-
-        String daysSinceCreation = String.valueOf(period.getDays()+1);
-
-        return new GetFamilyCreatedNicknameRes(user.getNickname(), daysSinceCreation);
+    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) {
+        LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        String dday = familyRepository.findCreatedAtNicknameById(familyId, today);
+        if (dday == null) {
+            throw new BaseException("가족 생성일을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+        return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
     }
 
     // 가족원 전체 조회

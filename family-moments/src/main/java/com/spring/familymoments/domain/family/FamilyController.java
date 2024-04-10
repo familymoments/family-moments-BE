@@ -88,12 +88,8 @@ public class FamilyController {
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId) {
-        try {
-            GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
-            return new BaseResponse<>(getFamilyCreatedNicknameRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
-        }
+        GetFamilyCreatedNicknameRes getFamilyCreatedNicknameRes = familyService.getFamilyCreatedNickname(user, familyId);
+        return new BaseResponse<>(getFamilyCreatedNicknameRes);
     }
 
     /**
