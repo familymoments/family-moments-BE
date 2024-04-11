@@ -365,4 +365,22 @@ public class FamilyService {
         }
     }
 
+    // 가족 이름 조회
+    @Transactional
+    public String getFamilyName(User user, Long familyId) {
+
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        if(!userFamilyRepository.existsByUserIdAndFamilyId(user, family)) {
+            throw new BaseException(FIND_FAIL_USER_IN_FAMILY);
+        }
+
+        if (family.getStatus() == BaseEntity.Status.INACTIVE) {
+            throw new BaseException(FIND_FAIL_FAMILY);
+        }
+
+        return family.getFamilyName();
+    }
+
 }
