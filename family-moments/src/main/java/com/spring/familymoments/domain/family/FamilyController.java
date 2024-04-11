@@ -299,4 +299,22 @@ public class FamilyController {
 
         return new BaseResponse<>(result);
     }
+
+
+    /**
+     * 가족 이름 조회 API
+     * [GET] /families/{familyId}/famillyName
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "가족 이름 조회 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @GetMapping(value = "/{familyId}/famillyName", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<String> getFamilyName(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                              @PathVariable Long familyId) {
+        String familyNmae = familyService.getFamilyName(user, familyId);
+        return new BaseResponse<>(familyNmae);
+    }
+
 }
