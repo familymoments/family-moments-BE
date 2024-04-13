@@ -60,6 +60,7 @@ public class Family extends BaseEntity {
 
     public FamilyRes toFamilyRes(){
         return FamilyRes.builder()
+                .familyId(familyId)
                 .owner(owner.getNickname())
                 .familyName(familyName)
                 .uploadCycle(uploadCycle)
