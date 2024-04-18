@@ -37,11 +37,10 @@ public class SocialUserController {
     private final SocialUserService socialUserService;
     private final UserService userService;
     private final AwsS3Service awsS3Service;
-    private final long COOKIE_EXPIRATION = JwtSecret.COOKIE_EXPIRATION_TIME;
 
     @NoAuthCheck
     @PostMapping("/users/oauth2/social/login")
-    @Operation(summary = "소셜 로그인 (아이콘 클릭 시)", description = "기존 회원 대상 : 헤더로 토큰이 반환됩니다. / 신규 회원 대상(아래 예시 해당) : 사용자로부터 허용된 리소스 서버 정보들이 반환됩니다.")
+    @Operation(summary = "소셜 로그인 (아이콘 클릭 시) - rest api version", description = "기존 회원 대상 : 헤더로 토큰이 반환됩니다. / 신규 회원 대상(아래 예시 해당) : 사용자로부터 허용된 리소스 서버 정보들이 반환됩니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = SocialLoginOrJoinResponse.JoinResponse.class)))
     })
@@ -51,22 +50,13 @@ public class SocialUserController {
         TokenDto tokenDto = socialLoginOrJoinResponse.getLoginResponse().getTokenDto();
 
         if(tokenDto != null) {
-            //RefreshToken 쿠키에 저장
-            HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
-                    .maxAge(COOKIE_EXPIRATION)
-                    .httpOnly(true)
-                    .secure(true)
-                    .build();
-
-            //로그인
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
-                    .header("X-AUTH-TOKEN", tokenDto.getAccessToken()).build();
+            return socialUserService.sendAtRtTokenInfo(tokenDto);
         }
         //회원 가입 유도
         return ResponseEntity.ok()
                 .body(socialLoginOrJoinResponse.getJoinResponse());
     }
+
     @NoAuthCheck
     @PostMapping("/users/oauth2/social/join")
     @Operation(summary = "소셜 회원가입과 로그인 (폼 입력)", description = "신규 회원 대상 : 얻은 리소스 서버 정보들과 사용자의 입력으로 유저를 등록하고 로그인(헤더로 토큰 발급)합니다.")
@@ -122,19 +112,29 @@ public class SocialUserController {
         TokenDto tokenDto = socialUserService.createSocialUser(userJoinRequest);
 
         if(tokenDto != null) {
-            //RefreshToken 쿠키에 저장
-            HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
-                    .maxAge(COOKIE_EXPIRATION)
-                    .httpOnly(true)
-                    .secure(true)
-                    .build();
-
-            //로그인
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
-                    .header("X-AUTH-TOKEN", tokenDto.getAccessToken()).build();
+            return socialUserService.sendAtRtTokenInfo(tokenDto);
         }
-        return ResponseEntity.ok()
+
+        return ResponseEntity.status(404)
                 .body(new BaseResponse<>(TOKEN_RESPONSE_ERROR));
     }
+
+    @NoAuthCheck
+    @PostMapping("/users/oauth2/social/login/sdk")
+    @Operation(summary = "소셜 로그인 (아이콘 클릭 시) - sdk version", description = "")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+            @ApiResponse(responseCode = "481", description = "해당 소셜로 회원 가입을 해야 합니다.")
+    })
+    public ResponseEntity<?> doSocialSdkLogin(@RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
+        TokenDto tokenDto = socialUserService.createSocialSdkUser(socialLoginSdkRequest);
+
+        if(tokenDto != null) {
+            return socialUserService.sendAtRtTokenInfo(tokenDto);
+        }
+
+        return ResponseEntity.status(404)
+                .body(new BaseResponse<>(TOKEN_RESPONSE_ERROR));
+    }
+
 }
