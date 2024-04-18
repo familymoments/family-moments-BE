@@ -66,6 +66,10 @@ public class PostService {
             throw new BaseException(minnie_POST_SAVE_FAIL);
         }
 
+
+        // '최근 게시물 업로드 시각' 현재 시각으로 업데이트
+        family.updateLatestUploadAt();
+
         // PostDocument builder 생성
         PostDocument.PostDocumentBuilder postDocumentBuilder = PostDocument.builder()
                 .entityId(result.getPostId())

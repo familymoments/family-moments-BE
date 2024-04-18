@@ -9,6 +9,7 @@ build/
 *.properties
 *.yml
 /src/main/java/com/spring/familymoments/config/secret/
+/src/main/resources/firebase/
 
 ### STS ###
 .apt_generated
