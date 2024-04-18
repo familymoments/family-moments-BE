@@ -3,9 +3,9 @@ package com.spring.familymoments.domain.comment;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
+import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.entity.User;
@@ -28,10 +28,6 @@ public class CommentService {
     // 댓글 생성하기
     @Transactional
     public void createComment(User user, Long postId, PostCommentReq postCommentReq) throws BaseException {
-
-        // 사용자
-//        User writer = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
 
         // 유저 존재 확인
         if(user==null){
@@ -115,5 +111,15 @@ public class CommentService {
         comment.updateStatus(BaseEntity.Status.INACTIVE);
         commentWithUserRepository.save(comment);
 
+    }
+
+    // 댓글 수정
+    @Transactional
+    public void updateComment(Long commentId, PatchCommentReq postCommentReq) throws BaseException{
+        Comment comment = commentWithUserRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
+
+        comment.updateContent(postCommentReq.getContent());
+        commentWithUserRepository.save(comment);
     }
 }
