@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseResponse;
+import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.user.model.PostLoginReq;
@@ -18,7 +19,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import static com.spring.familymoments.config.BaseResponseStatus.INVALID_USER_JWT;
+import static com.spring.familymoments.config.BaseResponseStatus.SUCCESS;
 
 @Controller
 @RequiredArgsConstructor
@@ -81,13 +82,14 @@ public class AuthController {
 
     /**
      * 토큰 재발급 API
-     * [POST] /users/auth/reissue
+     * [POST] /users/reissue
      * return 200
      *      [header] Cookie : "refresh-token=e~~~" (refresh-token)
      *               X-AUTH-TOKEN : e~~~ (access-token)
      * return 471
      *      [header] Cookie : "refresh-token=(empty)" (refresh-token)
      */
+    @NoAuthCheck
     @PostMapping(value = "/users/reissue", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "토큰 재발급", description = "토큰을 재발급합니다.")
     @ApiResponses(value = {
@@ -129,17 +131,13 @@ public class AuthController {
     @Operation(summary = "로그아웃", description = "쿠키의 내용 지우면서 로그아웃합니다.")
     @ApiResponse(responseCode = "200", description = "OK")
     public ResponseEntity<?> logout(@RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
-        try {
-            authService.logout(requestAccessToken);
-            ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
-                    .maxAge(0)
-                    .path("/")
-                    .build();
-            return ResponseEntity.status(HttpStatus.OK)
-                    .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
-                    .build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new BaseResponse(INVALID_USER_JWT));
-        }
+        authService.logout(requestAccessToken);
+        ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
+                .maxAge(0)
+                .path("/")
+                .build();
+        return ResponseEntity.status(HttpStatus.OK)
+                .header(HttpHeaders.SET_COOKIE, responseCookie.toString())
+                .body(new BaseResponse<>(SUCCESS));
     }
 }

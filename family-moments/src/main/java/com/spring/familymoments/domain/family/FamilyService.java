@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,6 +39,8 @@ public class FamilyService {
     private final PostWithUserRepository postWithUserRepository;
     private final CommentWithUserRepository commentWithUserRepository;
 
+    private final int MAX_FAMILY_COUNT = 5;
+
     // 가족 생성하기
     @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
@@ -46,6 +49,8 @@ public class FamilyService {
 //        // 유저 외래키 생성
 //        User owner = userRepository.findById(userId)
 //                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        checkFamilyLimit(owner);
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
@@ -150,24 +155,29 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         for (String userId : userIds) {
-            List<UserFamily> byUserIdList = userFamilyRepository.findUserFamilyByUserId(userRepository.findById(userId));
-
-            for (UserFamily userFamily : byUserIdList) {
-                if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT){
-                    throw new BaseException("이미 초대 요청을 받은 회원입니다.", HttpStatus.CONFLICT.value());
-                }
-            }
-
-            User invitedUser = userRepository.findById(userId)
+            User inviteUser = userRepository.findById(userId)
                     .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-            UserFamily userFamily = UserFamily.builder()
-                    .familyId(family)
-                    .userId(invitedUser)
-                    .inviteUserId(user)
-                    .status(DEACCEPT).build();
+            Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(inviteUser, family);
 
-            userFamilyRepository.save(userFamily);
+            userFamily.ifPresentOrElse(
+                    existingUserFamily -> {
+                        if (existingUserFamily.getStatus() == ACTIVE || existingUserFamily.getStatus() == DEACCEPT) {
+                            throw new BaseException("이미 초대 요청을 받은 회원이 있습니다.", HttpStatus.CONFLICT.value());
+                        }
+                        existingUserFamily.updateStatus(DEACCEPT);
+                    },
+                    () -> {
+                        UserFamily newUserFamily = UserFamily.builder()
+                                .familyId(family)
+                                .userId(inviteUser)
+                                .inviteUserId(user)
+                                .status(DEACCEPT)
+                                .build();
+
+                        userFamilyRepository.save(newUserFamily);
+                    }
+            );
         }
     }
 
@@ -179,6 +189,8 @@ public class FamilyService {
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
                 .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
+
+        checkFamilyLimit(user);
 
         userFamily.updateStatus(ACTIVE);
         userFamilyRepository.save(userFamily);
@@ -300,23 +312,51 @@ public class FamilyService {
 
     @Transactional
     public void joinFamily(User user, Long familyId) {
+        checkFamilyLimit(user);
+
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        Optional<UserFamily> byUserId = userFamilyRepository.findByUserId(user);
+        Optional<UserFamily> userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family);
 
-        if (byUserId.isPresent()) {
-            throw new BaseException("이미 가족에 가입된 유저입니다.", HttpStatus.CONFLICT.value());
-        }
+        userFamily.ifPresentOrElse(
+                existingUserFamily -> {
+                    if (existingUserFamily.getStatus() == ACTIVE) {
+                        throw new BaseException("이미 가입된 가족입니다.", HttpStatus.CONFLICT.value());
+                    }
+                    existingUserFamily.updateStatus(ACTIVE);
+                },
+                () -> {
+                    UserFamily newUserFamily = UserFamily.builder()
+                            .familyId(family)
+                            .userId(user)
+                            .inviteUserId(user)
+                            .status(ACTIVE).build();
 
-        UserFamily userFamily = UserFamily.builder()
-                .familyId(family)
-                .userId(user)
-                .inviteUserId(user)
-                .status(ACTIVE).build();
-
-        userFamilyRepository.save(userFamily);
+                    userFamilyRepository.save(newUserFamily);
+                }
+        );
     }
 
+    // 내 가족 리스트 조회
+    @Transactional(readOnly = true)
+    public List<MyFamilyRes> getMyFamilies(User user){
+        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
+        List<MyFamilyRes> MyFamilies = new ArrayList<>();
+
+        for (Family myFamily : activeFamilies) {
+            MyFamilies.add(myFamily.toMyFamilyRes());
+        }
+
+        return MyFamilies;
+    }
+
+    private void checkFamilyLimit(User user){
+        List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
+
+        if (activeFamilies.size() >= MAX_FAMILY_COUNT){
+            throw new BaseException(FAMILY_LIMIT_EXCEEDED);
+        }
+    }
 
 }
