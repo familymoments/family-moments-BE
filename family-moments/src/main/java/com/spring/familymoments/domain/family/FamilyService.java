@@ -352,7 +352,7 @@ public class FamilyService {
     }
 
     // 가족 이름 조회
-    @Transactional
+    @Transactional(readOnly = true)
     public String getFamilyName(User user, Long familyId) {
 
         Family family = familyRepository.findById(familyId)

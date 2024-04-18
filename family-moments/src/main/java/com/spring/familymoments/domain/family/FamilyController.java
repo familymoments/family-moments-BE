@@ -313,8 +313,8 @@ public class FamilyController {
     @GetMapping(value = "/{familyId}/famillyName", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> getFamilyName(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                               @PathVariable Long familyId) {
-        String familyNmae = familyService.getFamilyName(user, familyId);
-        return new BaseResponse<>(familyNmae);
+        String familyName = familyService.getFamilyName(user, familyId);
+        return new BaseResponse<>(familyName);
     }
 
 }
