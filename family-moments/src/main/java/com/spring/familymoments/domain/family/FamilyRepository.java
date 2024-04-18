@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public interface FamilyRepository extends JpaRepository<Family, Long> {
@@ -33,5 +34,18 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
             "AND f.status = 'ACTIVE' ",
             nativeQuery = true)
     String findCreatedAtNicknameById(@Param("familyId") Long familyId, @Param("today") LocalDateTime today);
+
+    @Query(value = "SELECT u.id, u.nickname, f.familyName  " +
+            "FROM Family f " +
+            "INNER JOIN UserFamilyMapping m ON f.familyId = m.familyId " +
+            "INNER JOIN User u ON m.userId = u.userId " +
+            "INNER JOIN AlarmSetting a ON u.userId = a.userId " +
+            "WHERE f.status = 'ACTIVE' " +
+            "AND u.status = 'ACTIVE' " +
+            "AND a.alarmType = 'CYCLE' " +
+            "AND a.status = 'ACTIVE' " +
+            "AND DATE_ADD(f.latestUploadAt, INTERVAL f.uploadCycle DAY) <= :currentDate",
+            nativeQuery = true)
+    List<Map<String, Object>> findFamiliesWithUploadCycle(@Param("currentDate") LocalDateTime currentDate);
 
 }

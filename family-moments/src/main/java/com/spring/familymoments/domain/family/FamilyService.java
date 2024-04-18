@@ -31,7 +31,6 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
 
 @Service
 @RequiredArgsConstructor
-// @Transactional
 public class FamilyService {
 
     private final FamilyRepository familyRepository;
@@ -45,11 +44,6 @@ public class FamilyService {
     // 가족 생성하기
     @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
-
-//        // 1. 가족 튜플 생성
-//        // 유저 외래키 생성
-//        User owner = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         checkFamilyLimit(owner);
 
@@ -119,7 +113,7 @@ public class FamilyService {
     // 가족원 전체 조회
     @Transactional
     public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
-        Family family = familyRepository.findById(familyId)
+        familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
@@ -236,17 +230,11 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateRes familyUpdateRes){
+    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-        User userToOwner = userRepository.findById(familyUpdateRes.getOwner())
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        if(!user.equals(family.getOwner())){
-            throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
-        }
-
-        family.updateFamily(userToOwner, familyUpdateRes.getFamilyName());
+        family.updateFamily(familyUpdateReq.getFamilyName(), fileUrl);
         familyRepository.save(family);
 
         return family.toFamilyRes();

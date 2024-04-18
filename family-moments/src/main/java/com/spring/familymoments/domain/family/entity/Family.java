@@ -8,6 +8,7 @@ import com.spring.familymoments.domain.family.model.FamilyRes;
 import com.spring.familymoments.domain.family.model.MyFamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -51,6 +53,17 @@ public class Family extends BaseEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String representImg;
 
+    @Column(name = "latestUploadAt", nullable = false)
+    private LocalDateTime latestUploadAt;
+
+    @PrePersist
+    public void prePersist() {
+        // latestUploadAt 초기화
+        if (latestUploadAt == null) {
+            latestUploadAt = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        }
+    }
+
     @OneToMany(mappedBy = "familyId")
     private List<UserFamily> userFamilies = new ArrayList<>();
 
@@ -60,6 +73,7 @@ public class Family extends BaseEntity {
 
     public FamilyRes toFamilyRes(){
         return FamilyRes.builder()
+                .familyId(familyId)
                 .owner(owner.getNickname())
                 .familyName(familyName)
                 .uploadCycle(uploadCycle)
@@ -91,12 +105,9 @@ public class Family extends BaseEntity {
         this.uploadCycle = uploadCycle;
     }
 
-    /**
-     * 가족 정보 수정 API 관련 메소드
-     */
-    public void updateFamily(User owner, String familyName) {
-        this.owner = owner;
+    public void updateFamily(String familyName, String representImg){
         this.familyName = familyName;
+        this.representImg = representImg;
     }
 
     /**
@@ -108,6 +119,13 @@ public class Family extends BaseEntity {
 
     public boolean isOwner(User user){
         return user.equals(owner);
+    }
+
+    /**
+     * 게시물 생성 API 관련 메소드
+     */
+    public void updateLatestUploadAt() {
+        this.latestUploadAt = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
     }
 }
 
