@@ -38,21 +38,6 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "familyId", nullable = false)
     private Family familyId;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String content;
-
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String img1;
-
-    @Column(columnDefinition = "TEXT")
-    private String img2;
-
-    @Column(columnDefinition = "TEXT")
-    private String img3;
-
-    @Column(columnDefinition = "TEXT")
-    private String img4;
-
     @Column(columnDefinition = "int unsigned")
     @ColumnDefault("0")
     private int reported;
@@ -61,37 +46,12 @@ public class Post extends BaseEntity {
     @ColumnDefault("0")
     private int countLove;
 
-    @Transient
-    private List<String> imgs;
-
-    public List<String> getImgs() {
-        imgs = new ArrayList<>();
-
-        Stream.of(img1, img2, img3, img4)
-                .filter(img -> img != null)
-                .forEach(img -> imgs.add(img));
-
-        return imgs;
+    public void increaseCountLove(int countLove) {
+        this.countLove = countLove + 1;
     }
 
-    public void updateContent(String newContent) {
-        this.content = newContent;
-    }
-
-    public void updateImg1(String newImg) {
-        this.img1 = newImg;
-    }
-
-    public void updateImg2(String newImg) {
-        this.img2 = newImg;
-    }
-
-    public void updateImg3(String newImg) {
-        this.img3 = newImg;
-    }
-
-    public void updateImg4(String newImg) {
-        this.img4 = newImg;
+    public void decreaseCountLove(int countLove) {
+        this.countLove = countLove - 1;
     }
 
     public void delete() {

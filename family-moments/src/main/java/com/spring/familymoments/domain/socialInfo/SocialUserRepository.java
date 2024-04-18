@@ -11,7 +11,13 @@ import java.util.List;
 
 @Repository
 public interface SocialUserRepository extends JpaRepository<SocialInfo, Long> {
+    //rest api version
     @Query("SELECT u FROM User u LEFT JOIN SocialInfo si ON u = si.user WHERE u.email = :email AND si.type = :userType")
     User findUserByEmailAndUserType(@Param("email") String email, @Param("userType") UserType userType);
+
+    //sdk version
+    @Query("SELECT u FROM User u LEFT JOIN SocialInfo si ON u= si.user WHERE u.email = :email AND si.snsUserId = :snsId")
+    User findUserByEmailAndSnsId(@Param("email") String email, @Param("snsId") String snsId);
+
     List<SocialInfo> findSocialInfoByUser(User user);
 }
