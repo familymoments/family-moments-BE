@@ -76,6 +76,9 @@ dependencies {
 
 	// Mysql
 	implementation 'mysql:mysql-connector-java:8.0.30'
+
+	//FCM
+	implementation 'com.google.firebase:firebase-admin:8.1.0'
 }
 
 tasks.named('test') {
