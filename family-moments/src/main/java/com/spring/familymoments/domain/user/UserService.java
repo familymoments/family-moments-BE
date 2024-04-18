@@ -152,7 +152,7 @@ public class UserService {
         Long totalUpload = 0L;
         if(familyId != null) {
             Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-            totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
+            totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
         }
 
         String formatPattern = "yyyyMMdd"; //생년월일

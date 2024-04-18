@@ -73,6 +73,7 @@ public class Family extends BaseEntity {
 
     public FamilyRes toFamilyRes(){
         return FamilyRes.builder()
+                .familyId(familyId)
                 .owner(owner.getNickname())
                 .familyName(familyName)
                 .uploadCycle(uploadCycle)
@@ -104,12 +105,9 @@ public class Family extends BaseEntity {
         this.uploadCycle = uploadCycle;
     }
 
-    /**
-     * 가족 정보 수정 API 관련 메소드
-     */
-    public void updateFamily(User owner, String familyName) {
-        this.owner = owner;
+    public void updateFamily(String familyName, String representImg){
         this.familyName = familyName;
+        this.representImg = representImg;
     }
 
     /**

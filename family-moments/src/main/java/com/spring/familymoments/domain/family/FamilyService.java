@@ -235,17 +235,11 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateRes familyUpdateRes){
+    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-        User userToOwner = userRepository.findById(familyUpdateRes.getOwner())
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        if(!user.equals(family.getOwner())){
-            throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
-        }
-
-        family.updateFamily(userToOwner, familyUpdateRes.getFamilyName());
+        family.updateFamily(familyUpdateReq.getFamilyName(), fileUrl);
         familyRepository.save(family);
 
         return family.toFamilyRes();

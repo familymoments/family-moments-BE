@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Getter
 @Setter
@@ -15,6 +16,7 @@ import javax.validation.constraints.NotBlank;
 @AllArgsConstructor
 @Schema(description = "가족 생성 관련 Request")
 public class PostFamilyReq {
+    @Size(max = 20, message = "가족 이름은 20자 이하입니다")
     @NotBlank(message = "가족 이름을 입력해주세요.")
     @Schema(description = "가족 이름" , example = "FamilyMoments")
     private String familyName;
