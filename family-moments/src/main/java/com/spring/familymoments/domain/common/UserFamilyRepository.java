@@ -34,4 +34,7 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
     List<User> findActiveUsersByFamilyId(@Param("familyId") Long familyId);
 
     boolean existsByUserIdAndFamilyId(User userId, Family familyId);
+
+    @Query("SELECT f.familyName FROM UserFamily uf JOIN Family f ON uf.familyId.familyId = f.familyId WHERE uf.userId.userId = :userId")
+    String findFamilyNameByUserId(@Param("userId") Long userId);
 }

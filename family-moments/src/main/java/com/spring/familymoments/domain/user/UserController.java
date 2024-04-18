@@ -5,7 +5,7 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
-import com.spring.familymoments.domain.redis.RedisService;
+import com.spring.familymoments.domain.fcm.FCMService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,8 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -45,6 +43,7 @@ public class UserController {
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
     private final JwtService jwtService;
+    private final FCMService fcmService;
 
     /**
      * 회원 가입 API
@@ -479,6 +478,7 @@ public class UserController {
     })
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         userService.deleteUserWithRedisProcess(user, requestAccessToken);
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
 }

@@ -49,6 +49,7 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(), "탈퇴하거나 신고당한 유저입니다."),
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FIND_FAIL_USER_IN_FAMILY(false, HttpStatus.NOT_FOUND.value(), "해당 유저가 해당 가족에 존재하지 않습니다."),
+    NEED_TO_JOIN_AS_THIS_SOCIAL(false, 481, "해당 소셜로 회원 가입을 해야 합니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
     FAMILY_LIMIT_EXCEEDED(false, HttpStatus.CONFLICT.value(), "가족은 최대 5개까지만 가능합니다."),
     FAILED_SOCIAL_JOIN(false, HttpStatus.CONFLICT.value(), "이미 해당 소셜 계정이 있는 회원입니다."),
@@ -82,14 +83,15 @@ public enum BaseResponseStatus {
     NO_ACTIVE_COMMENTS(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다."),
     FIND_FAIL_COMMENT(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
     ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
-
+    COMMENTS_EMPTY_CONTENT(false, HttpStatus.NOT_FOUND.value(), "댓글 내용을 입력해주세요."),
 
     minnie_POSTS_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
     minnie_POSTS_INVALID_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
     minnie_POSTS_NON_EXISTS_POST(false, HttpStatus.NOT_FOUND.value(), "post가 존재하지 않습니다."),
     minnie_POSTS_EMPTY_UPDATE(false, HttpStatus.BAD_REQUEST.value(), "수정할 내용을 보내주세요."),
     minnie_POSTS_EMPTY_CONTENT(false, HttpStatus.BAD_REQUEST.value(), "내용을 입력해주세요."),
-    minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "img1에 이미지를 지정해주세요."),
+    minnie_POSTS_EMPTY_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "업로드할 이미지를 선택해주세요."),
+    minnie_POSTS_FULL_IMAGE(false, HttpStatus.BAD_REQUEST.value(), "한 게시물에 포함할 수 있는 이미지의 개수는 최대 10장입니다."),
     minnie_POSTS_EMPTY_POST_INFO(false, HttpStatus.BAD_REQUEST.value(), "postInfo가 포함되어야 합니다."),
     minnie_POST_SAVE_FAIL(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "게시물 저장에 실패했습니다."),
     minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다."),
@@ -100,8 +102,9 @@ public enum BaseResponseStatus {
 
     COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
     FIND_FAIL_COMMENTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
-
-    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다.");
+    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다."),
+    FIND_FAIL_FCMTOKEN(false,HttpStatus.NOT_FOUND.value(),"해당 사용자의 FCM Token이 존재하지 않습니다."),
+    FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다.");
 
 
     private final boolean isSuccess;

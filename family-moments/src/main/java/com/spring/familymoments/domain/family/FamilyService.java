@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,6 @@ import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
 
 @Service
 @RequiredArgsConstructor
-// @Transactional
 public class FamilyService {
 
     private final FamilyRepository familyRepository;
@@ -44,11 +44,6 @@ public class FamilyService {
     // 가족 생성하기
     @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
-
-//        // 1. 가족 튜플 생성
-//        // 유저 외래키 생성
-//        User owner = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         checkFamilyLimit(owner);
 
@@ -106,28 +101,19 @@ public class FamilyService {
 
     // 닉네임 및 가족 생성일 조회
     @Transactional
-    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) throws BaseException{
-
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
-
-        Family family = familyRepository.findById(familyId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-
-        LocalDate createdAt = family.getCreatedAt().toLocalDate();
-        LocalDate now = LocalDate.now();
-
-        Period period = Period.between(createdAt, now);
-
-        String daysSinceCreation = String.valueOf(period.getDays()+1);
-
-        return new GetFamilyCreatedNicknameRes(user.getNickname(), daysSinceCreation);
+    public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) {
+        LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
+        String dday = familyRepository.findCreatedAtNicknameById(familyId, today);
+        if (dday == null) {
+            throw new BaseException("가족 생성일을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+        return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
     }
 
     // 가족원 전체 조회
     @Transactional
     public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
-        Family family = familyRepository.findById(familyId)
+        familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
@@ -244,17 +230,11 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateRes familyUpdateRes){
+    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl){
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-        User userToOwner = userRepository.findById(familyUpdateRes.getOwner())
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
-        if(!user.equals(family.getOwner())){
-            throw new BaseException("권한이 없습니다.", HttpStatus.UNAUTHORIZED.value());
-        }
-
-        family.updateFamily(userToOwner, familyUpdateRes.getFamilyName());
+        family.updateFamily(familyUpdateReq.getFamilyName(), fileUrl);
         familyRepository.save(family);
 
         return family.toFamilyRes();
