@@ -11,9 +11,13 @@ import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.post.PostDocumentRepository;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.model.SinglePostDocumentRes;
+import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
+import com.spring.familymoments.domain.postLove.PostLoveService;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.socialInfo.SocialUserService;
@@ -24,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +41,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -59,8 +65,11 @@ public class UserService {
     private final RedisService redisService;
     private final AlarmSettingService alarmSettingService;
     private final SocialUserService socialUserService;
+    private final PostDocumentRepository postDocumentRepository;
+    private final PostLoveService postLoveService;
 
     private static final String BIRTH_FORMAT_PATTERN = "yyyyMMdd";
+    private static final int POST_PAGES = 10;
 
     /**
      * createUser
@@ -339,6 +348,27 @@ public class UserService {
 
         //소셜 회원 탈퇴 처리
         socialUserService.deleteSocialUserWithRedisProcess(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SinglePostRes> getUserPosts(User user, long familyId, Long postId){
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
+        List<Post> filteredPosts = findFilteredPosts(user, familyId, postId, pageable);
+
+        return filteredPosts.stream()
+                .map(post -> {
+                    SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(post.getPostId());
+                    boolean isLoved = postLoveService.checkPostLoveByUser(post.getPostId(), post.getWriter().getUserId());
+
+                    return post.toSinglePostRes(singlePostDocumentRes, isLoved);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<Post> findFilteredPosts(User user, long familyId, Long postId, Pageable pageable) {
+        return (postId == null)
+                ? postWithUserRepository.findByUserAndFamilyId(user, familyId, pageable)
+                : postWithUserRepository.findByUserAndFamilyIdAfterPostId(user, familyId, postId, pageable);
     }
 
 }

@@ -6,6 +6,7 @@ import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.fcm.FCMService;
+import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -42,7 +43,6 @@ public class UserController {
     private final EmailService emailService;
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
-    private final JwtService jwtService;
     private final FCMService fcmService;
 
     /**
@@ -478,5 +478,23 @@ public class UserController {
         userService.deleteUserWithRedisProcess(user, requestAccessToken);
         fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
+    }
+
+    /**
+     * 내가 작성한 post 목록 조회 API
+     * [GET] /users/posts
+     * @param familyId null 불가능
+     * @return BaseResponse<List<SinglePostRes>>
+     */
+    @GetMapping(value = "/users/posts", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "작성한 게시글 목록 조회", description = "특정 유저가 작성한 게시글 10건 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+    })
+    public BaseResponse<List<SinglePostRes>> getUserPosts(@RequestParam(value = "familyId") Long familyId,
+                                                          @RequestParam(value = "postId", required = false) Long postId,
+                                                          @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        List<SinglePostRes> singlePostRes = userService.getUserPosts(user, familyId, postId);
+        return new BaseResponse<>(singlePostRes);
     }
 }

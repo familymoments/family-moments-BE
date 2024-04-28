@@ -1,8 +1,9 @@
 package com.spring.familymoments.domain.post.entity;
 
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.post.model.SinglePostDocumentRes;
+import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -10,9 +11,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -62,5 +60,18 @@ public class Post extends BaseEntity {
      */
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    public SinglePostRes toSinglePostRes(SinglePostDocumentRes singlePostDocumentRes, boolean isLoved){
+        return SinglePostRes.builder()
+                .postId(postId)
+                .writer(writer.getNickname())
+                .profileImg(writer.getProfileImg())
+                .content(singlePostDocumentRes.getContent())
+                .imgs(singlePostDocumentRes.getUrls())
+                .createdAt(getCreatedAt().toLocalDate())
+                .countLove(countLove)
+                .loved(isLoved)
+                .build();
     }
 }
