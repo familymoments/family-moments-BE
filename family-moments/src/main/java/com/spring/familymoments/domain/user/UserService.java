@@ -60,6 +60,8 @@ public class UserService {
     private final AlarmSettingService alarmSettingService;
     private final SocialUserService socialUserService;
 
+    private static final String BIRTH_FORMAT_PATTERN = "yyyyMMdd";
+
     /**
      * createUser
      * [POST]
@@ -82,7 +84,7 @@ public class UserService {
 
         // TODO: BirthDate -> String에서 LocalDateTime으로 변환
         String strBirthDate = postUserReq.getStrBirthDate();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
 
         LocalDateTime parsedBirthDate = null;
         parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
@@ -148,22 +150,18 @@ public class UserService {
      * [GET]
      * @return
      */
-    public GetProfileRes readProfile(User user, Long familyId) {
-        Long totalUpload = 0L;
-        if(familyId != null) {
-            Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-            totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
-        }
+    public GetProfileRes readProfile(User user) {
+        Long totalUpload = postWithUserRepository.countActivePostsByWriter(user); // 특정 가족이 아닌 전체 게시글을 불러오도록 수정
+        Long totalComments = commentWithUserRepository.countCommentsByUserId(user);
 
-        String formatPattern = "yyyyMMdd"; //생년월일
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
         String strBirth = user.getBirthDate().format(formatter);
 
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, totalComments, duration);
     }
     /**
      * 유저 5명 검색 API
@@ -238,8 +236,7 @@ public class UserService {
         user.updateProfile(patchProfileReqRes);
         User updatedUser = userRepository.save(user);
 
-        String formatPattern = "yyyyMMdd";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
         String updateUserBirth = updatedUser.getBirthDate().format(formatter);
 
         return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());

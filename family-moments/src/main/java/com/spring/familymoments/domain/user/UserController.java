@@ -264,7 +264,6 @@ public class UserController {
     /**
      * 회원정보 조회 API
      * [GET] /users/profile
-     * @param familyId null 가능
      * @return BaseResponse<GetProfileRes>
      */
     @GetMapping(value = "/users/profile", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -272,9 +271,8 @@ public class UserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
     })
-    public BaseResponse<GetProfileRes> readProfile(@RequestParam(value = "familyId", required = false) Long familyId,
-                                                   @AuthenticationPrincipal @Parameter(hidden = true) User user) {
-        GetProfileRes getProfileRes = userService.readProfile(user, familyId);
+    public BaseResponse<GetProfileRes> readProfile(@AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        GetProfileRes getProfileRes = userService.readProfile(user);
         return new BaseResponse<>(getProfileRes);
     }
 

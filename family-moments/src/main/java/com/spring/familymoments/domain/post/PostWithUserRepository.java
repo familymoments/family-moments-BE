@@ -17,6 +17,9 @@ public interface PostWithUserRepository extends JpaRepository<Post, Long> {
     @Query("SELECT count(*) FROM Post p WHERE p.writer = :user AND p.familyId = :family AND p.status = 'ACTIVE'")
     Long countActivePostsByWriterAndFamily(@Param("user") User user, @Param("family") Family family);
 
+    @Query("SELECT count(*) FROM Post p WHERE p.writer = :user AND p.status = 'ACTIVE'")
+    Long countActivePostsByWriter(@Param("user") User user);
+
     //유저가 작성한 모든 게시글 조회
     @Query("SELECT p FROM Post p WHERE p.writer.userId = :userId")
     List<Post> findPostByUserId(@Param("userId")Long userId);
