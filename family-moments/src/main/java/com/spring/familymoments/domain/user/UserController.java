@@ -3,7 +3,6 @@ package com.spring.familymoments.domain.user;
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
-import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.fcm.FCMService;
 import com.spring.familymoments.domain.post.model.SinglePostRes;
@@ -487,7 +486,7 @@ public class UserController {
      * @return BaseResponse<List<SinglePostRes>>
      */
     @GetMapping(value = "/users/posts", produces = MediaType.APPLICATION_JSON_VALUE)
-    @Operation(summary = "작성한 게시글 목록 조회", description = "특정 유저가 작성한 게시글 10건 조회")
+    @Operation(summary = "작성한 게시글 목록 조회", description = "유저가 작성한 게시글 10건 조회")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
     })
@@ -495,6 +494,24 @@ public class UserController {
                                                           @RequestParam(value = "postId", required = false) Long postId,
                                                           @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         List<SinglePostRes> singlePostRes = userService.getUserPosts(user, familyId, postId);
+        return new BaseResponse<>(singlePostRes);
+    }
+
+    /**
+     * 내가 좋아요 누른 post 목록 조회 API
+     * [GET] /users/posts
+     * @param familyId null 불가능
+     * @return BaseResponse<List<SinglePostRes>>
+     */
+    @GetMapping(value = "/users/loved-posts", produces = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(summary = "좋아요 누른 게시글 목록 조회", description = "유저가 좋아요 누른 게시글 10건 조회")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+    })
+    public BaseResponse<List<SinglePostRes>> getUserLovedPosts(@RequestParam(value = "familyId") Long familyId,
+                                                          @RequestParam(value = "postId", required = false) Long postId,
+                                                          @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        List<SinglePostRes> singlePostRes = userService.getUserLovedPosts(user, familyId, postId);
         return new BaseResponse<>(singlePostRes);
     }
 }

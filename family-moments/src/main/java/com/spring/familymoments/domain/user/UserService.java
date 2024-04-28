@@ -12,6 +12,7 @@ import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostDocumentRepository;
+import com.spring.familymoments.domain.post.PostWithLoveRepository;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.post.model.SinglePostDocumentRes;
@@ -55,6 +56,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
+    private final PostWithLoveRepository postWithLoveRepository;
     private final FamilyRepository familyRepository;
     private final CommentWithUserRepository commentWithUserRepository;
     private final UserFamilyRepository userFamilyRepository;
@@ -353,7 +355,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<SinglePostRes> getUserPosts(User user, long familyId, Long postId){
         Pageable pageable = PageRequest.of(0, POST_PAGES);
-        List<Post> filteredPosts = findFilteredPosts(user, familyId, postId, pageable);
+        List<Post> filteredPosts = getUserPosts(user, familyId, postId, pageable);
 
         return filteredPosts.stream()
                 .map(post -> {
@@ -365,10 +367,31 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
-    private List<Post> findFilteredPosts(User user, long familyId, Long postId, Pageable pageable) {
+    private List<Post> getUserPosts(User user, long familyId, Long postId, Pageable pageable) {
         return (postId == null)
                 ? postWithUserRepository.findByUserAndFamilyId(user, familyId, pageable)
                 : postWithUserRepository.findByUserAndFamilyIdAfterPostId(user, familyId, postId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SinglePostRes> getUserLovedPosts(User user, long familyId, Long postId){
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
+        List<Post> filteredPosts = getLovedPosts(user, familyId, postId, pageable);
+
+        return filteredPosts.stream()
+                .map(post -> {
+                    SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(post.getPostId());
+                    boolean isLoved = postLoveService.checkPostLoveByUser(post.getPostId(), post.getWriter().getUserId());
+
+                    return post.toSinglePostRes(singlePostDocumentRes, isLoved);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<Post> getLovedPosts(User user, long familyId, Long postId, Pageable pageable){
+        return (postId == null)
+                ? postWithLoveRepository.findPostsByUserAndFamilyId(user, familyId, pageable)
+                : postWithLoveRepository.findByUserAndFamilyIdAfterPostId(user, familyId, postId, pageable);
     }
 
 }
