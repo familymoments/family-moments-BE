@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.comment.entity;
 
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
@@ -10,7 +9,6 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Comment")
@@ -45,10 +43,17 @@ public class Comment extends BaseEntity {
     private int countLove;
 
     /**
-     * 가족 삭제 API 관련 메소드
+     * 댓글 삭제 API 관련 메소드
      */
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    /**
+     * 댓글 수정 API 관련 메소드
+     */
+    public void updateContent(String content) {
+        this.content = content;
     }
 }
 
