@@ -21,8 +21,8 @@ public class GetProfileRes {
     private String email;
     @Schema(description = "게시물 개수", example = "1")
     private Long totalUpload;
-    @Schema(description = "댓글 개수", example = "1")
-    private Long totalComments;
+    @Schema(description = "좋아요 개수", example = "1")
+    private Long totalLoved;
     @Schema(description = "앱에 가입한 날짜로부터 경과 시간", example = "7")
     private Long duration;
 }

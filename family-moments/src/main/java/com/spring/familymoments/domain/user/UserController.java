@@ -488,7 +488,7 @@ public class UserController {
     @GetMapping(value = "/users/posts", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "작성한 게시글 목록 조회", description = "유저가 작성한 게시글 10건 조회")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+            @ApiResponse(responseCode = "200", description = "OK")
     })
     public BaseResponse<List<SinglePostRes>> getUserPosts(@RequestParam(value = "familyId") Long familyId,
                                                           @RequestParam(value = "postId", required = false) Long postId,
@@ -506,7 +506,7 @@ public class UserController {
     @GetMapping(value = "/users/loved-posts", produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "좋아요 누른 게시글 목록 조회", description = "유저가 좋아요 누른 게시글 10건 조회")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK", content = @Content(schema = @Schema(implementation = GetProfileRes.class)))
+            @ApiResponse(responseCode = "200", description = "OK")
     })
     public BaseResponse<List<SinglePostRes>> getUserLovedPosts(@RequestParam(value = "familyId") Long familyId,
                                                           @RequestParam(value = "postId", required = false) Long postId,

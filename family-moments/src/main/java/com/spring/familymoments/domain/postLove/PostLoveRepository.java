@@ -24,6 +24,9 @@ public interface PostLoveRepository extends JpaRepository<PostLove, Long> {
             "order by pl.updatedAt ASC")
     List<CommentRes> findByPost(Post post);
 
+    @Query("SELECT count(*) FROM PostLove p WHERE p.userId = :user AND p.status = 'ACTIVE'")
+    Long countLovedPostsByWriter(@Param("user") User user);
+
     boolean existsByPostIdAndUserId(Post post, User user);
 
     @Query("SELECT pl FROM PostLove pl WHERE pl.userId.userId = :userId")

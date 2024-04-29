@@ -163,7 +163,7 @@ public class UserService {
      */
     public GetProfileRes readProfile(User user) {
         Long totalUpload = postWithUserRepository.countActivePostsByWriter(user); // 특정 가족이 아닌 전체 게시글을 불러오도록 수정
-        Long totalComments = commentWithUserRepository.countCommentsByUserId(user);
+        Long totalLoved = postLoveRepository.countLovedPostsByWriter(user);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
         String strBirth = user.getBirthDate().format(formatter);
@@ -172,7 +172,7 @@ public class UserService {
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, totalComments, duration);
+        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, totalLoved, duration);
     }
     /**
      * 유저 5명 검색 API
