@@ -315,7 +315,6 @@ public class FamilyController {
         return new BaseResponse<>(result);
     }
 
-
     /**
      * 가족 이름 조회 API
      * [GET] /families/{familyId}/famillyName

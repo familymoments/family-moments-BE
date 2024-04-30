@@ -47,6 +47,8 @@ public class FamilyService {
 
         checkFamilyLimit(owner);
 
+        checkFamilyLimit(owner);
+
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
         String inviteLink = "https://family-moments.com/invite/"+ invitationCode;
@@ -335,6 +337,7 @@ public class FamilyService {
         }
 
         return MyFamilies;
+
     }
 
     private void checkFamilyLimit(User user){
@@ -361,6 +364,7 @@ public class FamilyService {
         }
 
         return family.getFamilyName();
+      
     }
 
 }
