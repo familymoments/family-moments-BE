@@ -3,6 +3,7 @@ package com.spring.familymoments.domain.family;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
 import com.spring.familymoments.domain.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
