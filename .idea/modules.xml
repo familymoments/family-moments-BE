@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/com.family-moments.family-moments-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/com.family-moments.family-moments-server.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/family-moments-BE2.iml" filepath="$PROJECT_DIR$/.idea/family-moments-BE2.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/family-moments-server.main.iml" filepath="$PROJECT_DIR$/.idea/modules/family-moments-server.main.iml" />
     </modules>
