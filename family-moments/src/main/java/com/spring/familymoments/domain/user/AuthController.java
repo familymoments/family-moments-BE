@@ -27,6 +27,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.SUCCESS;
 
 import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_FCMTOKEN;
 
+
 @Controller
 @RequiredArgsConstructor
 @Tag(name = "User-Auth", description = "인증토큰 API Document")
@@ -147,6 +148,7 @@ public class AuthController {
                                     @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         authService.logout(requestAccessToken);
         fcmService.deleteToken(user.getId());     // FCM Token 삭제
+
         ResponseCookie responseCookie = ResponseCookie.from("refresh-token", "")
                 .maxAge(0)
                 .path("/")
