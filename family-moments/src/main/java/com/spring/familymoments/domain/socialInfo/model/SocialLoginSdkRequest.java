@@ -12,9 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Schema(description = "소셜 가입 여부 확인 Request")
 public class SocialLoginSdkRequest {
-    @Schema(description = "소셜 고유 ID", example = "23231221421")
-    private String snsId;
-
-    @Schema(description = "이메일", example = "younghee@naver.com")
-    private String email;
+    @Schema(description = "소셜 종류", example = "KAKAO")
+    private String userType;
 }
