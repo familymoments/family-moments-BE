@@ -19,6 +19,8 @@ public class SocialLoginOrJoinResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LoginResponse {
+        @Schema(description = "기존회원있음", example = "true")
+        private Boolean isExisted;
         @Schema(description = "토큰", example = "eeeeeeeeee")
         private TokenDto tokenDto;
     }
@@ -28,6 +30,8 @@ public class SocialLoginOrJoinResponse {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class JoinResponse {
+        @Schema(description = "기존회원없음", example = "false")
+        private Boolean isExisted;
         @Schema(description = "소셜 고유 ID", example = "23231221421")
         private String snsId;
         @Schema(description = "이름", example = "김영희")

@@ -38,7 +38,7 @@ public class SocialUserController {
     private final UserService userService;
     private final AwsS3Service awsS3Service;
 
-    @NoAuthCheck
+   /* @NoAuthCheck
     @PostMapping("/users/oauth2/social/login")
     @Operation(summary = "소셜 로그인 (아이콘 클릭 시) - rest api version", description = "기존 회원 대상 : 헤더로 토큰이 반환됩니다. / 신규 회원 대상(아래 예시 해당) : 사용자로부터 허용된 리소스 서버 정보들이 반환됩니다.")
     @ApiResponses(value = {
@@ -55,7 +55,7 @@ public class SocialUserController {
         //회원 가입 유도
         return ResponseEntity.ok()
                 .body(socialLoginOrJoinResponse.getJoinResponse());
-    }
+    }*/
 
     @NoAuthCheck
     @PostMapping("/users/oauth2/social/join")
@@ -112,7 +112,7 @@ public class SocialUserController {
         TokenDto tokenDto = socialUserService.createSocialUser(userJoinRequest);
 
         if(tokenDto != null) {
-            return socialUserService.sendAtRtTokenInfo(tokenDto);
+            return socialUserService.sendAtRtTokenInfo(true, tokenDto);
         }
 
         return ResponseEntity.status(404)
@@ -123,18 +123,20 @@ public class SocialUserController {
     @PostMapping("/users/oauth2/social/login/sdk")
     @Operation(summary = "소셜 로그인 (아이콘 클릭 시) - sdk version", description = "")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "OK"),
-            @ApiResponse(responseCode = "481", description = "해당 소셜로 회원 가입을 해야 합니다.")
+            @ApiResponse(responseCode = "200", description = "OK")
     })
-    public ResponseEntity<?> doSocialSdkLogin(@RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
-        TokenDto tokenDto = socialUserService.createSocialSdkUser(socialLoginSdkRequest);
-
+    public ResponseEntity<?> doSocialSdkLogin(@Parameter(description = "소셜 accesstoken") @RequestHeader("SOCIAL-TOKEN") String socialToken,
+                                              @Parameter(description = "소셜 종류") @RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
+        SocialLoginOrJoinResponse socialLoginOrJoinResponse = socialUserService.createSocialSdkUser(socialToken, socialLoginSdkRequest);
+        TokenDto tokenDto = socialLoginOrJoinResponse.getLoginResponse().getTokenDto();
         if(tokenDto != null) {
-            return socialUserService.sendAtRtTokenInfo(tokenDto);
+            //header에 token 세팅
+            return socialUserService.sendAtRtTokenInfo(socialLoginOrJoinResponse.getLoginResponse().getIsExisted(), tokenDto);
         }
 
-        return ResponseEntity.status(404)
-                .body(new BaseResponse<>(TOKEN_RESPONSE_ERROR));
+        //회원 가입 유도
+        return ResponseEntity.ok()
+                .body(socialLoginOrJoinResponse.getJoinResponse());
     }
 
 }
