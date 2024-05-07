@@ -37,6 +37,10 @@ public class KakaoLoginServiceImpl implements SocialLoginService {
     public UserType getServiceName() {
         return UserType.KAKAO;
     }
+
+    /**
+     * 이 부분은 안드로이드에서 진행
+     */
     @Override
     public SocialAuthResponse getAccessToken(String authorizationCode) {
         ResponseEntity<SocialAuthResponse> response = kakaoAuthApi.getAccessToken(
