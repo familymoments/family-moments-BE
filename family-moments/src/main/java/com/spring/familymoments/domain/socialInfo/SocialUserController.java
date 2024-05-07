@@ -112,7 +112,7 @@ public class SocialUserController {
         TokenDto tokenDto = socialUserService.createSocialUser(userJoinRequest);
 
         if(tokenDto != null) {
-            return socialUserService.sendAtRtTokenInfo(true, tokenDto);
+            return socialUserService.sendAtRtTokenInfo(tokenDto);
         }
 
         return ResponseEntity.status(404)

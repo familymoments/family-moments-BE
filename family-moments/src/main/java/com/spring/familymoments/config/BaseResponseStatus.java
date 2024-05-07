@@ -24,6 +24,7 @@ public enum BaseResponseStatus {
     INVALID_JWT(false, 461, "Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요"),
     INVALID_USER_JWT(false,HttpStatus.FORBIDDEN.value(),"권한이 없는 유저의 접근입니다."),
     INVALID_USER_TYPE(false, HttpStatus.BAD_REQUEST.value(), "UserType을 올바르게 입력해주세요."),
+    INVALID_SOCIAL_TOKEN(false, HttpStatus.BAD_REQUEST.value(), "소셜 accesstoken이 유효하지 않습니다."),
     TOKEN_RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
 
