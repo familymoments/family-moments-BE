@@ -103,14 +103,10 @@ public class FamilyController {
     @NoAuthCheck
     @GetMapping("/{familyId}/users")
     @Operation(summary = "가족원 전체 조회", description = "현재 활동 중인 전체 가족 구성원을 조회합니다.")
-    public BaseResponse<List<GetFamilyAllRes>> getFamilyAll(
+    public BaseResponse<List<GetFamilyAllResInterface>> getFamilyAll(
             @PathVariable Long familyId) {
-        try {
-            List<GetFamilyAllRes> getFamilyAllRes = familyService.getFamilyAll(familyId);
-            return new BaseResponse<>(getFamilyAllRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
-        }
+        List<GetFamilyAllResInterface> getFamilyAllRes = familyService.getFamilyAll(familyId);
+        return new BaseResponse<>(getFamilyAllRes);
     }
 
     /**

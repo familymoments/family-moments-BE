@@ -8,6 +8,8 @@ import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.family.model.*;
+import com.spring.familymoments.domain.fcm.model.MessageTemplate;
+import com.spring.familymoments.domain.fcm.model.UploadaAlramDto;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
@@ -114,16 +116,11 @@ public class FamilyService {
 
     // 가족원 전체 조회
     @Transactional
-    public List<GetFamilyAllRes> getFamilyAll(Long familyId) throws BaseException{
+    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) throws BaseException{
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        List<User> activeUsers = userFamilyRepository.findActiveUsersByFamilyId(familyId);
-
-        List<GetFamilyAllRes> getFamilyAllResList = activeUsers.stream()
-                .map(user -> new GetFamilyAllRes(user.getUserId(), user.getNickname(), user.getProfileImg()))
-                .collect(Collectors.toList());
-
+        List<GetFamilyAllResInterface> getFamilyAllResList = userFamilyRepository.findActiveUsersByFamilyId(familyId);
         return getFamilyAllResList;
     }
 
