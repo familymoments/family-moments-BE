@@ -105,7 +105,17 @@ public class EmailService {
      * [GET]
      * @return 같은 값이면 true, 그렇지 않으면 false
      */
-    public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) {
+    public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) throws BaseException {
+
+        // 일치하는 회원 정보가 없는 경우
+        if(!checkNameAndEmail(req)) {
+            throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
+        }
+        
+        // 유효 시간이 만료된 경우
+        if(!redisService.hasKey("VC("+ req.getEmail() + "):")) {
+            throw new BaseException(VERIFICATION_TIME_EXPIRED);
+        }
 
         // randomVerificationCode = emailService.sendEmail(req.getName(), req.getEmail());
         randomVerificationCode = redisService.getValues("VC("+ req.getEmail() + "):");
@@ -127,6 +137,9 @@ public class EmailService {
         userId = member.getId();
 
         getUserId(userId);
+
+        // 인증코드 인증 완료 후 redis 에서 삭제
+        redisService.deleteValues("VC("+ req.getEmail() + "):");
 
         return new GetUserIdRes(userId);
     }
