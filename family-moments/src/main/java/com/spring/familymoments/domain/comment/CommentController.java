@@ -30,8 +30,6 @@ public class CommentController {
      * [POST] /comments?postId={게시글인덱스}
      * @return BaseResponse<String>
      */
-    @ResponseBody
-    @NoAuthCheck
     @PostMapping("")
     @Operation(summary = "댓글 생성", description = "댓글을 생성합니다.")
     public BaseResponse<String> createComment(
@@ -54,8 +52,6 @@ public class CommentController {
      * [POST] /comments?postId={게시글인덱스}
      * @return BaseResponse<GetCommentsRes>
      */
-    @ResponseBody
-    @NoAuthCheck
     @GetMapping("")
     @Operation(summary = "특정 게시물의 댓글 목록 조회", description = "특정 게시물의 댓글 목록을 조회합니다.")
     public BaseResponse<List<GetCommentsRes>> getCommentsByPostId(@RequestParam("postId") Long postId) {
@@ -72,8 +68,6 @@ public class CommentController {
      * [DELETE] /comments/:{댓글인덱스}
      * @return BaseResponse<String>
      */
-    @ResponseBody
-    @NoAuthCheck
     @DeleteMapping("/{commentId}")
     @Operation(summary = "댓글 삭제", description = "댓글을 삭제합니다.")
     public BaseResponse<String> deleteComment(
@@ -92,7 +86,6 @@ public class CommentController {
      * [Patch] /comments/:{댓글인덱스}
      * @return BaseResponse<String>
      */
-    @ResponseBody
     @PatchMapping("/{commentId}")
     @Operation(summary = "댓글 수정", description = "댓글을 수정합니다.")
     public BaseResponse<String> updateComment(
