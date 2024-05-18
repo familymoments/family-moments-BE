@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 public class CommentLoveController {
 
     private final CommentLoveService commentLoveService;
-    private final AuthService authService;
 
     /**
      * 댓글 내 하트 생성

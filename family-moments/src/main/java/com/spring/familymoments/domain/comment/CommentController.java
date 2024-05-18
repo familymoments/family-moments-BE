@@ -2,7 +2,6 @@ package com.spring.familymoments.domain.comment;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;

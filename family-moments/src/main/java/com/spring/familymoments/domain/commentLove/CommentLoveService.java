@@ -5,13 +5,10 @@ import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.commentLove.entity.CommentLove;
 import com.spring.familymoments.domain.commentLove.model.CommentLoveReq;
-import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
