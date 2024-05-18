@@ -30,15 +30,6 @@ public class PostLoveService {
     private final PostRepository postRepository;
 
     /**
-     * checkDuplicatePostLove
-     * [GET]
-     * @return
-     */
-    public boolean checkDuplicatePostLove(Post post, User member) throws BaseException {
-        return postLoveRepository.existsByPostIdAndUserId(post, member);
-    }
-
-    /**
      * checkUserPostLove
      * [GET]
      * @return
@@ -124,5 +115,14 @@ public class PostLoveService {
         }
 
         return users;
+    }
+
+    /**
+     * checkDuplicatePostLove
+     * [GET]
+     * @return
+     */
+    private boolean checkDuplicatePostLove(Post post, User member) throws BaseException {
+        return postLoveRepository.existsByPostIdAndUserId(post, member);
     }
 }
