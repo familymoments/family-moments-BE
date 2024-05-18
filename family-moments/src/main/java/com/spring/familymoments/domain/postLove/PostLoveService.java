@@ -51,7 +51,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void createLove(User user, PostLoveReq postLoveReq) throws BaseException {
+    public void createLove(User user, PostLoveReq postLoveReq){
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
@@ -79,7 +79,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void deleteLove(User user, PostLoveReq postLoveReq) throws BaseException {
+    public void deleteLove(User user, PostLoveReq postLoveReq){
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
@@ -101,7 +101,7 @@ public class PostLoveService {
 
     // 좋아요한 user의 nickName 및 profileImg return
     @Transactional
-    public List<CommentRes> getHeartList(long postId) throws BaseException {
+    public List<CommentRes> getHeartList(long postId){
         Post post = postRepository.findByPostIdAndStatus(postId, BaseEntity.Status.ACTIVE);
 
         if(post == null) {
@@ -122,7 +122,7 @@ public class PostLoveService {
      * [GET]
      * @return
      */
-    private boolean checkDuplicatePostLove(Post post, User member) throws BaseException {
+    private boolean checkDuplicatePostLove(Post post, User member) {
         return postLoveRepository.existsByPostIdAndUserId(post, member);
     }
 }
