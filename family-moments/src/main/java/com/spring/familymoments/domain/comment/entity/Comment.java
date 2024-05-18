@@ -55,5 +55,13 @@ public class Comment extends BaseEntity {
     public void updateContent(String content) {
         this.content = content;
     }
+
+    public void increaseCountLove() {
+        this.countLove = countLove + 1;
+    }
+
+    public void decreaseCountLove() {
+        this.countLove = countLove - 1;
+    }
 }
 
