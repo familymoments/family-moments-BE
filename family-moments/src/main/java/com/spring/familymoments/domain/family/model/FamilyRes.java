@@ -14,7 +14,7 @@ public class FamilyRes {
     private Long familyId;
 
     @Schema(description = "가족 권한자")
-    private String owner;
+    private Long ownerId;
 
     @Schema(description = "가족 이름")
     private String familyName;
