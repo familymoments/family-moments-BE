@@ -25,4 +25,7 @@ public class RedisService {
     public void deleteValues(String key) {
         redisTemplate.delete(key);
     }
+    public boolean hasKey(String key) {
+        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
 }
