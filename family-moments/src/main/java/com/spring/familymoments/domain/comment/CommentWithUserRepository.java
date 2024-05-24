@@ -2,6 +2,7 @@ package com.spring.familymoments.domain.comment;
 
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

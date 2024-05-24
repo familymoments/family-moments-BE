@@ -11,9 +11,14 @@ import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.post.PostDocumentRepository;
+import com.spring.familymoments.domain.post.PostWithLoveRepository;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.model.SinglePostDocumentRes;
+import com.spring.familymoments.domain.post.model.SinglePostRes;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
+import com.spring.familymoments.domain.postLove.PostLoveService;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.socialInfo.SocialUserService;
@@ -24,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +42,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -49,6 +56,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
+    private final PostWithLoveRepository postWithLoveRepository;
     private final FamilyRepository familyRepository;
     private final CommentWithUserRepository commentWithUserRepository;
     private final UserFamilyRepository userFamilyRepository;
@@ -59,6 +67,11 @@ public class UserService {
     private final RedisService redisService;
     private final AlarmSettingService alarmSettingService;
     private final SocialUserService socialUserService;
+    private final PostDocumentRepository postDocumentRepository;
+    private final PostLoveService postLoveService;
+
+    private static final String BIRTH_FORMAT_PATTERN = "yyyyMMdd";
+    private static final int POST_PAGES = 10;
 
     /**
      * createUser
@@ -82,7 +95,7 @@ public class UserService {
 
         // TODO: BirthDate -> String에서 LocalDateTime으로 변환
         String strBirthDate = postUserReq.getStrBirthDate();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
 
         LocalDateTime parsedBirthDate = null;
         parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
@@ -148,22 +161,18 @@ public class UserService {
      * [GET]
      * @return
      */
-    public GetProfileRes readProfile(User user, Long familyId) {
-        Long totalUpload = 0L;
-        if(familyId != null) {
-            Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-            totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
-        }
+    public GetProfileRes readProfile(User user) {
+        Long totalUpload = postWithUserRepository.countActivePostsByWriter(user); // 특정 가족이 아닌 전체 게시글을 불러오도록 수정
+        Long totalLoved = postLoveRepository.countLovedPostsByWriter(user);
 
-        String formatPattern = "yyyyMMdd"; //생년월일
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
         String strBirth = user.getBirthDate().format(formatter);
 
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, totalLoved, duration);
     }
     /**
      * 유저 5명 검색 API
@@ -238,8 +247,7 @@ public class UserService {
         user.updateProfile(patchProfileReqRes);
         User updatedUser = userRepository.save(user);
 
-        String formatPattern = "yyyyMMdd";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(BIRTH_FORMAT_PATTERN);
         String updateUserBirth = updatedUser.getBirthDate().format(formatter);
 
         return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());
@@ -342,6 +350,48 @@ public class UserService {
 
         //소셜 회원 탈퇴 처리
         socialUserService.deleteSocialUserWithRedisProcess(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SinglePostRes> getUserPosts(User user, long familyId, Long postId){
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
+        List<Post> filteredPosts = getUserPosts(user, familyId, postId, pageable);
+
+        return filteredPosts.stream()
+                .map(post -> {
+                    SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(post.getPostId());
+                    boolean isLoved = postLoveService.checkPostLoveByUser(post.getPostId(), post.getWriter().getUserId());
+
+                    return post.toSinglePostRes(singlePostDocumentRes, isLoved);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<Post> getUserPosts(User user, long familyId, Long postId, Pageable pageable) {
+        return (postId == null)
+                ? postWithUserRepository.findByUserAndFamilyId(user, familyId, pageable)
+                : postWithUserRepository.findByUserAndFamilyIdAfterPostId(user, familyId, postId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SinglePostRes> getUserLovedPosts(User user, long familyId, Long postId){
+        Pageable pageable = PageRequest.of(0, POST_PAGES);
+        List<Post> filteredPosts = getLovedPosts(user, familyId, postId, pageable);
+
+        return filteredPosts.stream()
+                .map(post -> {
+                    SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(post.getPostId());
+                    boolean isLoved = postLoveService.checkPostLoveByUser(post.getPostId(), post.getWriter().getUserId());
+
+                    return post.toSinglePostRes(singlePostDocumentRes, isLoved);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<Post> getLovedPosts(User user, long familyId, Long postId, Pageable pageable){
+        return (postId == null)
+                ? postWithLoveRepository.findPostsByUserAndFamilyId(user, familyId, pageable)
+                : postWithLoveRepository.findByUserAndFamilyIdAfterPostId(user, familyId, postId, pageable);
     }
 
 }
