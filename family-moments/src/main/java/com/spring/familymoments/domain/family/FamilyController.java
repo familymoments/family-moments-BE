@@ -1,6 +1,5 @@
 package com.spring.familymoments.domain.family;
 
-import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
@@ -49,14 +48,10 @@ public class FamilyController {
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @RequestParam(name = "representImg") MultipartFile representImg,
-            @RequestPart PostFamilyReq postFamilyReq) {
-        try {
-            String fileUrl = awsS3Service.uploadImage(representImg);        // 대표 이미지 넣기
-            PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
-            return new BaseResponse<>(postFamilyRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
-        }
+            @Valid @RequestPart PostFamilyReq postFamilyReq) {
+        String fileUrl = awsS3Service.uploadImage(representImg);        // 대표 이미지 넣기
+        PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
+        return new BaseResponse<>(postFamilyRes);
     }
 
     /**
@@ -178,12 +173,8 @@ public class FamilyController {
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId,
             @RequestParam("uploadCycle") int uploadCycle) {
-        try {
-            familyService.updateUploadCycle(user, familyId, uploadCycle);
-            return new BaseResponse<>("업로드 주기가 수정되었습니다.");
-        } catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
-        }
+        familyService.updateUploadCycle(user, familyId, uploadCycle);
+        return new BaseResponse<>("업로드 주기가 수정되었습니다.");
     }
 
     /**
@@ -198,12 +189,8 @@ public class FamilyController {
     public BaseResponse<String> deleteFamily(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId) {
-        try {
-            familyService.deleteFamily(user, familyId);
-            return new BaseResponse<>("가족이 삭제되었습니다.");
-        } catch (BaseException e) {
-            return new BaseResponse<>((e.getStatus()));
-        }
+        familyService.deleteFamily(user, familyId);
+        return new BaseResponse<>("가족이 삭제되었습니다.");
     }
 
     /**
