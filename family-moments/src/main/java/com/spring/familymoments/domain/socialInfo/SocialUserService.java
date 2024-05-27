@@ -1,24 +1,21 @@
 package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.secret.jwt.JwtSecret;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
-import com.spring.familymoments.domain.redis.RedisService;
+import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.socialInfo.entity.SocialInfo;
 import com.spring.familymoments.domain.socialInfo.model.*;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.UserDetailsService;
 import com.spring.familymoments.domain.user.UserRepository;
+import com.spring.familymoments.domain.user.UserService;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.domain.user.model.PostLoginRes;
 import com.spring.familymoments.utils.UuidUtils;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpCookie;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -27,17 +24,18 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
 import static com.spring.familymoments.domain.user.entity.User.Status.ACTIVE;
+import static com.spring.familymoments.utils.ValidationRegex.*;
 
 @Service
 @RequiredArgsConstructor
@@ -49,95 +47,12 @@ public class SocialUserService {
     private final UserDetailsService userDetailsService;
     private final AuthService authService;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final UserService userService;
+    private final AwsS3Service awsS3Service;
     private final String SERVER = "Server";
     private final PasswordEncoder passwordEncoder;
     @Value("${spring.security.oauth2.client.info.password}")
     private String password;
-//    private final RedisService redisService;
-//    private final KakaoLoginServiceImpl kakaoLoginService;
-//    private final NaverLoginServiceImpl naverLoginService;
-//    private final GoogleLoginServiceImpl googleLoginService;
-    private final long COOKIE_EXPIRATION = JwtSecret.COOKIE_EXPIRATION_TIME;
-
-    //Rest API ver. (인가코드 + 소셜 토큰 저장 로직)
-    /*
-    @Transactional
-    public SocialLoginOrJoinResponse doSocialLogin(SocialLoginRequest request) {
-        UserType type = UserType.valueOf(request.getUserType());
-
-        SocialLoginService loginService = getLoginService(type);
-        //1. 인가코드로 액세스 토큰 요청
-        SocialAuthResponse socialAuthResponse = loginService.getAccessToken(request.getCode());
-
-        //2. 토큰으로 소셜 API 호출 : 액세스 토큰으로 사용자 정보 가져오기
-        SocialUserResponse socialUserResponse = loginService.getUserInfo(socialAuthResponse.getAccess_token());
-        User user = socialUserRepository.findUserByEmailAndUserType(socialUserResponse.getEmail(), type);
-
-        //+ 로그인 시 - REDIS 에 Social AT, RT 저장
-        saveSocialToken(socialAuthResponse, request.getUserType(), socialUserResponse.getSnsId());
-
-        TokenDto tokenDto = null;
-        String strBirthDate = null;
-        if(user != null) {
-            //3. 자체 로그인 처리 (회원가입 필요없음)
-            tokenDto = setAuthenticationInSocial(user);
-        }
-        if(socialUserResponse.getBirthday() != null && socialUserResponse.getBirthyear() != null) {
-            if(type.equals(UserType.NAVER)) {
-                //naver birthdate : MM-dd
-                String str = socialUserResponse.getBirthday().replace("-", "");
-                StringBuilder sb = new StringBuilder();
-                sb.append(socialUserResponse.getBirthyear());
-                sb.append(str);
-                strBirthDate = sb.toString();
-            } else {
-                //kakao birthdate : MMdd
-                strBirthDate = socialUserResponse.getBirthyear() + socialUserResponse.getBirthday();
-            }
-        }
-
-        SocialLoginOrJoinResponse.LoginResponse loginResponse = SocialLoginOrJoinResponse.LoginResponse.builder()
-                .tokenDto(tokenDto)
-                .build();
-
-        SocialLoginOrJoinResponse.JoinResponse joinResponse = SocialLoginOrJoinResponse.JoinResponse.builder()
-                .snsId(socialUserResponse.getSnsId())
-                .name(socialUserResponse.getName())
-                .email(socialUserResponse.getEmail())
-                .strBirthDate(strBirthDate)
-                .nickname(socialUserResponse.getNickname())
-                .picture(socialUserResponse.getPicture())
-                .build();
-
-        return new SocialLoginOrJoinResponse(loginResponse, joinResponse);
-    }
-    @Transactional
-    public void saveSocialToken(SocialAuthResponse socialAuthResponse, String userType, String snsId) {
-        Long atTimeOut = Long.parseLong(socialAuthResponse.getExpires_in()) * 1000L;
-        log.info("atTimeOut {}", atTimeOut);
-
-        //AT REDIS에 저장
-        authService.saveSocialToken("AT("+userType+"):", snsId,
-                socialAuthResponse.getAccess_token(),
-                atTimeOut);
-
-        Long rtTimeOut = null;
-        if(userType.equals("KAKAO")) {
-            //KAKAO RT REDIS에 저장
-            rtTimeOut = Long.parseLong(socialAuthResponse.getRefresh_token_expires_in()) * 1000;
-        } else if(userType.equals("NAVER")) {
-            //NAVER RT REDIS에 저장 - 1년(고정)
-            rtTimeOut = 31557600000L;
-        } else {
-            //GOOGLE RT REDIS에 저장 - 7일(고정)
-            rtTimeOut = 86400000L;
-        }
-        log.info("rtTimeOut {}", rtTimeOut);
-
-        authService.saveSocialToken("RT("+userType+"):", snsId,
-                socialAuthResponse.getRefresh_token(),
-                rtTimeOut);
-    }*/
 
     /**
      * 카카오/네이버/구글 메서드 분리
@@ -156,20 +71,15 @@ public class SocialUserService {
      * 소셜 로그인 API
      * @param socialToken
      * @param socialLoginSdkRequest
-     * @return SocialLoginOrJoinResponse(Token 정보 or 유저정보)
+     * @return SocialLoginResponse(Token 정보/유저정보)
      */
     @Transactional
-    public SocialLoginOrJoinResponse createSocialSdkUser(String socialToken, SocialLoginSdkRequest socialLoginSdkRequest) {
+    public SocialLoginResponse createSocialSdkUser(String socialToken, SocialLoginSdkRequest socialLoginSdkRequest) {
         try {
             boolean isExisted = false;
             //userType
             String strUserType = socialLoginSdkRequest.getUserType();
-            UserType enumUserType;
-            try {
-                enumUserType = UserType.valueOf(strUserType);
-            } catch(IllegalArgumentException e) {
-                throw new BaseException(INVALID_USER_TYPE);
-            }
+            UserType enumUserType = UserType.getEnumUserTypeFromStringUserType(strUserType);
             //social-token으로 email 받아오기 (이메일 필수로 설정 -> 안드에서 세팅)
             SocialLoginService loginService = getLoginService(enumUserType);
             //소셜 회원의 유저 정보 받아오기
@@ -201,24 +111,17 @@ public class SocialUserService {
                 }
             }
 
-            //기존 회원 token 발급 response
-            SocialLoginOrJoinResponse.LoginResponse loginResponse = SocialLoginOrJoinResponse.LoginResponse.builder()
-                    .isExisted(isExisted)
-                    .tokenDto(tokenDto)
-                    .build();
+            return SocialLoginResponse.responseWithTokenDto(
+                    isExisted,
+                    tokenDto,
+                    socialUserResponse.getSnsId(),
+                    socialUserResponse.getName(),
+                    socialUserResponse.getEmail(),
+                    strBirthDate,
+                    socialUserResponse.getNickname(),
+                    socialUserResponse.getPicture()
+            );
 
-            //신규 회원 유저 정보 전달
-            SocialLoginOrJoinResponse.JoinResponse joinResponse = SocialLoginOrJoinResponse.JoinResponse.builder()
-                    .isExisted(isExisted)
-                    .snsId(socialUserResponse.getSnsId())
-                    .name(socialUserResponse.getName())
-                    .email(socialUserResponse.getEmail())
-                    .strBirthDate(strBirthDate)
-                    .nickname(socialUserResponse.getNickname())
-                    .picture(socialUserResponse.getPicture())
-                    .build();
-
-            return new SocialLoginOrJoinResponse(loginResponse, joinResponse);
         } catch (FeignException e) {
             throw new BaseException(INVALID_SOCIAL_TOKEN);
         }
@@ -231,36 +134,68 @@ public class SocialUserService {
      * @return Tokendto
      */
     @Transactional
-    public TokenDto createSocialUser(UserJoinRequest userJoinRequest) {
-        //선행되어야 할 API에서 예외처리했지만, 새로운 API이므로 한번 더 체크
+    public SocialJoinResponse createSocialUser(UserJoinRequest userJoinRequest, MultipartFile profileImage) {
+        //아이디
+        if (userJoinRequest.getId().isEmpty()) {
+            throw new BaseException(USERS_EMPTY_USER_ID);
+        }
+        if (!isRegexId(userJoinRequest.getId())) {
+            throw new BaseException(POST_USERS_INVALID_ID);
+        }
+        //아이디 중복 체크
+        if (userService.checkDuplicateId(userJoinRequest.getId())) {
+            throw new BaseException(POST_USERS_EXISTS_ID);
+        }
+        //이름
+        if (userJoinRequest.getName().isEmpty()) {
+            throw new BaseException(POST_USERS_EMPTY_NAME);
+        }
+        //생년월일
+        if (userJoinRequest.getStrBirthDate().isEmpty()) {
+            throw new BaseException(POST_USERS_EMPTY_BIRTH);
+        }
+        if (!isRegexBirth(userJoinRequest.getStrBirthDate())) {
+            throw new BaseException(POST_USERS_INVALID_BIRTH);
+        }
+        //닉네임
+        if (userJoinRequest.getNickname().isEmpty()) {
+            throw new BaseException(POST_USERS_EMPTY_NICKNAME);
+        }
+        if (!isRegexNickName(userJoinRequest.getNickname())) {
+            throw new BaseException(POST_USERS_INVALID_NICKNAME);
+        }
+        //프로필 사진
+        String fileUrl = null;
+        if (userJoinRequest.getProfileImg() == null) {
+            fileUrl = awsS3Service.uploadImage(profileImage);
+        }
+        userJoinRequest.setProfileImg(fileUrl);
 
         //email
         String email = userJoinRequest.getEmail();
         //userType
-        UserType enumUserType;
-        try {
-            enumUserType = UserType.valueOf(userJoinRequest.getUserType());
-        } catch(IllegalArgumentException e) {
-            throw new BaseException(INVALID_USER_TYPE);
-        }
+        UserType enumUserType = UserType.getEnumUserTypeFromStringUserType(userJoinRequest.getUserType());
         Optional<User> existedU = socialUserRepository.findUserByEmailAndUserType(email, enumUserType);
-        //
 
         Long userId = joinUser(userJoinRequest);
         User user = userRepository.findUserByUserId(userId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
-        return setAuthenticationInSocial(user);
+        //AT, RT token
+        TokenDto tokenDto = setAuthenticationInSocial(user);
+        //familyId
+        PostLoginRes postLoginRes = authService.login_familyId(userJoinRequest.getId());
+
+        return SocialJoinResponse.of(
+                tokenDto,
+                postLoginRes.getFamilyId()
+        );
     }
+
     @Transactional
     public Long joinUser(UserJoinRequest userJoinRequest) {
         //userType
-        UserType enumUserType;
-        try {
-            enumUserType = UserType.valueOf(userJoinRequest.getUserType());
-        } catch(IllegalArgumentException e) {
-            throw new BaseException(INVALID_USER_TYPE);
-        }
+        UserType enumUserType = UserType.getEnumUserTypeFromStringUserType(userJoinRequest.getUserType());
 
         //uuid 생성
         String uuid = UuidUtils.generateUUID();
@@ -362,40 +297,6 @@ public class SocialUserService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return authService.generateToken(SERVER, authentication.getName());
-    }
-
-    /**
-     * AT Header, RT 쿠키 저장
-     */
-    @Transactional
-    public ResponseEntity<?> sendAtRtTokenInfo(Boolean isExisted, TokenDto tokenDto) {
-        //RefreshToken 쿠키에 저장
-        HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
-                .maxAge(COOKIE_EXPIRATION)
-                .httpOnly(true)
-                .secure(true)
-                .build();
-
-        //로그인
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
-                .header("X-AUTH-TOKEN", tokenDto.getAccessToken())
-                .body(isExisted);
-    }
-
-    @Transactional
-    public ResponseEntity<?> sendAtRtTokenInfo(TokenDto tokenDto) {
-        //RefreshToken 쿠키에 저장
-        HttpCookie httpCookie = ResponseCookie.from("refresh-token", tokenDto.getRefreshToken())
-                .maxAge(COOKIE_EXPIRATION)
-                .httpOnly(true)
-                .secure(true)
-                .build();
-
-        //로그인
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, httpCookie.toString())
-                .header("X-AUTH-TOKEN", tokenDto.getAccessToken()).build();
     }
 
 }
