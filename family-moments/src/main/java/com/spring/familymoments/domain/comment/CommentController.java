@@ -1,6 +1,5 @@
 package com.spring.familymoments.domain.comment;
 
-import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
@@ -16,8 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
-
-import static com.spring.familymoments.config.BaseResponseStatus.COMMENTS_EMPTY_CONTENT;
 
 @RestController
 @RequiredArgsConstructor
