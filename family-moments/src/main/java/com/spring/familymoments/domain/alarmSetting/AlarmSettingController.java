@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/alarms")
+@RequestMapping("/alarmSettings")
 @Tag(name = "AlarmSetting", description = "알림 설정 API Document")
 public class AlarmSettingController {
 
