@@ -6,6 +6,7 @@ import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
+import com.spring.familymoments.domain.post.model.ContentReportReq;
 import com.spring.familymoments.domain.user.entity.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -107,5 +108,16 @@ public class CommentController {
         }catch (BaseException e) {
             return new BaseResponse<>((e.getStatus()));
         }
+    }
+
+    /**
+     * 댓글 신고 API
+     * [POST] /comments/report/{commentId}
+     */
+    @PostMapping("/report/{commentId}")
+    public BaseResponse<String> reportComment(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                              @PathVariable Long commentId, @RequestBody ContentReportReq contentReportReq) {
+        commentService.reportComment(user, commentId, contentReportReq);
+        return new BaseResponse<>("댓글을 신고했습니다.");
     }
 }
