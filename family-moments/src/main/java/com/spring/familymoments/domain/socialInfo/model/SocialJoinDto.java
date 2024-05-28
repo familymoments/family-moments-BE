@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.socialInfo.model;
 
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Builder
@@ -9,13 +8,13 @@ import lombok.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "소셜 회원가입")
-public class SocialJoinResponse {
-    @Schema(description = "가족 아이디", example = "1")
+public class SocialJoinDto {
+    private TokenDto tokenDto;
     private Long familyId;
 
-    public static SocialJoinResponse of(Long familyId) {
-        return SocialJoinResponse.builder()
+    public static SocialJoinDto of(TokenDto tokenDto, Long familyId) {
+        return SocialJoinDto.builder()
+                .tokenDto(tokenDto)
                 .familyId(familyId)
                 .build();
     }

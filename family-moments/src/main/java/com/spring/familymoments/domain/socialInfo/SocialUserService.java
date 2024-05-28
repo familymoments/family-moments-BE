@@ -74,7 +74,7 @@ public class SocialUserService {
      * @return SocialLoginResponse(Token 정보/유저정보)
      */
     @Transactional
-    public SocialLoginResponse createSocialSdkUser(String socialToken, SocialLoginSdkRequest socialLoginSdkRequest) {
+    public SocialLoginDto createSocialSdkUser(String socialToken, SocialLoginSdkRequest socialLoginSdkRequest) {
         try {
             boolean isExisted = false;
             //userType
@@ -91,7 +91,7 @@ public class SocialUserService {
             String strBirthDate = null;
 
             //기존회원 토큰발급 (회원가입 필요없음)
-            if(existedU.isPresent()) {
+            if(existedU != null && existedU.isPresent()) {
                 isExisted = true;
                 tokenDto = setAuthenticationInSocial(existedU.get());
             }
@@ -111,7 +111,7 @@ public class SocialUserService {
                 }
             }
 
-            return SocialLoginResponse.responseWithTokenDto(
+            return SocialLoginDto.of(
                     isExisted,
                     tokenDto,
                     socialUserResponse.getSnsId(),
@@ -134,7 +134,7 @@ public class SocialUserService {
      * @return Tokendto
      */
     @Transactional
-    public SocialJoinResponse createSocialUser(UserJoinRequest userJoinRequest, MultipartFile profileImage) {
+    public SocialJoinDto createSocialUser(UserJoinRequest userJoinRequest, MultipartFile profileImage) {
         //아이디
         if (userJoinRequest.getId().isEmpty()) {
             throw new BaseException(USERS_EMPTY_USER_ID);
@@ -186,7 +186,7 @@ public class SocialUserService {
         //familyId
         PostLoginRes postLoginRes = authService.login_familyId(userJoinRequest.getId());
 
-        return SocialJoinResponse.of(
+        return SocialJoinDto.of(
                 tokenDto,
                 postLoginRes.getFamilyId()
         );

@@ -1,6 +1,8 @@
 package com.spring.familymoments.domain.socialInfo;
 
+import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
+import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.socialInfo.model.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,22 +29,29 @@ public class SocialUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    public ResponseEntity<SocialLoginResponse> doSocialSdkLogin(@Parameter(description = "소셜 accesstoken") @RequestHeader("SOCIAL-TOKEN") String socialToken,
-                                                                @Parameter(description = "소셜 종류") @RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
-        SocialLoginResponse socialLoginResponse = socialUserService.createSocialSdkUser(socialToken, socialLoginSdkRequest);
+    public ResponseEntity<BaseResponse<SocialLoginResponse>> doSocialSdkLogin(@Parameter(description = "소셜 accesstoken") @RequestHeader("SOCIAL-TOKEN") String socialToken,
+                                                                              @Parameter(description = "소셜 종류") @RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
+        SocialLoginDto socialLoginResponse = socialUserService.createSocialSdkUser(socialToken, socialLoginSdkRequest);
+
+        TokenDto tokenDto = socialLoginResponse.getTokenDto();
+        String accessToken = (tokenDto != null) ? tokenDto.getAccessToken() : null;
+        String refreshToken = (tokenDto != null) ? tokenDto.getRefreshToken() : null;
+
+        Boolean isExisted = socialLoginResponse.getIsExisted();
 
         return ResponseEntity.ok()
-                .header("X-AUTH-TOKEN", socialLoginResponse.getTokenDto().getAccessToken())
-                .header("REFRESH-TOKEN", socialLoginResponse.getTokenDto().getRefreshToken())
-                .body(SocialLoginResponse.of(
-                        socialLoginResponse.getIsExisted(),
-                        socialLoginResponse.getSnsId(),
-                        socialLoginResponse.getName(),
-                        socialLoginResponse.getEmail(),
-                        socialLoginResponse.getStrBirthDate(),
-                        socialLoginResponse.getNickname(),
-                        socialLoginResponse.getPicture()
-                ));
+                .header("X-AUTH-TOKEN", accessToken)
+                .header("REFRESH-TOKEN", refreshToken)
+                .body(
+                        new BaseResponse<>(SocialLoginResponse.of(
+                                isExisted,
+                                isExisted ? null : socialLoginResponse.getSnsId(),
+                                isExisted ? null : socialLoginResponse.getName(),
+                                isExisted ? null : socialLoginResponse.getEmail(),
+                                isExisted ? null : socialLoginResponse.getStrBirthDate(),
+                                isExisted ? null : socialLoginResponse.getNickname(),
+                                isExisted ? null : socialLoginResponse.getPicture()))
+                );
     }
 
     @NoAuthCheck
@@ -51,14 +60,21 @@ public class SocialUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    public ResponseEntity<?> createSocialUser(@Parameter(description = "신규 회원의 가입 정보") @RequestPart("userJoinReq") UserJoinRequest userJoinRequest,
+    public ResponseEntity<BaseResponse<SocialJoinResponse>> createSocialUser(@Parameter(description = "신규 회원의 가입 정보") @RequestPart("userJoinReq") UserJoinRequest userJoinRequest,
                                               @Parameter(description = "신규 회원의 프로필 첨부파일") @RequestPart("profileImg") MultipartFile profileImage) {
-        SocialJoinResponse postLoginRes = socialUserService.createSocialUser(userJoinRequest, profileImage);
+        SocialJoinDto socialJoinDto = socialUserService.createSocialUser(userJoinRequest, profileImage);
+
+        TokenDto tokenDto = socialJoinDto.getTokenDto();
+        String accessToken = (tokenDto != null) ? tokenDto.getAccessToken() : null;
+        String refreshToken = (tokenDto != null) ? tokenDto.getRefreshToken() : null;
 
         return ResponseEntity.ok()
-                .header("X-AUTH-TOKEN", postLoginRes.getTokenDto().getAccessToken())
-                .header("REFRESH-TOKEN", postLoginRes.getTokenDto().getRefreshToken())
-                .body(postLoginRes);
+                .header("X-AUTH-TOKEN", accessToken)
+                .header("REFRESH-TOKEN", refreshToken)
+                .body(
+                        new BaseResponse<>(SocialJoinResponse.of(
+                        socialJoinDto.getFamilyId()))
+                );
     }
 
 }

@@ -13,8 +13,6 @@ import lombok.*;
 public class SocialLoginResponse {
     @Schema(description = "기존회원있음", example = "true")
     private Boolean isExisted;
-    @Schema(description = "토큰", example = "eeeeeeeeee")
-    private TokenDto tokenDto;
     @Schema(description = "소셜 고유 ID", example = "23231221421")
     private String snsId;
     @Schema(description = "이름", example = "김영희")
@@ -34,21 +32,6 @@ public class SocialLoginResponse {
 
         return SocialLoginResponse.builder()
                 .isExisted(isExisted)
-                .snsId(snsId)
-                .name(name)
-                .email(email)
-                .strBirthDate(strBirthDate)
-                .nickname(nickname)
-                .picture(picture)
-                .build();
-    }
-
-    public static SocialLoginResponse responseWithTokenDto(Boolean isExisted, TokenDto tokenDto,
-                                         String snsId, String name, String email, String strBirthDate,
-                                         String nickname, String picture) {
-        return SocialLoginResponse.builder()
-                .isExisted(isExisted)
-                .tokenDto(tokenDto)
                 .snsId(snsId)
                 .name(name)
                 .email(email)
