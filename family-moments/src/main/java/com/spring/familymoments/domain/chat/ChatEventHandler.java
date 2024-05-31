@@ -1,9 +1,7 @@
 package com.spring.familymoments.domain.chat;
 
-import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.UserService;
 import com.spring.familymoments.domain.user.entity.User;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.Message;
@@ -25,6 +23,7 @@ public class ChatEventHandler {
 
         // TODO: 유저 & 세션 정보 확인, Authentication 필요
         String sessionId = headerAccessor.getSessionId();
+        // TODO: User 정보 검증 과정 수정 필요
         String userId = headerAccessor.getNativeHeader("id").get(0);
         User user = userService.getUserById(userId);
 

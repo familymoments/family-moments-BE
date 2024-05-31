@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 public class MessageRes {
     @NotNull
-    private MessageType type;
+    private String messageId;
     private Long familyId;
     @NotNull
     private String sender;
@@ -20,8 +20,4 @@ public class MessageRes {
     private String message;
     @NotNull
     private LocalDateTime sendedTime;
-
-    public enum MessageType {
-        MESSAGE, NOTICE;
-    }
 }

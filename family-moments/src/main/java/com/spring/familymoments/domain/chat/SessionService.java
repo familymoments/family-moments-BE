@@ -108,7 +108,7 @@ public class SessionService {
         redisService.setValues(SESSION_ID.value + sessionId, userId);
     }
 
-    // 마지막 접속 시간 조회 TODO: 삭제
+    // 마지막 접속 시간 조회 TODO: 차후 삭제
     @Transactional
     public LocalDateTime getLastAccessedTime(User user, Family family) {
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
