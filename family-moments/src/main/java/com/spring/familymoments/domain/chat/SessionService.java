@@ -35,7 +35,7 @@ public class SessionService {
     public void connect(String sessionId, User user) {
         saveSessionInfo(sessionId, user.getUuid());
 
-        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(user.getUserId());
+        List<UserFamily> userFamilyList = userFamilyRepository.findAllActiveUserFamilyByUser(user);
 
         for(UserFamily userFamily : userFamilyList) {
             Family family = userFamily.getFamilyId();
@@ -55,7 +55,7 @@ public class SessionService {
         User user = userRepository.findUserByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_USER));
 
         // userID를 바탕으로 unsub 중인 내역이 있다면 offline으로 변경
-        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(user.getUserId());
+        List<UserFamily> userFamilyList = userFamilyRepository.findAllActiveUserFamilyByUser(user);
 
         for(UserFamily userFamily : userFamilyList) {
             Family family = userFamily.getFamilyId();
@@ -84,7 +84,8 @@ public class SessionService {
     @Transactional(readOnly = true)
     public void subscribeFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
-        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
+        UserFamily userFamily = userFamilyRepository.findActiveUserFamilyByFamilyAndUser(family, user)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
 
         // unsub 세션에서 제거
         redisService.removeMember(FAMILY_UNSUB.value + familyId, user.getUuid());
@@ -94,7 +95,8 @@ public class SessionService {
     @Transactional
     public void unsubscribeFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
-        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
+        UserFamily userFamily = userFamilyRepository.findActiveUserFamilyByFamilyAndUser(family, user)
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
         
         unsubscribeFamily(userFamily);
     }
@@ -117,7 +119,7 @@ public class SessionService {
     // 마지막 접속 시간 조회 TODO: 차후 삭제
     @Transactional
     public LocalDateTime getLastAccessedTime(User user, Family family) {
-        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+        UserFamily userFamily = userFamilyRepository.findActiveUserFamilyByFamilyAndUser(family, user)
                 .orElseThrow(()-> new BaseException(minnie_FAMILY_INVALID_USER));
 
         return userFamily.getLastAccessedTime();

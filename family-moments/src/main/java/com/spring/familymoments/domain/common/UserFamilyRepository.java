@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -37,4 +38,21 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
             "WHERE m.status = 'ACTIVE' " +
             "AND f.familyId = :familyId")
     List<User> findActiveUsersByFamilyId(@Param("familyId") Long familyId);
+
+    @Query("SELECT uf FROM UserFamily uf " +
+            "WHERE uf.userId = :user " +
+            "AND uf.status = 'ACTIVE'")
+    List<UserFamily> findAllActiveUserFamilyByUser(@Param("user") User user);
+
+    @Query("SELECT uf.userId FROM UserFamily uf " +
+            "WHERE uf.familyId.familyId = :familyId " +
+            "AND uf.userId.uuid = :uuid " +
+            "AND uf.status = 'ACTIVE'" )
+    Optional<User> findActiveUserByFamilyIdAndUuid(@Param("familyId") Long familyId, @Param("uuid") String uuid);
+
+    @Query("SELECT uf FROM UserFamily uf " +
+            "WHERE uf.familyId = :family " +
+            "AND uf.userId = :user " +
+            "AND uf.status = 'ACTIVE'")
+    Optional<UserFamily> findActiveUserFamilyByFamilyAndUser(@Param("family") Family family, @Param("user") User user);
 }
