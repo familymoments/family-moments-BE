@@ -1,36 +1,41 @@
 package com.spring.familymoments.domain.chat;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.domain.chat.document.ChatDocument;
+import com.spring.familymoments.domain.chat.model.ChatMemberInfo;
 import com.spring.familymoments.domain.chat.model.ChatRoomInfo;
 import com.spring.familymoments.domain.chat.model.MessageReq;
 import com.spring.familymoments.domain.chat.model.MessageRes;
+import com.spring.familymoments.domain.common.UserFamilyRepository;
+import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.redis.RedisService;
-import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.domain.user.model.ChatProfile;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    private static final String PREFIX_SESSION_ID = "SI)";
-    private static final String PREFIX_FAMILY_ID = "FM";
+    private static final int MAXIMUM_MESSAGE = 300;
+    private static final int MESSAGE_PAGE = 30;
 
     private final ChatDocumentRepository chatDocumentRepository;
-    private final RedisService redisService;
-    private final ChatInfoService chatInfoService;
-    private final UserRepository userRepository;
+    private final SessionService sessionService;
     private final FamilyRepository familyRepository;
+    private final UserFamilyRepository userFamilyRepository;
 
     // chat Document에 저장
     public MessageRes createChat(Long familyId, MessageReq messageReq) {
@@ -53,63 +58,90 @@ public class ChatService {
         return messageRes;
     }
 
-
-
-    // 유저의 세션 정보 삭제
-    public void deleteSessionInfo(String sessionId) {
-        String userId = redisService.getValues(PREFIX_SESSION_ID + sessionId);
-
-        // user의 가족 목록 load, redis에서 connect 여부 확인 -> 연결 종료되지 않은 내역이 있다면 lastAccessedTime 갱신
-        User user = userRepository.findById(userId).orElseThrow(() -> {
-            throw new BaseException(BaseResponseStatus.FIND_FAIL_USER);
-        });
-        List<Family> familyList = familyRepository.findActiveFamilyByUserId(user);
-
-        for(Family family : familyList) {
-            String key = PREFIX_FAMILY_ID + family.getFamilyId() + ":";
-            Set<String> online_members = redisService.getMembers(key);
-
-            if(online_members.contains(userId)) {
-                redisService.removeMember(key, userId);
-                chatInfoService.renewLastAccessedTime(user, family);
-            }
-        }
-
-        // disconnect 시 session 정보 삭제
-        redisService.deleteValues(PREFIX_SESSION_ID + sessionId);
-    }
-
-
-    // 현재 접속 중 멤버 리스트에 user를 추가
-    public void enterChatRoom(String userId, String familyId) {
-        String key = PREFIX_FAMILY_ID + familyId + ")";
-        redisService.addValues(key, userId);
-    }
-
-    // 현재 접속 중 멤버 리스트에서 user를 제외
-    public void leaveChatRoom(String userId, String familyId) {
-        String key = PREFIX_FAMILY_ID + familyId + ")";
-        redisService.removeMember(key, userId);
-        chatInfoService.renewLastAccessedTime(userId, Long.valueOf(familyId));
-    }
-
     // 메세지 목록 조회 - 읽지 않은 메세지(마지막 접속 기록 기준)
     public List<MessageRes> getUnreadMessages(User user, Long familyId) {
-        return null;
+        // TODO: family가 아닌 userFamily 받아오기
+        Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+        // TODO: family 유효성 검증
+
+        LocalDateTime lastAccessedTime = sessionService.getLastAccessedTime(user, family);
+        List<ChatDocument> chatDocuments = chatDocumentRepository
+                .findByFamilyIdAndSendedTimeAfterOrderBySendedTimeDesc(familyId, lastAccessedTime, PageRequest.of(0, MAXIMUM_MESSAGE));
+
+        List<MessageRes> messages = chatDocuments.stream()
+                .map(message -> MessageRes.builder()
+                        .messageId(message.getId().toString())
+                        .sender(message.getSender())
+                        .message(message.getMessage())
+                        .sendedTime(message.getSendedTime())
+                        .build())
+                .collect(Collectors.toList());
+
+        return messages;
     }
 
     // 메세지 목록 조회 - messageId 이전 메세지
     public List<MessageRes> getPreviousMessages(User user, Long familyId, String messageId) {
-        return null;
+        // TODO: family 유효성 검증
+
+        List<ChatDocument> chatDocuments = chatDocumentRepository.findByFamilyIdAndIdBeforeOrderByIdDesc(
+                familyId, new ObjectId(messageId), PageRequest.of(0, MESSAGE_PAGE)
+        );
+
+        List<MessageRes> messages = chatDocuments.stream()
+                .map(message -> MessageRes.builder()
+                        .messageId(message.getId().toString())
+                        .sender(message.getSender())
+                        .message(message.getMessage())
+                        .sendedTime(message.getSendedTime())
+                        .build())
+                .collect(Collectors.toList());
+
+        return messages;
     }
 
     // 채팅방 목록 조회
     public List<ChatRoomInfo> getMyChatRooms(User user) {
-        return null;
+        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(Optional.of(user));
+
+        List<ChatRoomInfo> chatRoomInfos = userFamilyList.stream()
+                .map(userFamily -> {
+                    Family family = userFamily.getFamilyId();
+
+                    long cntMsg = chatDocumentRepository.countByFamilyIdAndSendedTimeAfter(family.getFamilyId(), userFamily.getLastAccessedTime());
+
+                    return ChatRoomInfo.builder()
+                            .familyId(family.getFamilyId())
+                            .familyName(family.getFamilyName())
+                            .familyProfile(family.getRepresentImg())
+                            .unreadMessages((cntMsg > 300L) ? 300 : Long.valueOf(cntMsg).intValue())
+                            .lastMessage(chatDocumentRepository.findFirstByFamilyIdOrderByIdDesc(family.getFamilyId()).getMessage())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return chatRoomInfos;
     }
 
     // 현재 채팅방 정보 조회 - 유저 정보, 채팅방 정보
-    public ChatRoomInfo getChatRoomInfo(User user, Long familyId) {
-        return null;
+    public ChatMemberInfo getChatRoomInfo(User user, Long familyId) {
+        // TODO: family 유효성 검사
+        Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        List<User> members = userFamilyRepository.findActiveUsersByFamilyId(familyId);
+        List<ChatProfile> chatProfiles = members.stream()
+                .filter(member -> !member.equals(user))
+                .map(member -> ChatProfile.builder()
+                        .id(member.getId())
+                        .nickname(member.getNickname())
+                        .profileImg(member.getProfileImg())
+                        .build())
+                .collect(Collectors.toList());
+
+        return ChatMemberInfo.builder()
+                .familyId(familyId)
+                .familyName(family.getFamilyName())
+                .members(chatProfiles)
+                .build();
     }
 }

@@ -14,8 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.spring.familymoments.config.BaseResponseStatus.minnie_FAMILY_INVALID_USER;
 import static com.spring.familymoments.domain.chat.ChatRedisPrefix.*;
 
 @Slf4j
@@ -85,4 +87,25 @@ public class SessionService {
     public void saveSessionInfo(String sessionId, String userId) {
         redisService.setValues(SESSION_ID.value + sessionId, userId);
     }
+
+    // 마지막 접속 시간 갱신
+    @Transactional
+    public void renewLastAccessedTime(User user, Family family) {
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+                .orElseThrow(()-> new BaseException(minnie_FAMILY_INVALID_USER));
+
+        userFamily.updateLastAccessedTime(LocalDateTime.now());
+
+        userFamilyRepository.save(userFamily);
+    }
+
+    // 마지막 접속 시간 조회 TODO: 삭제
+    @Transactional
+    public LocalDateTime getLastAccessedTime(User user, Family family) {
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+                .orElseThrow(()-> new BaseException(minnie_FAMILY_INVALID_USER));
+
+        return userFamily.getLastAccessedTime();
+    }
+
 }
