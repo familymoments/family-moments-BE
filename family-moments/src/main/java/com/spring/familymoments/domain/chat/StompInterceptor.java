@@ -1,5 +1,7 @@
 package com.spring.familymoments.domain.chat;
 
+import com.spring.familymoments.domain.user.UserService;
+import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -13,37 +15,26 @@ import org.springframework.stereotype.Component;
 public class StompInterceptor implements ChannelInterceptor {
     private static final String NOTIFICATION = "notification";
 
-    private final ChatService chatService;
+    private final SessionService sessionService;
+    private final UserService userService; // TODO: 임시, 차후 삭제
 
     @Override
-    public Message<?> postReceive(Message<?> message, MessageChannel channel) {
+    public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
         StompCommand command = headerAccessor.getCommand();
         String destination = headerAccessor.getDestination();
 
-        if(command.equals(StompCommand.SUBSCRIBE)) {
-//            if(destination.contains(NOTIFICATION)) { // 알림 채널 구독
-//                String userId = destination.replace("/sub/", "").replace("/notification", "");
-//                String sessionId = headerAccessor.getSessionId();
-//            } else { // 가족 채팅방 구독
-//                String subscriptionId = headerAccessor.getSubscriptionId();
-//                String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-//                String familyId = subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1);
-//                System.out.println("subscription Id : " + subscriptionId);
-////                chatService.enterChatRoom(userId, familyId);
-//            }
+        if(command.equals(StompCommand.SUBSCRIBE) && !destination.contains(NOTIFICATION)) {
+            // 가족 채팅방 구독 시
+            // TODO: Authentication
+
+            // TODO: unsub -> sub으로 변경
+        } else if (command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) {
+            //가족 채팅방 구독 해제 시
+            // TODO: Authentication
+
+            // TODO : sub -> unsub으로 변경
         }
-//        else if(command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) { // 가족 채팅 구독 해제
-//            String subscriptionId = headerAccessor.getSubscriptionId();
-//            String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-//
-//            chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
-//        } else if(command.equals(StompCommand.DISCONNECT)) { // 연결 해제
-//            String sessionId = headerAccessor.getSessionId();
-//            chatService.deleteSessionInfo(sessionId);
-//
-//            return null;
-//        }
 
         return message;
     }

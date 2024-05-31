@@ -43,6 +43,17 @@ public class SessionService {
         }
     }
 
+    // 가족 방 구독
+    public void subscribeFamily(String userId, Long familyId) {
+        // userId
+        // TODO: unsub -> sub으로 변경
+    }
+
+    // 가족 방 구독 해제
+    public void unsubscribeFamily(String userId, Long familyId) {
+        // TODO : sub -> unsub으로 변경
+    }
+
     // 접속한 유저의 세션 정보 저장
     public void saveSessionInfo(String sessionId, String userId) {
         redisService.setValues(PREFIX_SESSION_ID + sessionId, userId);
