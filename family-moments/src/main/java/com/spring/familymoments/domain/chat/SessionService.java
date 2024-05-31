@@ -108,17 +108,6 @@ public class SessionService {
         redisService.setValues(SESSION_ID.value + sessionId, userId);
     }
 
-    // 마지막 접속 시간 갱신
-    @Transactional
-    public void renewLastAccessedTime(User user, Family family) {
-        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
-                .orElseThrow(()-> new BaseException(minnie_FAMILY_INVALID_USER));
-
-        userFamily.updateLastAccessedTime(LocalDateTime.now());
-
-        userFamilyRepository.save(userFamily);
-    }
-
     // 마지막 접속 시간 조회 TODO: 삭제
     @Transactional
     public LocalDateTime getLastAccessedTime(User user, Family family) {
