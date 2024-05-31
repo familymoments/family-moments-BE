@@ -22,29 +22,28 @@ public class StompInterceptor implements ChannelInterceptor {
         String destination = headerAccessor.getDestination();
 
         if(command.equals(StompCommand.SUBSCRIBE)) {
-            if(destination.contains(NOTIFICATION)) { // 알림 채널 구독
-                String userId = destination.replace("/sub/", "").replace("/notification", "");
-                String sessionId = headerAccessor.getSessionId();
-
-                chatService.saveSessionInfo(userId, sessionId);
-            } else { // 가족 채팅방 구독
-                String subscriptionId = headerAccessor.getSubscriptionId();
-                String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-                String familyId = subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1);
-
-                chatService.enterChatRoom(userId, familyId);
-            }
-        } else if(command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) { // 가족 채팅 구독 해제
-            String subscriptionId = headerAccessor.getSubscriptionId();
-            String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
-
-            chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
-        } else if(command.equals(StompCommand.DISCONNECT)) { // 연결 해제
-            String sessionId = headerAccessor.getSessionId();
-            chatService.deleteSessionInfo(sessionId);
-
-            return null;
+//            if(destination.contains(NOTIFICATION)) { // 알림 채널 구독
+//                String userId = destination.replace("/sub/", "").replace("/notification", "");
+//                String sessionId = headerAccessor.getSessionId();
+//            } else { // 가족 채팅방 구독
+//                String subscriptionId = headerAccessor.getSubscriptionId();
+//                String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
+//                String familyId = subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1);
+//                System.out.println("subscription Id : " + subscriptionId);
+////                chatService.enterChatRoom(userId, familyId);
+//            }
         }
+//        else if(command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) { // 가족 채팅 구독 해제
+//            String subscriptionId = headerAccessor.getSubscriptionId();
+//            String userId = subscriptionId.substring(0, subscriptionId.lastIndexOf("-"));
+//
+//            chatService.leaveChatRoom(userId, subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
+//        } else if(command.equals(StompCommand.DISCONNECT)) { // 연결 해제
+//            String sessionId = headerAccessor.getSessionId();
+//            chatService.deleteSessionInfo(sessionId);
+//
+//            return null;
+//        }
 
         return message;
     }

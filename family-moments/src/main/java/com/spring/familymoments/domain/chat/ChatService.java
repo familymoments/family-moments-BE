@@ -23,7 +23,6 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    private static final String PREFIX_USER_ID = "UI)";
     private static final String PREFIX_SESSION_ID = "SI)";
     private static final String PREFIX_FAMILY_ID = "FM";
 
@@ -54,11 +53,7 @@ public class ChatService {
         return messageRes;
     }
 
-    // 접속한 유저의 세션 정보 저장
-    public void saveSessionInfo(String userId, String sessionId) {
-        redisService.setValues(PREFIX_USER_ID + userId, sessionId);
-        redisService.setValues(PREFIX_SESSION_ID + sessionId, userId);
-    }
+
 
     // 유저의 세션 정보 삭제
     public void deleteSessionInfo(String sessionId) {
@@ -82,7 +77,6 @@ public class ChatService {
 
         // disconnect 시 session 정보 삭제
         redisService.deleteValues(PREFIX_SESSION_ID + sessionId);
-        redisService.deleteValues(PREFIX_USER_ID + userId);
     }
 
 

@@ -338,4 +338,10 @@ public class UserService {
         redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
     }
 
+    // TODO: 임시 method, 차후 삭제
+    public User getUserById(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
+
+        return user;
+    }
 }
