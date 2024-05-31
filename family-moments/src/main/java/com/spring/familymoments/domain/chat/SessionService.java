@@ -31,6 +31,7 @@ public class SessionService {
     private final UserRepository userRepository;
 
     // 연결
+    @Transactional
     public void connect(String sessionId, User user) {
         saveSessionInfo(sessionId, user.getUuid());
 
@@ -48,6 +49,7 @@ public class SessionService {
     }
 
     // 연결 해제
+    @Transactional
     public void disconnect(String sessionId) {
         String uuid = redisService.getValues(SESSION_ID.value + sessionId);
         User user = userRepository.findUserByUuid(uuid).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_USER));
@@ -56,19 +58,21 @@ public class SessionService {
         List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByUserId(user.getUserId());
 
         for(UserFamily userFamily : userFamilyList) {
-            Set<String> members = redisService.getMembers(FAMILY_UNSUB.value + userFamily.getFamilyId());
+            Family family = userFamily.getFamilyId();
+
+            Set<String> members = redisService.getMembers(FAMILY_UNSUB.value + family.getFamilyId());
             boolean isSubscribing = !members.contains(uuid);
 
             // unsub 세션에서 제거
-            redisService.removeMember(FAMILY_UNSUB.value + userFamily.getFamilyId(), uuid);
+            redisService.removeMember(FAMILY_UNSUB.value + family.getFamilyId(), uuid);
 
-            // sub 중인 채팅방이 있다면 unsub처리 (lastAccessedTime 갱신을 위함)
+            // sub 중인 채팅방이 있다면 lastAccessedTime 갱신
             if(isSubscribing) {
-                unsubscribeFamily(userFamily);
+                userFamily.updateLastAccessedTime(LocalDateTime.now());
             }
 
             // offline 세션에 추가
-            redisService.addValues(FAMILY_OFF.value + userFamily.getFamilyId(), uuid);
+            redisService.addValues(FAMILY_OFF.value + family.getFamilyId(), uuid);
         }
 
         // sessionId:userID 삭제
@@ -87,6 +91,7 @@ public class SessionService {
     }
 
     // 가족 방 구독 해제
+    @Transactional
     public void unsubscribeFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
@@ -95,6 +100,7 @@ public class SessionService {
     }
 
     // 가족 방 구독 해제
+    @Transactional
     public void unsubscribeFamily(UserFamily userFamily) {
         // 마지막 접속 시간 갱신
         userFamily.updateLastAccessedTime(LocalDateTime.now());
