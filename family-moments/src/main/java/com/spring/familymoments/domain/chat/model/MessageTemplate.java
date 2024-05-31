@@ -14,6 +14,6 @@ public class MessageTemplate {
     private Object contents;
 
     public enum MessageType {
-        MESSAGE, NOTICE;
+        MESSAGE, INFO, NOTIFICATION;
     }
 }

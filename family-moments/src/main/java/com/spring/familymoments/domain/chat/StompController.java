@@ -12,7 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.time.LocalDateTime;
 
 @Controller
-@MessageMapping("familyId")
+@MessageMapping("")
 @RequiredArgsConstructor
 public class StompController {
     private final SimpMessagingTemplate simpMessagingTemplate;
@@ -26,5 +26,6 @@ public class StompController {
         simpMessagingTemplate.convertAndSend("/sub/" + familyId, response);
 
         // TODO: online-unsub & offline 유저에게 알림 발송
+        chatService.sendAlarm(familyId, messageRes);
     }
 }
