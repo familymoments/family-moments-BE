@@ -26,14 +26,21 @@ public class StompInterceptor implements ChannelInterceptor {
 
         if(command.equals(StompCommand.SUBSCRIBE) && !destination.contains(NOTIFICATION)) {
             // 가족 채팅방 구독 시
-            // TODO: Authentication
+            // TODO: Authentication - user & familyId (SubscriptionId 검증)
+            String userId = headerAccessor.getNativeHeader("id").get(0);
+            User user = userService.getUserById(userId);
+            String subscriptionId = headerAccessor.getSubscriptionId();
 
-            // TODO: unsub -> sub으로 변경
+
+            Long familyId = Long.valueOf(subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
+
+            // TODO: unsub 제거
+            sessionService.subscribeFamily(user, familyId);
         } else if (command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) {
             //가족 채팅방 구독 해제 시
-            // TODO: Authentication
+            // TODO: Authentication - user & familyId (SubscriptionId 검증)
 
-            // TODO : sub -> unsub으로 변경
+            // TODO : unsub 추가
         }
 
         return message;

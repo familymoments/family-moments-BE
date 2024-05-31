@@ -1,15 +1,17 @@
 package com.spring.familymoments.domain.chat;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.BaseResponseStatus;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
+import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.redis.RedisService;
-import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,12 +21,12 @@ import java.util.List;
 public class SessionService {
     private static final String PREFIX_SESSION_ID = "SI)";
     private static final String PREFIX_FAMILY_ID = "FM)";
-    private static final String SUBPREFIX_FAMILY_SUB = "SUB-";
     private static final String SUBPREFIX_FAMILY_UNSUB = "UNSUB-";
     private static final String SUBPREFIX_FAMILY_OFF = "OFF-";
 
     private final RedisService redisService;
     private final UserFamilyRepository userFamilyRepository;
+    private final FamilyRepository familyRepository;
 
     // 연결
     public void connect(String sessionId, User user) {
@@ -44,13 +46,17 @@ public class SessionService {
     }
 
     // 가족 방 구독
-    public void subscribeFamily(String userId, Long familyId) {
-        // userId
-        // TODO: unsub -> sub으로 변경
+    @Transactional(readOnly = true)
+    public void subscribeFamily(User user, Long familyId) {
+        Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
+
+        // TODO: unsub 제거
+        redisService.removeMember(PREFIX_FAMILY_ID + SUBPREFIX_FAMILY_UNSUB + familyId, user.getUuid());
     }
 
     // 가족 방 구독 해제
-    public void unsubscribeFamily(String userId, Long familyId) {
+    public void unsubscribeFamily(User user, Long familyId) {
         // TODO : sub -> unsub으로 변경
     }
 
