@@ -28,22 +28,21 @@ public class StompInterceptor implements ChannelInterceptor {
             // 가족 채팅방 구독 시
             // TODO: Authentication - user & familyId (SubscriptionId 검증)
             // TODO: User 정보 검증 과정 수정 필요
-            String userId = headerAccessor.getNativeHeader("id").get(0);
+            String userInfo = headerAccessor.getNativeHeader("id").get(0);
+            String userId = userInfo.substring(0, userInfo.lastIndexOf("-"));
+            Long familyId = Long.valueOf(userInfo.substring(userInfo.lastIndexOf("-") + 1));
             User user = userService.getUserById(userId);
-            String subscriptionId = headerAccessor.getSubscriptionId();
-
-            Long familyId = Long.valueOf(subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
 
             sessionService.subscribeFamily(user, familyId);
-        } else if (command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) {
-            //가족 채팅방 구독 해제 시
+        } else if (command.equals(StompCommand.UNSUBSCRIBE)) {
+            //구독 해제 시
+            // TODO: 가족 채팅방 - noti 채널 구분 필요
             // TODO: Authentication - user & familyId (SubscriptionId 검증)
             // TODO: User 정보 검증 과정 수정 필요
-            String userId = headerAccessor.getNativeHeader("id").get(0);
+            String userInfo = headerAccessor.getNativeHeader("id").get(0);
+            String userId = userInfo.substring(0, userInfo.lastIndexOf("-"));
+            Long familyId = Long.valueOf(userInfo.substring(userInfo.lastIndexOf("-") + 1));
             User user = userService.getUserById(userId);
-            String subscriptionId = headerAccessor.getSubscriptionId();
-
-            Long familyId = Long.valueOf(subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
 
             sessionService.unsubscribeFamily(user, familyId);
         }

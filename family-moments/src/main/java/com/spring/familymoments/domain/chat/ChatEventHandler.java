@@ -23,6 +23,7 @@ public class ChatEventHandler {
 
         // TODO: 유저 & 세션 정보 확인, Authentication 필요
         String sessionId = headerAccessor.getSessionId();
+
         // TODO: User 정보 검증 과정 수정 필요
         String userId = headerAccessor.getNativeHeader("id").get(0);
         User user = userService.getUserById(userId);
@@ -32,10 +33,7 @@ public class ChatEventHandler {
 
     @EventListener
     public void handleSessionDisconnected(SessionDisconnectEvent event) {
-        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap((Message<?>) accessor.getHeader("simpConnectMessage"));
-
-        String sessionId = headerAccessor.getSessionId();
+        String sessionId = event.getSessionId();
 
         sessionService.disconnect(sessionId);
     }
