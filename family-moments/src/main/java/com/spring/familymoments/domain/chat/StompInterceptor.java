@@ -31,16 +31,19 @@ public class StompInterceptor implements ChannelInterceptor {
             User user = userService.getUserById(userId);
             String subscriptionId = headerAccessor.getSubscriptionId();
 
-
             Long familyId = Long.valueOf(subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
 
-            // TODO: unsub 제거
             sessionService.subscribeFamily(user, familyId);
         } else if (command.equals(StompCommand.UNSUBSCRIBE) && !destination.contains(NOTIFICATION)) {
             //가족 채팅방 구독 해제 시
             // TODO: Authentication - user & familyId (SubscriptionId 검증)
+            String userId = headerAccessor.getNativeHeader("id").get(0);
+            User user = userService.getUserById(userId);
+            String subscriptionId = headerAccessor.getSubscriptionId();
 
-            // TODO : unsub 추가
+            Long familyId = Long.valueOf(subscriptionId.substring(subscriptionId.lastIndexOf("-") + 1));
+
+            sessionService.unsubscribeFamily(user, familyId);
         }
 
         return message;

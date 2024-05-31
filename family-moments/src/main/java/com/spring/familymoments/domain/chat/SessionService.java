@@ -51,13 +51,15 @@ public class SessionService {
         Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
 
-        // TODO: unsub 제거
         redisService.removeMember(PREFIX_FAMILY_ID + SUBPREFIX_FAMILY_UNSUB + familyId, user.getUuid());
     }
 
     // 가족 방 구독 해제
     public void unsubscribeFamily(User user, Long familyId) {
-        // TODO : sub -> unsub으로 변경
+        Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(BaseResponseStatus.FIND_FAIL_FAMILY));
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family).orElseThrow(() -> new BaseException(BaseResponseStatus.minnie_FAMILY_INVALID_USER));
+
+        redisService.addValues(PREFIX_FAMILY_ID + SUBPREFIX_FAMILY_UNSUB + familyId, user.getUuid());
     }
 
     // 접속한 유저의 세션 정보 저장
