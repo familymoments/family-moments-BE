@@ -33,9 +33,11 @@ public class ChatEventHandler {
 
     @EventListener
     public void handleSessionDisconnected(SessionDisconnectEvent event) {
-        // TODO: sessionId : userId 확인
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(event.getMessage());
+        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap((Message<?>) accessor.getHeader("simpConnectMessage"));
 
-        // TODO: userID를 바탕으로 connect or unsub 중인 내역이 있다면 offline으로 변경
-        // TODO: sessionId:userID 삭제
+        String sessionId = headerAccessor.getSessionId();
+
+        sessionService.disconnect(sessionId);
     }
 }
