@@ -2,8 +2,8 @@ package com.spring.familymoments.domain.chat;
 
 import com.spring.familymoments.domain.chat.model.MessageReq;
 import com.spring.familymoments.domain.chat.model.MessageRes;
+import com.spring.familymoments.domain.chat.model.MessageTemplate;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -21,6 +21,7 @@ public class StompController {
     @MessageMapping("{familyId}.send")
     public void handleSend(@DestinationVariable("familyId") long familyId, MessageReq messageReq) {
         MessageRes messageRes = chatService.createChat(familyId, messageReq);
-        simpMessagingTemplate.convertAndSend("/sub/" + familyId, messageRes);
+        MessageTemplate response = new MessageTemplate(MessageTemplate.MessageType.MESSAGE, messageRes);
+        simpMessagingTemplate.convertAndSend("/sub/" + familyId, response);
     }
 }
