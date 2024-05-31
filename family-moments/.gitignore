@@ -262,3 +262,4 @@ gradle-app.setting
 ### Gradle Patch ###
 # Java heap dump
 *.hprof
+/src/main/java/com/spring/familymoments/domain/chat/ChatRedisPrefix.java
