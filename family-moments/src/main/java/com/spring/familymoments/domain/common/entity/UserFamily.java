@@ -9,6 +9,7 @@ import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @EqualsAndHashCode(callSuper = false)
 @Entity
@@ -20,7 +21,6 @@ import javax.persistence.*;
 @DynamicInsert
 @DynamicUpdate
 public class UserFamily extends BaseTime {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mappingId" , nullable = false, updatable = false)
@@ -42,6 +42,10 @@ public class UserFamily extends BaseTime {
     @JoinColumn(name = "inviteUserId", nullable = false)
     private User inviteUserId;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private LocalDateTime lastAccessedTime = LocalDateTime.now();
+
     public enum Status {
         ACTIVE, INACTIVE, DEACCEPT, REJECT;
     }
@@ -50,5 +54,10 @@ public class UserFamily extends BaseTime {
      */
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    // 마지막 접속 시간 갱신 메소드
+    public void updateLastAccessedTime(LocalDateTime newTime) {
+        this.lastAccessedTime = newTime;
     }
 }
