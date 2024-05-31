@@ -36,4 +36,9 @@ public class ChatService {
 
         return messageRes;
     }
+
+    public void sendAlarm(long familyId, MessageRes messageRes) {
+        // TODO: Online-unsub 유저에게 알림 발송
+        // TODO: offline 유저에게 알림 발송
+    }
 }

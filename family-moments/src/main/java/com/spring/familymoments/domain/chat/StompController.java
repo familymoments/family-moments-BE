@@ -22,6 +22,9 @@ public class StompController {
     public void handleSend(@DestinationVariable("familyId") long familyId, MessageReq messageReq) {
         MessageRes messageRes = chatService.createChat(familyId, messageReq);
         MessageTemplate response = new MessageTemplate(MessageTemplate.MessageType.MESSAGE, messageRes);
+
         simpMessagingTemplate.convertAndSend("/sub/" + familyId, response);
+
+        // TODO: online-unsub & offline 유저에게 알림 발송
     }
 }
