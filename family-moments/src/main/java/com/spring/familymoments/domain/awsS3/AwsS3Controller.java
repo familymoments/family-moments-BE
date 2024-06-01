@@ -2,6 +2,8 @@ package com.spring.familymoments.domain.awsS3;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/s3")
+@Tag(name = "S3", description = "S3 API Document")
 public class AwsS3Controller {
 
     @Autowired
@@ -23,6 +26,7 @@ public class AwsS3Controller {
 
     @ResponseBody
     @PostMapping("/image")
+    @Operation(summary = "이미지 등록", description = "이미지 한 개를 S3에 등록하고 URL을 반환합니다.")
     public BaseResponse<String> uploadImage(@RequestParam(name = "image") MultipartFile image) throws BaseException {
         String fileUrl = awsS3Service.uploadImage(image);
         return new BaseResponse<>(fileUrl);
@@ -30,6 +34,7 @@ public class AwsS3Controller {
 
     @ResponseBody
     @PostMapping("/images")
+    @Operation(summary = "다중 이미지 등록", description = "이미지 여러 개를 S3에 등록하고 URL을 반환합니다.")
     public BaseResponse<List<String>> uploadImages(@RequestPart(required = false) List<MultipartFile> images) throws BaseException {
         List<String> fileUrls = awsS3Service.uploadImages(images);
         return new BaseResponse<>(fileUrls);
@@ -37,6 +42,7 @@ public class AwsS3Controller {
 
     @ResponseBody
     @DeleteMapping("")
+    @Operation(summary = "이미지 삭제", description = "이미지를 S3에서 삭제합니다.")
     public BaseResponse<String> deleteImage(String fileName) {
         try {
             awsS3Service.deleteImage(fileName);

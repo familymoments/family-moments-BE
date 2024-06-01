@@ -39,6 +39,22 @@ public class PostLoveService {
     }
 
     /**
+     * checkUserPostLove
+     * [GET]
+     * @return
+     */
+    public boolean checkPostLoveByUser(Long postId, Long userId) {
+
+        User member = userRepository.findById(userId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
+
+        Post post = postWithLoveRepository.findByPostId(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+
+        return postLoveRepository.existsByPostIdAndUserId(post, member);
+    }
+
+    /**
      * createLove
      * [POST]
      * @return
@@ -61,6 +77,8 @@ public class PostLoveService {
                 .userId(member)
                 .build();
 
+        int countLove = post.getCountLove();
+        post.increaseCountLove(countLove);
         postLoveRepository.save(postLove);
     }
 
@@ -85,6 +103,8 @@ public class PostLoveService {
         PostLove postLove = postLoveRepository.findByPostIdAndUserId(post, member)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_POSTLOVE));
 
+        int countLove = post.getCountLove();
+        post.decreaseCountLove(countLove);
         postLoveRepository.delete(postLove);
     }
 

@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.domain.redis.RedisService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.GetUserIdRes;
 import com.spring.familymoments.domain.user.model.PostEmailReq;
@@ -16,7 +17,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.Objects;
 
-import static com.spring.familymoments.config.BaseResponseStatus.FIND_FAIL_USER_EMAIL;
+import static com.spring.familymoments.config.BaseResponseStatus.*;
 
 @Slf4j
 @Service
@@ -25,6 +26,8 @@ public class EmailService {
 
     private final UserRepository userRepository;
 
+    private final RedisService redisService;
+    
     private final JavaMailSender emailSender;
 
     private String randomVerificationCode;
@@ -34,8 +37,11 @@ public class EmailService {
      *
      * @return String
      */
-    public String createRandomCode(){
+    public String createRandomCode(String email){
         randomVerificationCode = RandomStringUtils.random(6, 33, 125, false, true);
+        int CODE_EXPIRATION_TIME = 3 * 60 * 1000; // 인증 코드 유효 시간: 3분
+
+        redisService.setValuesWithTimeout("VC(" + email + "):", randomVerificationCode, CODE_EXPIRATION_TIME);
 
         return randomVerificationCode;
     }
@@ -47,7 +53,7 @@ public class EmailService {
      */
     public MimeMessage createEmailForm(String email) throws MessagingException, UnsupportedEncodingException {
 
-        createRandomCode();
+        createRandomCode(email);
 
         String emailReceiver = email; //받는 사람
         String title = "Family Moments 본인 인증 번호";
@@ -99,9 +105,21 @@ public class EmailService {
      * [GET]
      * @return 같은 값이면 true, 그렇지 않으면 false
      */
-    public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) {
+    public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) throws BaseException {
+
+        // 일치하는 회원 정보가 없는 경우
+        if(!checkNameAndEmail(req)) {
+            throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
+        }
+        
+        // 유효 시간이 만료된 경우
+        if(!redisService.hasKey("VC("+ req.getEmail() + "):")) {
+            throw new BaseException(VERIFICATION_TIME_EXPIRED);
+        }
 
         // randomVerificationCode = emailService.sendEmail(req.getName(), req.getEmail());
+        randomVerificationCode = redisService.getValues("VC("+ req.getEmail() + "):");
+
         return Objects.equals(req.getCode(), randomVerificationCode);
     }
 
@@ -119,6 +137,9 @@ public class EmailService {
         userId = member.getId();
 
         getUserId(userId);
+
+        // 인증코드 인증 완료 후 redis 에서 삭제
+        redisService.deleteValues("VC("+ req.getEmail() + "):");
 
         return new GetUserIdRes(userId);
     }
