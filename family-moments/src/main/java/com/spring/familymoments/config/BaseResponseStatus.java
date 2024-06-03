@@ -28,6 +28,7 @@ public enum BaseResponseStatus {
     INVALID_SOCIAL_TOKEN(false, HttpStatus.BAD_REQUEST.value(), "소셜 accesstoken이 유효하지 않습니다."),
     TOKEN_RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
+    TOKEN_REISSUE_ERROR(false, 471, "토큰 발급을 실패했습니다."),
 
     // users
     USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디를 입력해주세요."),
