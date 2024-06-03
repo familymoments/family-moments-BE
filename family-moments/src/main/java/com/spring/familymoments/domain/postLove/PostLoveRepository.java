@@ -2,8 +2,8 @@ package com.spring.familymoments.domain.postLove;
 
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
+import com.spring.familymoments.domain.postLove.model.PostLoveRes;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.domain.user.model.CommentRes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,12 +17,12 @@ public interface PostLoveRepository extends JpaRepository<PostLove, Long> {
 
     Optional<PostLove> findByPostIdAndUserId(Post post, User user);
 
-    @Query("SELECT new com.spring.familymoments.domain.user.model.CommentRes(u.nickname, u.profileImg) " +
+    @Query("SELECT new com.spring.familymoments.domain.postLove.model.PostLoveRes(u.nickname, u.profileImg) " +
             "FROM PostLove pl JOIN pl.userId u " +
             "WHERE pl.postId = :post " +
             "AND pl.status = 'ACTIVE' " +
             "order by pl.updatedAt ASC")
-    List<CommentRes> findByPost(Post post);
+    List<PostLoveRes> findByPost(@Param("post") Post post);
 
     boolean existsByPostIdAndUserId(Post post, User user);
 
