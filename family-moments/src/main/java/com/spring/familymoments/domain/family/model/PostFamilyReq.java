@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 @Getter
@@ -20,10 +21,9 @@ public class PostFamilyReq {
     @NotBlank(message = "가족 이름을 입력해주세요.")
     @Schema(description = "가족 이름" , example = "FamilyMoments")
     private String familyName;
-    @NotBlank(message = "알림 주기를 설정해주세요.")
+
     @Schema(description = "업로드 사이클" , example = "1")
     private int uploadCycle;
-
 
     public Family toEntity() {
         return Family.builder()
