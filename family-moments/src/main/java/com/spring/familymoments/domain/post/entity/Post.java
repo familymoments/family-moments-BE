@@ -63,4 +63,11 @@ public class Post extends BaseEntity {
     public void updateStatus(Status status) {
         this.status = status;
     }
+
+    /**
+     * 게시물 조회 API 관련 메소드
+     */
+    public boolean isWriter(User user) {
+        return user.equals(this.writer);
+    }
 }
