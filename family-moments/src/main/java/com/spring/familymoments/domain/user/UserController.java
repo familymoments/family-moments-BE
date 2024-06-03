@@ -477,4 +477,15 @@ public class UserController {
         fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
+
+    /**
+     * 유저 신고 API
+     * [POST] /users/report
+     */
+    @PostMapping("/users/report/{userId}")
+    public BaseResponse<String> reportUser(@PathVariable Long userId) {
+        userService.reportUser(userId);
+        return new BaseResponse<>("유저를 신고했습니다.");
+    }
+
 }
