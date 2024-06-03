@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -57,13 +58,10 @@ public class UserController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "회원 가입", description = "회원 가입에 사용되는 API 입니다.")
     public BaseResponse<PostUserRes> createUser(@Parameter(description = "새로운 회원의 가입 정보")
-                                                    @RequestPart("newUser") PostUserReq.joinUser postUserReq,
+                                                    @Valid @RequestPart("newUser") PostUserReq.joinUser postUserReq,
                                                 @Parameter(description = "새로운 회원의 프로필 이미지")
                                                     @RequestPart("profileImg") MultipartFile profileImage) {
         //아이디
-        if (postUserReq.getId().isEmpty()) {
-            return new BaseResponse<>(USERS_EMPTY_USER_ID);
-        }
         if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
@@ -73,20 +71,10 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if (postUserReq.getPassword().isEmpty()) {
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
         if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
-        //이름
-        if (postUserReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
         //이메일
-        if (postUserReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
@@ -96,16 +84,10 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
-        if (postUserReq.getStrBirthDate().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
-        }
         if (!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if (postUserReq.getNickname().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
-        }
         if (!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
