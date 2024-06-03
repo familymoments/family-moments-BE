@@ -53,11 +53,10 @@ public class PostService {
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
         // Post builder 생성
-        Post.PostBuilder postBuilder = Post.builder()
-                .writer(user).familyId(family);
-
-        // build
-        Post params = postBuilder.build();
+        Post params = Post.builder()
+                .writer(user)
+                .familyId(family)
+                .build();
 
         Post result = postRepository.save(params);
 
@@ -71,13 +70,11 @@ public class PostService {
         family.updateLatestUploadAt();
 
         // PostDocument builder 생성
-        PostDocument.PostDocumentBuilder postDocumentBuilder = PostDocument.builder()
+        PostDocument docParams = PostDocument.builder()
                 .entityId(result.getPostId())
                 .content(postReq.getContent())
-                .urls(urls);
-
-        // build
-        PostDocument docParams = postDocumentBuilder.build();
+                .urls(urls)
+                .build();
 
         PostDocument docResult = postDocumentRepository.save(docParams);
 
@@ -97,7 +94,7 @@ public class PostService {
                 .countLove(0).loved(false) // 새로 생성된 Post 이므로 default return
                 .written(true) // 새로 생성된 Post 이므로 default return
                 .build();
-        
+
         // 새로 만들어진 객체 반환
         return singlePostRes;
     }
