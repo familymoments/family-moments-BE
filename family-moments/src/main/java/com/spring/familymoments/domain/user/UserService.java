@@ -344,4 +344,18 @@ public class UserService {
         //socialUserService.deleteSocialUserWithRedisProcess(user);
     }
 
+    public void reportUser(Long toUserId) {
+        User toUser = userRepository.findById(toUserId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        //누적 횟수 3회차, INACTIVE
+        if(toUser.getReported() == 2) {
+            toUser.updateStatus(User.Status.INACTIVE);
+        }
+
+        //신고 횟수 업데이트
+        toUser.updateReported(toUser.getReported() + 1);
+        userRepository.save(toUser);
+    }
+
 }
