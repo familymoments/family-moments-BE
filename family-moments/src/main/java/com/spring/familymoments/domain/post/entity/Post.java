@@ -63,4 +63,9 @@ public class Post extends BaseEntity {
     public void updateStatus(Status status) {
         this.status = status;
     }
+
+    /**
+     * 게시물 신고 API 관련 메소드
+     */
+    public void updateReported(int reported) { this.reported = reported; }
 }
