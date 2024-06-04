@@ -54,7 +54,6 @@ public class AwsS3Service {
             return fileUrl;
         }
         catch (Exception e){
-            System.out.println(e);
             throw new BaseException(POST_FAIL_S3);
         }
     }

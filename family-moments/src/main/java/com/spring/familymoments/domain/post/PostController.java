@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -45,10 +43,7 @@ public class PostController {
     public BaseResponse<SinglePostRes> createPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                   @RequestParam("familyId") long familyId,
                                                   @RequestPart("postInfo") PostInfoReq postInfoReq,
-                                                  @RequestPart("img1")MultipartFile img1,
-                                                  @RequestPart(name = "img2", required = false)MultipartFile img2,
-                                                  @RequestPart(name = "img3", required = false)MultipartFile img3,
-                                                  @RequestPart(name = "img4", required = false)MultipartFile img4){
+                                                  @RequestPart("imgs") List<MultipartFile> imgs){
         if(postInfoReq == null) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_POST_INFO);
         }
@@ -57,14 +52,12 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_EMPTY_CONTENT);
         }
 
-        List<MultipartFile> imgs = new ArrayList<>();
-
-        Stream.of(img1, img2, img3, img4)
-                .filter(img -> img != null)
-                .forEach(img -> imgs.add(img));
-
         if(imgs.isEmpty()) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_IMAGE);
+        }
+
+        if(imgs.size() > 10) {
+            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
         }
 
         PostReq postReq = PostReq.builder()
@@ -94,18 +87,14 @@ public class PostController {
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @PathVariable long postId,
                                                 @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
-                                                @RequestPart(name = "img1", required = false)MultipartFile img1,
-                                                @RequestPart(name = "img2", required = false)MultipartFile img2,
-                                                @RequestPart(name = "img3", required = false)MultipartFile img3,
-                                                @RequestPart(name = "img4", required = false)MultipartFile img4) {
-        if(postInfoReq == null && img1 == null && img2 == null && img3 == null && img4 == null) {
+                                                @RequestPart("imgs") List<MultipartFile> imgs) {
+        if(postInfoReq == null && imgs.isEmpty()) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
 
-        List<MultipartFile> imgs = new ArrayList<>();
-
-        Stream.of(img1, img2, img3, img4)
-                .forEach(img -> imgs.add(img));
+        if(imgs.size() > 10) {
+            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
+        }
 
         PostReq postReq = PostReq.builder()
                 .content((postInfoReq != null) ? postInfoReq.getContent() : null)
@@ -140,15 +129,15 @@ public class PostController {
     /**
      * 최근 10개 게시글 조회 API
      * [GET] /posts?familyId={가족인덱스}
-     * @return BaseResponse<List<MultiPostRes>>
+     * @return BaseResponse<List<SinglePostRes>>
      */
     @ResponseBody
     @GetMapping(params = {"familyId"})
     @Operation(summary = "게시글 10건 조회", description = "최근 10개의 게시글을 조회합니다.")
-    public BaseResponse<List<MultiPostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId) {
+    public BaseResponse<List<SinglePostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId) {
         try {
-            List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId);
-            return new BaseResponse<>(multiPostRes);
+            List<SinglePostRes> singlePostRes = postService.getPosts(user.getUserId(), familyId);
+            return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
@@ -157,15 +146,15 @@ public class PostController {
     /**
      * 10개 게시글 조회 API
      * [GET] /posts?familyId={가족인덱스}&postId={이전 게시물의 최소 postId}
-     * @return BaseResponse<List<MultiPostRes>>
+     * @return BaseResponse<List<SinglePostRes>>
      */
     @ResponseBody
     @GetMapping(params = {"familyId", "postId"})
     @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
-    public BaseResponse<List<MultiPostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
+    public BaseResponse<List<SinglePostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         try {
-            List<MultiPostRes> multiPostRes = postService.getPosts(user.getUserId(), familyId, postId);
-            return new BaseResponse<>(multiPostRes);
+            List<SinglePostRes> singlePostRes = postService.getPosts(user.getUserId(), familyId, postId);
+            return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
@@ -197,14 +186,14 @@ public class PostController {
     @ResponseBody
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day"})
     @Operation(summary = "특정 일자 게시글 10건 조회", description = "특정 일자에 작성된 게시글을 최근 순으로 10건 조회합니다.")
-    public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+    public  BaseResponse<List<SinglePostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                               @RequestParam("familyId") long familyId,
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day) {
         try {
-            List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day);
-            return new BaseResponse<>(multiPostRes);
+            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day);
+            return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
@@ -213,20 +202,20 @@ public class PostController {
     /**
      * 특정 일 최신 10개 게시글 조회 API
      * [GET] /posts/calendar?familyId={가족인덱스}&year={년}&month={월}&day={일}
-     * @return BaseResponse<List<MultiPostRes>>
+     * @return BaseResponse<List<SinglePostRes>>
      */
     @ResponseBody
     @GetMapping(value = "/calendar", params = {"familyId", "year", "month", "day", "postId"})
     @Operation(summary = "특정 일자 게시글 10건 조회(with paging)", description = "특정 일자의 커서 이후 게시글을 10건 조회합니다.")
-    public  BaseResponse<List<MultiPostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+    public  BaseResponse<List<SinglePostRes>> getPostsWithDate(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                               @RequestParam("familyId") long familyId,
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day,
                                                               @RequestParam("postId") long postId) {
         try {
-            List<MultiPostRes> multiPostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day, postId);
-            return new BaseResponse<>(multiPostRes);
+            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day, postId);
+            return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
@@ -235,7 +224,7 @@ public class PostController {
     /**
      * 특정 월 게시물 작성일 조회 API
      * [GET] /posts/calendar?familyId={가족인덱스}&year={년}&month={월}
-     * @return BaseResponse<List<MultiPostRes>>
+     * @return BaseResponse<List<LocalDate>>
      */
    @GetMapping(value = "/calendar", params = {"familyId", "year", "month"})
    @Operation(summary = "작성일자 리스트 조회", description = "해당 월 중 게시물이 작성된 날짜 리스트를 조회합니다.")
@@ -317,5 +306,17 @@ public class PostController {
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
+    }
+
+    /**
+     * 게시글 신고 API
+     * [POST] /posts/report/{postId}
+     *
+     */
+    @PostMapping("/report/{postId}")
+    public BaseResponse<String> reportPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                           @PathVariable Long postId, @RequestBody ContentReportReq contentReportReq) {
+        postService.reportPost(user, postId, contentReportReq);
+        return new BaseResponse<>("게시글을 신고했습니다.");
     }
 }

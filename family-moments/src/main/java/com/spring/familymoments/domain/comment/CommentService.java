@@ -2,12 +2,15 @@ package com.spring.familymoments.domain.comment;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.comment.entity.Comment;
+import com.spring.familymoments.domain.comment.entity.CommentReport;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
+import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.entity.ReportReason;
+import com.spring.familymoments.domain.post.model.ContentReportReq;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,14 +27,11 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 public class CommentService {
     private final CommentWithUserRepository commentWithUserRepository;
     private final PostWithUserRepository postWithUserRepository;
+    private final CommentReportRepository commentReportRepository;
 
     // 댓글 생성하기
     @Transactional
     public void createComment(User user, Long postId, PostCommentReq postCommentReq) throws BaseException {
-
-        // 사용자
-//        User writer = userRepository.findById(userId)
-//                .orElseThrow(() -> new BaseException(FAILED_USERSS_UNATHORIZED));
 
         // 유저 존재 확인
         if(user==null){
@@ -99,7 +99,7 @@ public class CommentService {
 
         // 댓글 존재 확인
         Comment comment = commentWithUserRepository.findById(commentId)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
 
         // 생성자 권한 확인
         if (!comment.getWriter().getUserId().equals(user.getUserId())) {
@@ -116,4 +116,40 @@ public class CommentService {
         commentWithUserRepository.save(comment);
 
     }
+
+    // 댓글 수정
+    @Transactional
+    public void updateComment(Long commentId, PatchCommentReq postCommentReq) throws BaseException{
+        Comment comment = commentWithUserRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
+
+        comment.updateContent(postCommentReq.getContent());
+        commentWithUserRepository.save(comment);
+    }
+
+    @Transactional
+    public void reportComment(User fromUser, Long commentId, ContentReportReq contentReportReq) {
+        Comment comment = commentWithUserRepository.findById(commentId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
+
+        //누적 횟수 3회차, INACTIVE
+        if(comment.getReported() == 2) {
+            comment.updateStatus(BaseEntity.Status.INACTIVE);
+        }
+
+        //신고 사유 저장
+        CommentReport reportedComment = CommentReport.createCommentReport(
+                fromUser,
+                comment,
+                ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
+                contentReportReq.getDetails()
+        );
+        commentReportRepository.save(reportedComment);
+
+        //신고 횟수 업데이트
+        comment.updateReported(comment.getReported() + 1);
+        commentWithUserRepository.save(comment);
+    }
+
+
 }

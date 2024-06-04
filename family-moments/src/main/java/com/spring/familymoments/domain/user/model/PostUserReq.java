@@ -18,10 +18,7 @@ public class PostUserReq {
         private String id;
         @NotBlank(message = "비밀번호를 입력해주세요.")
         @Schema(description = "비밀번호", example = "family1212")
-        private String passwordA;
-        @NotBlank(message = "비밀번호를 한 번 더 입력해주세요.")
-        @Schema(description = "비밀번호 확인", example = "family1212")
-        private String passwordB;
+        private String password;
         @NotBlank(message = "이름을 입력해주세요.")
         @Schema(description = "이름", example = "김철수")
         private String name;

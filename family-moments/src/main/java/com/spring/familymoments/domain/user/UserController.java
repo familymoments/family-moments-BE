@@ -5,7 +5,7 @@ import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
-import com.spring.familymoments.domain.redis.RedisService;
+import com.spring.familymoments.domain.fcm.FCMService;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.domain.user.model.*;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,8 +26,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -45,6 +43,7 @@ public class UserController {
     private final AwsS3Service awsS3Service;
     private final AuthService authService;
     private final JwtService jwtService;
+    private final FCMService fcmService;
 
     /**
      * 회원 가입 API
@@ -74,14 +73,11 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if (postUserReq.getPasswordA().isEmpty() || postUserReq.getPasswordB().isEmpty()) {
+        if (postUserReq.getPassword().isEmpty()) {
             return new BaseResponse<>(EMPTY_PASSWORD);
         }
-        if (!isRegexPw(postUserReq.getPasswordA()) || !isRegexPw(postUserReq.getPasswordB())) {
+        if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
-        }
-        if(!postUserReq.getPasswordA().equals(postUserReq.getPasswordB())) {
-            return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
         }
         //이름
         if (postUserReq.getName().isEmpty()) {
@@ -181,11 +177,11 @@ public class UserController {
             throws MessagingException {
 
         //이름
-        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
+        if(sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
+        if(sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -193,11 +189,9 @@ public class UserController {
         }
 
         try {
-            if(emailService.checkVerificationCode(sendEmailReq) && emailService.checkNameAndEmail(sendEmailReq)) {
+            if(emailService.checkVerificationCode(sendEmailReq)) {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<>(getUserIdRes);
-            } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
-                return new BaseResponse<>(FIND_FAIL_USER_NAME_EMAIL);
             } else {
                 return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
             }
@@ -241,11 +235,11 @@ public class UserController {
             throws MessagingException {
 
         //이름
-        if(sendEmailReq.getName() == null || sendEmailReq.getName().isEmpty()) {
+        if(sendEmailReq.getName().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_NAME);
         }
         //이메일
-        if(sendEmailReq.getEmail() == null || sendEmailReq.getEmail().isEmpty()) {
+        if(sendEmailReq.getEmail().isEmpty()) {
             return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
         }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
@@ -253,11 +247,9 @@ public class UserController {
         }
 
         try {
-            if(emailService.checkVerificationCode(sendEmailReq) && emailService.checkNameAndEmail(sendEmailReq)) {
+            if(emailService.checkVerificationCode(sendEmailReq)) {
                 GetUserIdRes getUserIdRes = emailService.findUserId(sendEmailReq);
                 return new BaseResponse<String>("이메일이 인증되었습니다. 새로운 비밀번호를 입력해주세요.");
-            } else if(emailService.checkVerificationCode(sendEmailReq) && !emailService.checkNameAndEmail(sendEmailReq)) {
-                return new BaseResponse<>(false, FIND_FAIL_USER_NAME_EMAIL.getMessage(), HttpStatus.NOT_FOUND.value());
             } else {
                 return new BaseResponse<>(false, NOT_EQUAL_VERIFICATION_CODE.getMessage(), HttpStatus.BAD_REQUEST.value());
             }
@@ -305,7 +297,7 @@ public class UserController {
      * @return BaseResponse<List<GetInvitationRes>>
      */
     @GetMapping("/users/invitation")
-    @Operation(summary = "초대 리스트 확인", description = "사용자가 받은 모든 초대 리스트를 확인할 수 있는 API입니다.")
+    @Operation(summary = "초대 리스트 확인", description = "사용자가 아직 수락하지 않은 초대 리스트를 확인할 수 있는 API입니다.")
     public BaseResponse<List<GetInvitationRes>> getInvitationList(@AuthenticationPrincipal @Parameter(hidden=true) User user){
         try {
             List<GetInvitationRes> getInvitationRes = userService.getInvitationList(user);
@@ -432,14 +424,11 @@ public class UserController {
 
         try {
             if(userService.checkDuplicateId(memberId)) {
+                if(patchPwdWithoutLoginReq.getPasswordA().isEmpty() || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
+                    return new BaseResponse<>(EMPTY_PASSWORD);
+                }
                 if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
-                }
-                if(patchPwdWithoutLoginReq.getPasswordA() == "" || patchPwdWithoutLoginReq.getPasswordA().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
-                }
-                if(patchPwdWithoutLoginReq.getPasswordB() == "" || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
                 }
                 if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
@@ -485,6 +474,18 @@ public class UserController {
     })
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         userService.deleteUserWithRedisProcess(user, requestAccessToken);
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
+
+    /**
+     * 유저 신고 API
+     * [POST] /users/report
+     */
+    @PostMapping("/users/report/{userId}")
+    public BaseResponse<String> reportUser(@PathVariable Long userId) {
+        userService.reportUser(userId);
+        return new BaseResponse<>("유저를 신고했습니다.");
+    }
+
 }

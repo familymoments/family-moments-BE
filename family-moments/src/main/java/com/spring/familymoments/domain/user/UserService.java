@@ -1,13 +1,12 @@
 package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.alarmSetting.AlarmSettingService;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
 import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
 import com.spring.familymoments.domain.commentLove.entity.CommentLove;
-import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -17,6 +16,7 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
+//import com.spring.familymoments.domain.socialInfo.SocialUserService;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -57,6 +57,8 @@ public class UserService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
+    private final AlarmSettingService alarmSettingService;
+    //private final SocialUserService socialUserService;
 
     /**
      * createUser
@@ -89,7 +91,7 @@ public class UserService {
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
-                .password(passwordEncoder.encode(postUserReq.getPasswordA()))
+                .password(passwordEncoder.encode(postUserReq.getPassword()))
                 .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
                 .birthDate(parsedBirthDate)
@@ -97,6 +99,7 @@ public class UserService {
                 .status(User.Status.ACTIVE)
                 .build();
         userRepository.save(user);
+        alarmSettingService.createAlarmSetting(user);   // 알림 ON으로 설정(채팅알림, 업로드주기알림, 포스팅알림)
 
         return new PostUserRes(user.getEmail(), user.getNickname(), user.getProfileImg());
     }
@@ -149,7 +152,7 @@ public class UserService {
         Long totalUpload = 0L;
         if(familyId != null) {
             Family family = familyRepository.findById(familyId).orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
-            totalUpload = postWithUserRepository.countByWriterAndFamilyId(user, family);
+            totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
         }
 
         String formatPattern = "yyyyMMdd"; //생년월일
@@ -204,7 +207,7 @@ public class UserService {
      * [GET] /users/invitation
      * @return List<GetInvitationRes>: 회원이 받은 초대 요청 리스트
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public List<GetInvitationRes> getInvitationList(User loginUser){
         List<GetInvitationRes> getInvitationResList = new ArrayList<>();
         List<UserFamily> userFamilyList = userFamilyRepository.findAllByUserIdOrderByCreatedAtDesc(loginUser);
@@ -336,6 +339,9 @@ public class UserService {
         //Redis에 탈퇴 처리한 AT 저장
         long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
         redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+
+        //소셜 회원 탈퇴 처리
+        //socialUserService.deleteSocialUserWithRedisProcess(user);
     }
 
     // TODO: 임시 method, 차후 삭제
@@ -343,5 +349,19 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
         return user;
+    }
+  
+    public void reportUser(Long toUserId) {
+        User toUser = userRepository.findById(toUserId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        //누적 횟수 3회차, INACTIVE
+        if(toUser.getReported() == 2) {
+            toUser.updateStatus(User.Status.INACTIVE);
+        }
+
+        //신고 횟수 업데이트
+        toUser.updateReported(toUser.getReported() + 1);
+        userRepository.save(toUser);
     }
 }

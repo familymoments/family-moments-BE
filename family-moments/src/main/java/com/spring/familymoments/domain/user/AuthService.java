@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -70,10 +69,12 @@ public class AuthService {
      */
     public PostLoginRes login_familyId(String id) {
         List<UserFamily> userFamilyList = userFamilyRepository.findFirstActiveUserFamilyByUserId(id, PageRequest.of(0,1));
-        if(userFamilyList.size() == 0) {
-            throw new BaseException(FIND_FAIL_FAMILY_IN_LIST);
+
+        Long familyId = null;
+        if(userFamilyList.size() != 0) {
+            familyId = userFamilyList.get(0).getFamilyId().getFamilyId();
         }
-        return new PostLoginRes(userFamilyList.get(0).getFamilyId().getFamilyId());
+        return new PostLoginRes(familyId);
     }
     /**
      * 재발급 필요 여부 확인
@@ -168,5 +169,17 @@ public class AuthService {
         //Redis에 로그아웃 처리한 AT 저장
         long expiration = jwtService.getTokenExpirationTime(requestAccessTokenInHeader) - new Date().getTime();
         redisService.setValuesWithTimeout(requestAccessTokenInHeader, "logout", expiration);
+    }
+
+    /**
+     * SocialToken(AT, RT)을 Redis에 저장 - 1
+     *
+     * Naver, Kakao, Google
+     */
+    @Transactional
+    public void saveSocialToken(String provider, String principal, String token, Long timeout) {
+        redisService.setValuesWithTimeout(provider + principal, //key
+                token, //value
+                timeout); //timeout(millis)
     }
 }

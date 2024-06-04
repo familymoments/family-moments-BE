@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,6 +59,22 @@ public class ExceptionAdvice extends ResponseEntityExceptionHandler {
         BaseResponse<Object> baseResponse = new BaseResponse<>(false, errorMessage, HttpStatus.BAD_REQUEST.value());
 
         return handleExceptionInternal(ex, baseResponse,  new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    /** Required request part exception **/
+    @Override
+    protected ResponseEntity<Object> handleMissingServletRequestPart(MissingServletRequestPartException ex, HttpHeaders headers,
+                                                                     HttpStatus status, WebRequest request) {
+        String errorMessage = ex.getMessage();
+        BaseResponse<Object> baseResponse = new BaseResponse<>(false, errorMessage, HttpStatus.BAD_REQUEST.value());
+
+        return handleExceptionInternal(ex, baseResponse, new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+    }
+
+    /** 파일 업로드 용량 초과 에러 **/
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    protected BaseResponse<Object> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException ex) {
+        return new BaseResponse<>(false, "Max Request Upload Size Exceeded", HttpStatus.PAYLOAD_TOO_LARGE.value());
     }
 
 }

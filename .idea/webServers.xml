@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="5494d760-d7fa-46e4-a639-b013c5368fce" name="familymoments-service">
+        <fileTransfer rootFolder="/var/www/family-moments-BE/family-moments" accessType="SFTP" host="3.37.156.229" port="22" sshConfigId="84bf6442-77a7-4698-b32b-62e2df571d68" sshConfig="ubuntu@3.37.156.229:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="e7710565-7173-4582-bf2f-dd6606827aca" name="familymoments-staging">
+        <fileTransfer rootFolder="/var/www/family-moments-BE/family-moments" accessType="SFTP" host="3.37.156.229" port="22" sshConfigId="84bf6442-77a7-4698-b32b-62e2df571d68" sshConfig="ubuntu@3.37.156.229:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
