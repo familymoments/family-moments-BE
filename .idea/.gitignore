@@ -6,6 +6,9 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+/aws.xml
+/dbnavigator.xml
+!/misc.xml
 /sshConfigs.xml
 /webServers.xml
 /aws.xml

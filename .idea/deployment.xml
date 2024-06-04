@@ -5,8 +5,15 @@
       <paths name="familymoments-service">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$/family-moments/src/main" web="/" />
-            <mapping local="$PROJECT_DIR$/family-moments/build/generated/sources/annotationProcessor/java/main" web="/" />
+            <mapping local="$PROJECT_DIR$/family-moments/src/test" web="/" />
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="familymoments-staging">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$/family-moments/src/test" web="/" />
             <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
