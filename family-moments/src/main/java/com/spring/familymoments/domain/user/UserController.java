@@ -57,9 +57,9 @@ public class UserController {
     @PostMapping(value = "/users/sign-up",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "회원 가입", description = "회원 가입에 사용되는 API 입니다.")
-    public BaseResponse<PostUserRes> createUser(@Parameter(description = "새로운 회원의 가입 정보")
+    public BaseResponse<String> createUser(@Parameter(description = "새로운 회원의 가입 정보")
                                                     @Valid @RequestPart("newUser") PostUserReq.joinUser postUserReq,
-                                                @Parameter(description = "새로운 회원의 프로필 이미지")
+                                           @Parameter(description = "새로운 회원의 프로필 이미지")
                                                     @RequestPart("profileImg") MultipartFile profileImage) {
         //아이디
         if (!isRegexId(postUserReq.getId())) {
@@ -102,7 +102,7 @@ public class UserController {
 
         PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
         // log.info("[createUser]: PostUserRes 생성 완료!");
-        return new BaseResponse<>(postUserRes);
+        return new BaseResponse<>("회원가입을 성공했습니다.");
     }
 
     /**
