@@ -177,18 +177,15 @@ public class UserController {
     @PostMapping("/users/auth/check-id")
     @Operation(summary = "비밀번호 찾기(아이디 존재 여부 확인)", description = "비밀번호 찾기 단계 중 아이디 존재 여부 확인 API입니다.")
     public BaseResponse<String> findUserIdBeforeUpdatePwd(@Parameter(description = "비밀번호를 찾을 계정의 아이디를 입력")
-                                                              @RequestBody GetUserIdReq getUserIdReq)
+                                                              @Valid @RequestBody GetUserIdReq getUserIdReq)
             throws MessagingException, BaseException {
-        try {
-            if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
-                // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
-                // return new BaseResponse<>(getUserIdRes);
-                return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
-            } else {
-                return new BaseResponse<>(false, FIND_FAIL_ID.getMessage(), HttpStatus.NOT_FOUND.value());
-            }
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+
+        if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
+            // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
+            // return new BaseResponse<>(getUserIdRes);
+            return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
+        } else {
+            return new BaseResponse<>(false, FIND_FAIL_ID.getMessage(), HttpStatus.NOT_FOUND.value());
         }
     }
     /**
@@ -200,17 +197,9 @@ public class UserController {
     @PostMapping("/users/auth/find-pwd")
     @Operation(summary = "비밀번호 찾기(이메일 인증 확인)", description = "비밀번호 찾기 단계 중 이메일 인증 API입니다.")
     public BaseResponse<String> findUserPwd(@Parameter(description = "이메일 전송을 위해 비밀번호를 찾을 계정의 이름과 이메일을 입력")
-                                                @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+                                                @Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws MessagingException {
 
-        //이름
-        if(sendEmailReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
-        //이메일
-        if(sendEmailReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
@@ -386,19 +375,18 @@ public class UserController {
     @PatchMapping("/users/auth/modify-pwd")
     @Operation(summary = "비밀번호 재설정", description = "로그인을 하지 않은 상태에서 비밀번호를 재설정하는 API입니다.")
     public BaseResponse<String> updatePasswordWithoutLogin(@Parameter(description = "비밀번호 재설정을 위해 입력한 두 비밀번호의 일치 여부를 확인합니다.")
-                                                               @RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
+                                                               @Valid @RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
                                                            @RequestParam String id) throws BaseException{
 
         String memberId = emailService.getUserId(id);
 
         try {
             if(userService.checkDuplicateId(memberId)) {
-                if(patchPwdWithoutLoginReq.getPasswordA().isEmpty() || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
-                }
+                // 새 비밀번호 형식
                 if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
                 }
+                // 새 비밀번호 입력 불일치
                 if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
                 }
