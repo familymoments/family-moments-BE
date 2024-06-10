@@ -11,26 +11,27 @@ import lombok.*;
 public class SocialLoginDto {
     private Boolean isExisted;
     private TokenDto tokenDto;
-    private String snsId;
     private String name;
     private String email;
     private String strBirthDate;
     private String nickname;
     private String picture;
+    private Long familyId;
 
     public static SocialLoginDto of(Boolean isExisted, TokenDto tokenDto,
-                                    String snsId, String name, String email, String strBirthDate,
-                                    String nickname, String picture) {
+                                    String name, String email, String strBirthDate,
+                                    String nickname, String picture,
+                                    Long familyId) {
 
         return SocialLoginDto.builder()
                 .isExisted(isExisted)
                 .tokenDto(tokenDto)
-                .snsId(snsId)
                 .name(name)
                 .email(email)
                 .strBirthDate(strBirthDate)
                 .nickname(nickname)
                 .picture(picture)
+                .familyId(familyId)
                 .build();
     }
 

@@ -1,8 +1,10 @@
 package com.spring.familymoments.domain.socialInfo;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.config.secret.jwt.model.TokenDto;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
+import com.spring.familymoments.domain.fcm.FCMService;
 import com.spring.familymoments.domain.socialInfo.entity.SocialInfo;
 import com.spring.familymoments.domain.socialInfo.model.*;
 import com.spring.familymoments.domain.user.AuthService;
@@ -16,6 +18,7 @@ import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -49,6 +52,7 @@ public class SocialUserService {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final UserService userService;
     private final AwsS3Service awsS3Service;
+    private final FCMService fcmService;
     private final String SERVER = "Server";
     private final PasswordEncoder passwordEncoder;
     @Value("${spring.security.oauth2.client.info.password}")
@@ -74,9 +78,10 @@ public class SocialUserService {
      * @return SocialLoginResponse(Token 정보/유저정보)
      */
     @Transactional
-    public SocialLoginDto createSocialSdkUser(String socialToken, SocialLoginSdkRequest socialLoginSdkRequest) {
+    public SocialLoginDto createSocialSdkUser(String socialToken, String fcmToken, SocialLoginSdkRequest socialLoginSdkRequest) {
         try {
             boolean isExisted = false;
+            Long familyId = null;
             //userType
             String strUserType = socialLoginSdkRequest.getUserType();
             UserType enumUserType = UserType.getEnumUserTypeFromStringUserType(strUserType);
@@ -94,6 +99,8 @@ public class SocialUserService {
             if(existedU != null && existedU.isPresent()) {
                 isExisted = true;
                 tokenDto = setAuthenticationInSocial(existedU.get());
+                //familyId 반환
+                familyId = authService.login_familyId(existedU.get().getId()).getFamilyId();
             }
 
             //신규회원의 유저정보 중 Naver와 Kakao의 bithday + birthyear -> birthdate 형식 반영
@@ -111,15 +118,21 @@ public class SocialUserService {
                 }
             }
 
+            // FCM Token 저장
+            if (fcmToken == null || fcmToken.isEmpty()) {
+                throw new BaseException(FIND_FAIL_FCMTOKEN);
+            }
+            fcmService.saveToken(socialUserResponse.getEmail(), fcmToken);
+
             return SocialLoginDto.of(
                     isExisted,
                     tokenDto,
-                    socialUserResponse.getSnsId(),
                     socialUserResponse.getName(),
                     socialUserResponse.getEmail(),
                     strBirthDate,
                     socialUserResponse.getNickname(),
-                    socialUserResponse.getPicture()
+                    socialUserResponse.getPicture(),
+                    familyId
             );
 
         } catch (FeignException e) {
@@ -223,7 +236,6 @@ public class SocialUserService {
                 SocialInfo.builder()
                         .type(enumUserType)
                         .user(user)
-                        .snsUserId(userJoinRequest.getSnsId())
                         .build()
         );
 

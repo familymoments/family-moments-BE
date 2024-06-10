@@ -4,6 +4,7 @@ import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.socialInfo.UserType;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -30,8 +31,11 @@ public class SocialInfo extends BaseEntity {
     private User user;
     @Column(name = "type", nullable = false, length = 10)
     private UserType type = UserType.NORMAL;
+
+    @ColumnDefault("temp")
+    @Builder.Default()
     @Column(columnDefinition = "TEXT", nullable = false)
-    private String snsUserId;
+    private String snsUserId = "temp";
 
     /**
      * 회원 탈퇴 API 관련 메소드
