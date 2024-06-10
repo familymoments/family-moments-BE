@@ -149,17 +149,10 @@ public class UserController {
     @PostMapping("/users/auth/find-id")
     @Operation(summary = "아이디 찾기", description = "아이디 찾기에 사용되는 API이며, 중간에 이메일 인증 과정을 거칩니다.")
     public BaseResponse<GetUserIdRes> findUserId(@Parameter(description = "이메일 전송을 위해 아이디를 찾을 계정의 이름과 이메일을 입력")
-                                                     @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+                                                     @Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws MessagingException {
 
-        //이름
-        if(sendEmailReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
         //이메일
-        if(sendEmailReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
