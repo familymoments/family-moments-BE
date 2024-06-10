@@ -4,9 +4,9 @@ import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.post.model.*;
 import com.spring.familymoments.domain.postLove.PostLoveService;
+import com.spring.familymoments.domain.postLove.model.PostLoveRes;
 import com.spring.familymoments.domain.user.AuthService;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.domain.user.model.CommentRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -290,17 +290,16 @@ public class PostController {
         }
     }
 
-
     /**
      * 좋아요 목록 조회 API
-     * [GET] /posts/{postId}/postLoves
-     * @return BaseResponse<List<CommentRes>>
+     * [GET] /posts/{postId}/post-loves
+     * @return BaseResponse<List<PostLoveRes>>
      */
     @GetMapping("/{postId}/post-loves")
     @Operation(summary = "좋아요 명단 조회", description = "특정 게시물의 좋아요를 누른 사람의 명단을 조회합니다.")
-    public BaseResponse<List<CommentRes>> getLovedList(@PathVariable long postId) {
+    public BaseResponse<List<PostLoveRes>> getLovedList(@PathVariable long postId) {
         try {
-            List<CommentRes> heartedList = postLoveService.getHeartList(postId);
+            List<PostLoveRes> heartedList = postLoveService.getHeartList(postId);
 
             return new BaseResponse<>(heartedList);
         } catch (BaseException e) {
