@@ -114,15 +114,12 @@ public class UserController {
     @PostMapping("/users/check-id")
     @Operation(summary = "아이디 중복 확인", description = "회원 가입 단계에서 아이디 중복 확인에 사용되는 API입니다.")
     public BaseResponse<String> checkDuplicateId(@Parameter(description = "회원 가입할 때 중복 검사를 할 아이디")
-                                                     @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
-        try{
-            if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
-                return new BaseResponse<>("사용 가능한 아이디입니다.");
-            } else {
-                return new BaseResponse<>(POST_USERS_EXISTS_ID);
-            }
-        } catch (NoSuchElementException e){
-            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+                                                     @Valid @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
+
+        if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
+            return new BaseResponse<>("사용 가능한 아이디입니다.");
+        } else {
+            return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
     }
 
@@ -135,15 +132,12 @@ public class UserController {
     @PostMapping("/users/check-email")
     @Operation(summary = "이메일 중복 확인", description = "회원 가입 단계에서 이메일 중복 확인에 사용되는 API입니다.")
     public BaseResponse<String> checkDuplicateEmail(@Parameter(description = "회원 가입할 때 중복 검사를 할 이메일")
-                                                        @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
-        try{
-            if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
-                return new BaseResponse<>("사용 가능한 이메일입니다.");
-            } else {
-                return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
-            }
-        } catch (NoSuchElementException e){
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+                                                        @Valid @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
+
+        if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
+            return new BaseResponse<>("사용 가능한 이메일입니다.");
+        } else {
+            return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
     }
     /**
