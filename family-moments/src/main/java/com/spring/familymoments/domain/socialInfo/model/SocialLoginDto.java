@@ -11,7 +11,6 @@ import lombok.*;
 public class SocialLoginDto {
     private Boolean isExisted;
     private TokenDto tokenDto;
-    private String snsId;
     private String name;
     private String email;
     private String strBirthDate;
@@ -19,13 +18,12 @@ public class SocialLoginDto {
     private String picture;
 
     public static SocialLoginDto of(Boolean isExisted, TokenDto tokenDto,
-                                    String snsId, String name, String email, String strBirthDate,
+                                    String name, String email, String strBirthDate,
                                     String nickname, String picture) {
 
         return SocialLoginDto.builder()
                 .isExisted(isExisted)
                 .tokenDto(tokenDto)
-                .snsId(snsId)
                 .name(name)
                 .email(email)
                 .strBirthDate(strBirthDate)
