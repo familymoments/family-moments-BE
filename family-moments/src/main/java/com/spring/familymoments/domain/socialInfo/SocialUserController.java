@@ -50,7 +50,9 @@ public class SocialUserController {
                                 isExisted ? null : socialLoginResponse.getEmail(),
                                 isExisted ? null : socialLoginResponse.getStrBirthDate(),
                                 isExisted ? null : socialLoginResponse.getNickname(),
-                                isExisted ? null : socialLoginResponse.getPicture()))
+                                isExisted ? null : socialLoginResponse.getPicture(),
+                                isExisted ? socialLoginResponse.getFamilyId() : null)
+                        )
                 );
     }
 

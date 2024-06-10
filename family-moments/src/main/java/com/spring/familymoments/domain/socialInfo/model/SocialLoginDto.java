@@ -16,10 +16,12 @@ public class SocialLoginDto {
     private String strBirthDate;
     private String nickname;
     private String picture;
+    private Long familyId;
 
     public static SocialLoginDto of(Boolean isExisted, TokenDto tokenDto,
                                     String name, String email, String strBirthDate,
-                                    String nickname, String picture) {
+                                    String nickname, String picture,
+                                    Long familyId) {
 
         return SocialLoginDto.builder()
                 .isExisted(isExisted)
@@ -29,6 +31,7 @@ public class SocialLoginDto {
                 .strBirthDate(strBirthDate)
                 .nickname(nickname)
                 .picture(picture)
+                .familyId(familyId)
                 .build();
     }
 

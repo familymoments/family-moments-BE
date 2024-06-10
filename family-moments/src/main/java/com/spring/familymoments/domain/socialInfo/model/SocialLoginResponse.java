@@ -23,10 +23,13 @@ public class SocialLoginResponse {
     private String nickname;
     @Schema(description = "프로필 사진", example = "[url]")
     private String picture;
+    @Schema(description = "가족 아이디", example = "null")
+    private Long familyId;
 
     public static SocialLoginResponse of(Boolean isExisted,
                                          String name, String email, String strBirthDate,
-                                         String nickname, String picture) {
+                                         String nickname, String picture,
+                                         Long familyId) {
 
         return SocialLoginResponse.builder()
                 .isExisted(isExisted)
@@ -35,6 +38,7 @@ public class SocialLoginResponse {
                 .strBirthDate(strBirthDate)
                 .nickname(nickname)
                 .picture(picture)
+                .familyId(familyId)
                 .build();
     }
 

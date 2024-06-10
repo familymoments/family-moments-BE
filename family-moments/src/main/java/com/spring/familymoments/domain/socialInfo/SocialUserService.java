@@ -81,6 +81,7 @@ public class SocialUserService {
     public SocialLoginDto createSocialSdkUser(String socialToken, String fcmToken, SocialLoginSdkRequest socialLoginSdkRequest) {
         try {
             boolean isExisted = false;
+            Long familyId = null;
             //userType
             String strUserType = socialLoginSdkRequest.getUserType();
             UserType enumUserType = UserType.getEnumUserTypeFromStringUserType(strUserType);
@@ -98,6 +99,8 @@ public class SocialUserService {
             if(existedU != null && existedU.isPresent()) {
                 isExisted = true;
                 tokenDto = setAuthenticationInSocial(existedU.get());
+                //familyId 반환
+                familyId = authService.login_familyId(existedU.get().getId()).getFamilyId();
             }
 
             //신규회원의 유저정보 중 Naver와 Kakao의 bithday + birthyear -> birthdate 형식 반영
@@ -128,7 +131,8 @@ public class SocialUserService {
                     socialUserResponse.getEmail(),
                     strBirthDate,
                     socialUserResponse.getNickname(),
-                    socialUserResponse.getPicture()
+                    socialUserResponse.getPicture(),
+                    familyId
             );
 
         } catch (FeignException e) {
