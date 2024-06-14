@@ -16,7 +16,7 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
-import com.spring.familymoments.domain.socialInfo.SocialUserService;
+//import com.spring.familymoments.domain.socialInfo.SocialUserService;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
@@ -58,7 +58,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
     private final AlarmSettingService alarmSettingService;
-    private final SocialUserService socialUserService;
+    //private final SocialUserService socialUserService;
 
     /**
      * createUser
@@ -341,7 +341,21 @@ public class UserService {
         redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
 
         //소셜 회원 탈퇴 처리
-        socialUserService.deleteSocialUserWithRedisProcess(user);
+        //socialUserService.deleteSocialUserWithRedisProcess(user);
+    }
+
+    public void reportUser(Long toUserId) {
+        User toUser = userRepository.findById(toUserId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        //누적 횟수 3회차, INACTIVE
+        if(toUser.getReported() == 2) {
+            toUser.updateStatus(User.Status.INACTIVE);
+        }
+
+        //신고 횟수 업데이트
+        toUser.updateReported(toUser.getReported() + 1);
+        userRepository.save(toUser);
     }
 
 }

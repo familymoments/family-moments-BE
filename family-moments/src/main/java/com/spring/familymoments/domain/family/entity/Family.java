@@ -1,20 +1,15 @@
 package com.spring.familymoments.domain.family.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.model.FamilyRes;
 import com.spring.familymoments.domain.family.model.MyFamilyRes;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import org.springframework.http.HttpStatus;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,7 +70,7 @@ public class Family extends BaseEntity {
     public FamilyRes toFamilyRes(){
         return FamilyRes.builder()
                 .familyId(familyId)
-                .owner(owner.getNickname())
+                .ownerId(owner.getUserId())
                 .familyName(familyName)
                 .uploadCycle(uploadCycle)
                 .inviteCode(inviteCode)
@@ -119,7 +114,7 @@ public class Family extends BaseEntity {
     }
 
     public boolean isOwner(User user){
-        return user.equals(owner);
+        return user.equals(this.owner);
     }
 
     /**

@@ -24,6 +24,4 @@ public class UserJoinRequest {
     private String nickname;
     @Schema(description = "프로필 사진", example = "null(고정), 아래 profileImg에 등록 바람.")
     private String profileImg;
-    @Schema(description = "소셜 고유 ID", example = "23231221421")
-    private String snsId;
 }

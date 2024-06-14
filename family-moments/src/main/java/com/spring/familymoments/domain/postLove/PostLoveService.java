@@ -7,9 +7,9 @@ import com.spring.familymoments.domain.post.PostWithLoveRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.postLove.model.PostLoveReq;
+import com.spring.familymoments.domain.postLove.model.PostLoveRes;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
-import com.spring.familymoments.domain.user.model.CommentRes;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -99,20 +99,19 @@ public class PostLoveService {
         postLoveRepository.delete(postLove);
     }
 
-    // 좋아요한 user의 nickName 및 profileImg return
-    @Transactional
-    public List<CommentRes> getHeartList(long postId){
+    /**
+     * getHeartList
+     * @return 좋아요 누른 사람들의 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<PostLoveRes> getHeartList(long postId) throws BaseException {
         Post post = postRepository.findByPostIdAndStatus(postId, BaseEntity.Status.ACTIVE);
 
         if(post == null) {
             throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
 
-        List<CommentRes> users = postLoveRepository.findByPost(post);
-
-        if(users.isEmpty()) {
-            throw new BaseException(minnie_POSTLOVES_NON_EXISTS_LOVE);
-        }
+        List<PostLoveRes> users = postLoveRepository.findByPost(post);
 
         return users;
     }

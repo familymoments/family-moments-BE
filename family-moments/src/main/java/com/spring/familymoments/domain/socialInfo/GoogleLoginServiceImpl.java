@@ -57,7 +57,6 @@ public class GoogleLoginServiceImpl implements SocialLoginService {
         GoogleLoginResponse googleLoginResponse = response.getBody();
 
         return SocialUserResponse.builder()
-                .snsId(googleLoginResponse.getId())
                 .name(googleLoginResponse.getName())
                 .picture(googleLoginResponse.getPicture())
                 .email(googleLoginResponse.getEmail())
