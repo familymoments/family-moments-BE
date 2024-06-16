@@ -67,7 +67,7 @@ public class PostController {
                 .build();
 
         try {
-            SinglePostRes singlePostRes = postService.createPosts(user, postReq);
+            SinglePostRes singlePostRes = postService.createPost(user, postReq);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -136,7 +136,7 @@ public class PostController {
     @Operation(summary = "게시글 10건 조회", description = "최근 10개의 게시글을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId) {
         try {
-            List<SinglePostRes> singlePostRes = postService.getPosts(user.getUserId(), familyId);
+            List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -153,7 +153,7 @@ public class PostController {
     @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         try {
-            List<SinglePostRes> singlePostRes = postService.getPosts(user.getUserId(), familyId, postId);
+            List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId, postId);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -170,7 +170,7 @@ public class PostController {
     @Operation(summary = "게시글 조회", description = "게시글 1건을 조회합니다.")
     public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
         try {
-            SinglePostRes singlePostRes = postService.getPost(user.getUserId(), postId);
+            SinglePostRes singlePostRes = postService.getPost(user, postId);
 
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
@@ -192,7 +192,7 @@ public class PostController {
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day) {
         try {
-            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day);
+            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
@@ -214,7 +214,7 @@ public class PostController {
                                                               @RequestParam("day") int day,
                                                               @RequestParam("postId") long postId) {
         try {
-            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user.getUserId(), familyId, year, month, day, postId);
+            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day, postId);
             return new BaseResponse<>(singlePostRes);
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());

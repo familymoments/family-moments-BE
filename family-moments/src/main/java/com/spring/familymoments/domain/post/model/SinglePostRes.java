@@ -37,7 +37,8 @@ public class SinglePostRes {
     private int countLove;
     @Schema(description = "나의 좋아요 여부", example = "true or false")
     private Boolean loved;
-
+    @Schema(description = "본인의 게시물 여부", example = "true or false")
+    private Boolean written;
 
     public SinglePostRes(Long postId, String writer, String profileImg, String content, String imgs, LocalDateTime createdAt, int countLove, BaseEntity.Status status) {
         this.postId = postId;
@@ -48,5 +49,6 @@ public class SinglePostRes {
         this.createdAt = createdAt.toLocalDate();
         this.countLove = countLove;
         this.loved = status == BaseEntity.Status.ACTIVE;
+        this.written = false;
     }
 }
