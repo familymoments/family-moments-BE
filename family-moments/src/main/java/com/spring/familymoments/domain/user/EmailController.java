@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 import java.io.UnsupportedEncodingException;
 import java.util.NoSuchElementException;
@@ -34,17 +35,10 @@ public class EmailController {
      */
     @NoAuthCheck
     @PostMapping("/users/auth/send-email")
-    public BaseResponse<String> sendVerificationEmail(@RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+    public BaseResponse<String> sendVerificationEmail(@Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws BaseException, MessagingException, UnsupportedEncodingException {
 
-        //이름
-        if(sendEmailReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
         //이메일
-        if(sendEmailReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }

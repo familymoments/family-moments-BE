@@ -29,9 +29,10 @@ public class SocialUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    public ResponseEntity<BaseResponse<SocialLoginResponse>> doSocialSdkLogin(@Parameter(description = "소셜 accesstoken") @RequestHeader("SOCIAL-TOKEN") String socialToken,
+    public ResponseEntity<BaseResponse<SocialLoginResponse>> doSocialSdkLogin(@RequestHeader(value = "FCM-Token", required = false) String fcmToken,
+                                                                              @Parameter(description = "소셜 accesstoken") @RequestHeader("SOCIAL-TOKEN") String socialToken,
                                                                               @Parameter(description = "소셜 종류") @RequestBody SocialLoginSdkRequest socialLoginSdkRequest) {
-        SocialLoginDto socialLoginResponse = socialUserService.createSocialSdkUser(socialToken, socialLoginSdkRequest);
+        SocialLoginDto socialLoginResponse = socialUserService.createSocialSdkUser(socialToken, fcmToken, socialLoginSdkRequest);
 
         TokenDto tokenDto = socialLoginResponse.getTokenDto();
         String accessToken = (tokenDto != null) ? tokenDto.getAccessToken() : null;
@@ -45,12 +46,13 @@ public class SocialUserController {
                 .body(
                         new BaseResponse<>(SocialLoginResponse.of(
                                 isExisted,
-                                isExisted ? null : socialLoginResponse.getSnsId(),
                                 isExisted ? null : socialLoginResponse.getName(),
                                 isExisted ? null : socialLoginResponse.getEmail(),
                                 isExisted ? null : socialLoginResponse.getStrBirthDate(),
                                 isExisted ? null : socialLoginResponse.getNickname(),
-                                isExisted ? null : socialLoginResponse.getPicture()))
+                                isExisted ? null : socialLoginResponse.getPicture(),
+                                isExisted ? socialLoginResponse.getFamilyId() : null)
+                        )
                 );
     }
 
@@ -76,5 +78,6 @@ public class SocialUserController {
                         socialJoinDto.getFamilyId()))
                 );
     }
+
 
 }

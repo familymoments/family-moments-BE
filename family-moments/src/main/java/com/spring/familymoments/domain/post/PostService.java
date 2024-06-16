@@ -7,6 +7,8 @@ import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.document.PostDocument;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.entity.PostReport;
+import com.spring.familymoments.domain.post.entity.ReportReason;
 import com.spring.familymoments.domain.post.model.*;
 import com.spring.familymoments.domain.postLove.PostLoveService;
 import com.spring.familymoments.domain.user.entity.User;
@@ -30,6 +32,7 @@ import static com.spring.familymoments.config.BaseResponseStatus.*;
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
+    private final PostReportRepository postReportRepository;
     private final PostDocumentRepository postDocumentRepository;
     private final PostLoveService postLoveService;
     private final FamilyRepository familyRepository;
@@ -480,6 +483,29 @@ public class PostService {
                 .loved(isLoved)
                 .written(isWritten)
                 .build();
+    }
+    @Transactional
+    public void reportPost(User fromUser, Long postId, ContentReportReq contentReportReq) {;
+       Post post = postRepository.findById(postId)
+               .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+
+       //누적 횟수 3회차, INACTIVE
+       if(post.getReported() == 2) {
+           post.updateStatus(BaseEntity.Status.INACTIVE);
+       }
+
+       //신고 사유 저장
+       PostReport reportedPost = PostReport.createPostReport(
+               fromUser,
+               post,
+               ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
+               contentReportReq.getDetails()
+       );
+       postReportRepository.save(reportedPost);
+
+       //신고 횟수 업데이트
+       post.updateReported(post.getReported() + 1);
+       postRepository.save(post);
     }
 
 }

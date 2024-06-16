@@ -13,8 +13,6 @@ import lombok.*;
 public class SocialLoginResponse {
     @Schema(description = "기존회원있음", example = "true")
     private Boolean isExisted;
-    @Schema(description = "소셜 고유 ID", example = "23231221421")
-    private String snsId;
     @Schema(description = "이름", example = "김영희")
     private String name;
     @Schema(description = "이메일", example = "younghee@kakao.com")
@@ -25,19 +23,22 @@ public class SocialLoginResponse {
     private String nickname;
     @Schema(description = "프로필 사진", example = "[url]")
     private String picture;
+    @Schema(description = "가족 아이디", example = "null")
+    private Long familyId;
 
     public static SocialLoginResponse of(Boolean isExisted,
-                                         String snsId, String name, String email, String strBirthDate,
-                                         String nickname, String picture) {
+                                         String name, String email, String strBirthDate,
+                                         String nickname, String picture,
+                                         Long familyId) {
 
         return SocialLoginResponse.builder()
                 .isExisted(isExisted)
-                .snsId(snsId)
                 .name(name)
                 .email(email)
                 .strBirthDate(strBirthDate)
                 .nickname(nickname)
                 .picture(picture)
+                .familyId(familyId)
                 .build();
     }
 

@@ -156,4 +156,12 @@ public class User extends BaseTime implements UserDetails {
     public void updateStatus(Status status) {
         this.status = status;
     }
+
+    /**
+     * 회원 신고 API 관련 메서ㅗ드
+     */
+    public void updateReported(int reported) {
+        this.reported = reported;
+    }
+
 }

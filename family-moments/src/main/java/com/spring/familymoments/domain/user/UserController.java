@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -56,14 +57,11 @@ public class UserController {
     @PostMapping(value = "/users/sign-up",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "회원 가입", description = "회원 가입에 사용되는 API 입니다.")
-    public BaseResponse<PostUserRes> createUser(@Parameter(description = "새로운 회원의 가입 정보")
-                                                    @RequestPart("newUser") PostUserReq.joinUser postUserReq,
-                                                @Parameter(description = "새로운 회원의 프로필 이미지")
+    public BaseResponse<String> createUser(@Parameter(description = "새로운 회원의 가입 정보")
+                                                    @Valid @RequestPart("newUser") PostUserReq.joinUser postUserReq,
+                                           @Parameter(description = "새로운 회원의 프로필 이미지")
                                                     @RequestPart("profileImg") MultipartFile profileImage) {
         //아이디
-        if (postUserReq.getId().isEmpty()) {
-            return new BaseResponse<>(USERS_EMPTY_USER_ID);
-        }
         if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
@@ -73,20 +71,10 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
         //비밀번호
-        if (postUserReq.getPassword().isEmpty()) {
-            return new BaseResponse<>(EMPTY_PASSWORD);
-        }
         if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
         }
-        //이름
-        if (postUserReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
         //이메일
-        if (postUserReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
@@ -96,16 +84,10 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //생년월일
-        if (postUserReq.getStrBirthDate().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
-        }
         if (!isRegexBirth(postUserReq.getStrBirthDate())) {
             return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
-        if (postUserReq.getNickname().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
-        }
         if (!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
         }
@@ -120,7 +102,7 @@ public class UserController {
 
         PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
         // log.info("[createUser]: PostUserRes 생성 완료!");
-        return new BaseResponse<>(postUserRes);
+        return new BaseResponse<>("회원가입을 성공했습니다.");
     }
 
     /**
@@ -132,15 +114,12 @@ public class UserController {
     @PostMapping("/users/check-id")
     @Operation(summary = "아이디 중복 확인", description = "회원 가입 단계에서 아이디 중복 확인에 사용되는 API입니다.")
     public BaseResponse<String> checkDuplicateId(@Parameter(description = "회원 가입할 때 중복 검사를 할 아이디")
-                                                     @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
-        try{
-            if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
-                return new BaseResponse<>("사용 가능한 아이디입니다.");
-            } else {
-                return new BaseResponse<>(POST_USERS_EXISTS_ID);
-            }
-        } catch (NoSuchElementException e){
-            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+                                                     @Valid @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
+
+        if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
+            return new BaseResponse<>("사용 가능한 아이디입니다.");
+        } else {
+            return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
     }
 
@@ -153,15 +132,12 @@ public class UserController {
     @PostMapping("/users/check-email")
     @Operation(summary = "이메일 중복 확인", description = "회원 가입 단계에서 이메일 중복 확인에 사용되는 API입니다.")
     public BaseResponse<String> checkDuplicateEmail(@Parameter(description = "회원 가입할 때 중복 검사를 할 이메일")
-                                                        @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
-        try{
-            if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
-                return new BaseResponse<>("사용 가능한 이메일입니다.");
-            } else {
-                return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
-            }
-        } catch (NoSuchElementException e){
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+                                                        @Valid @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
+
+        if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
+            return new BaseResponse<>("사용 가능한 이메일입니다.");
+        } else {
+            return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
     }
     /**
@@ -173,17 +149,10 @@ public class UserController {
     @PostMapping("/users/auth/find-id")
     @Operation(summary = "아이디 찾기", description = "아이디 찾기에 사용되는 API이며, 중간에 이메일 인증 과정을 거칩니다.")
     public BaseResponse<GetUserIdRes> findUserId(@Parameter(description = "이메일 전송을 위해 아이디를 찾을 계정의 이름과 이메일을 입력")
-                                                     @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+                                                     @Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws MessagingException {
 
-        //이름
-        if(sendEmailReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
         //이메일
-        if(sendEmailReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
@@ -208,18 +177,15 @@ public class UserController {
     @PostMapping("/users/auth/check-id")
     @Operation(summary = "비밀번호 찾기(아이디 존재 여부 확인)", description = "비밀번호 찾기 단계 중 아이디 존재 여부 확인 API입니다.")
     public BaseResponse<String> findUserIdBeforeUpdatePwd(@Parameter(description = "비밀번호를 찾을 계정의 아이디를 입력")
-                                                              @RequestBody GetUserIdReq getUserIdReq)
+                                                              @Valid @RequestBody GetUserIdReq getUserIdReq)
             throws MessagingException, BaseException {
-        try {
-            if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
-                // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
-                // return new BaseResponse<>(getUserIdRes);
-                return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
-            } else {
-                return new BaseResponse<>(false, FIND_FAIL_ID.getMessage(), HttpStatus.NOT_FOUND.value());
-            }
-        } catch (NoSuchElementException e) {
-            return new BaseResponse<>(false, e.getMessage(), HttpStatus.NOT_FOUND.value());
+
+        if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
+            // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
+            // return new BaseResponse<>(getUserIdRes);
+            return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
+        } else {
+            return new BaseResponse<>(false, FIND_FAIL_ID.getMessage(), HttpStatus.NOT_FOUND.value());
         }
     }
     /**
@@ -231,17 +197,9 @@ public class UserController {
     @PostMapping("/users/auth/find-pwd")
     @Operation(summary = "비밀번호 찾기(이메일 인증 확인)", description = "비밀번호 찾기 단계 중 이메일 인증 API입니다.")
     public BaseResponse<String> findUserPwd(@Parameter(description = "이메일 전송을 위해 비밀번호를 찾을 계정의 이름과 이메일을 입력")
-                                                @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
+                                                @Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws MessagingException {
 
-        //이름
-        if(sendEmailReq.getName().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
-        //이메일
-        if(sendEmailReq.getEmail().isEmpty()) {
-            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
-        }
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
@@ -417,19 +375,18 @@ public class UserController {
     @PatchMapping("/users/auth/modify-pwd")
     @Operation(summary = "비밀번호 재설정", description = "로그인을 하지 않은 상태에서 비밀번호를 재설정하는 API입니다.")
     public BaseResponse<String> updatePasswordWithoutLogin(@Parameter(description = "비밀번호 재설정을 위해 입력한 두 비밀번호의 일치 여부를 확인합니다.")
-                                                               @RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
+                                                               @Valid @RequestBody PatchPwdWithoutLoginReq patchPwdWithoutLoginReq,
                                                            @RequestParam String id) throws BaseException{
 
         String memberId = emailService.getUserId(id);
 
         try {
             if(userService.checkDuplicateId(memberId)) {
-                if(patchPwdWithoutLoginReq.getPasswordA().isEmpty() || patchPwdWithoutLoginReq.getPasswordB().isEmpty()) {
-                    return new BaseResponse<>(EMPTY_PASSWORD);
-                }
+                // 새 비밀번호 형식
                 if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
                 }
+                // 새 비밀번호 입력 불일치
                 if(!patchPwdWithoutLoginReq.getPasswordA().equals(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(NOT_EQUAL_NEW_PASSWORD);
                 }
@@ -477,4 +434,15 @@ public class UserController {
         fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
+
+    /**
+     * 유저 신고 API
+     * [POST] /users/report
+     */
+    @PostMapping("/users/report/{userId}")
+    public BaseResponse<String> reportUser(@PathVariable Long userId) {
+        userService.reportUser(userId);
+        return new BaseResponse<>("유저를 신고했습니다.");
+    }
+
 }

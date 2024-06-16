@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -307,5 +305,17 @@ public class PostController {
         } catch (BaseException e) {
             return new BaseResponse<>(e.getStatus());
         }
+    }
+
+    /**
+     * 게시글 신고 API
+     * [POST] /posts/report/{postId}
+     *
+     */
+    @PostMapping("/report/{postId}")
+    public BaseResponse<String> reportPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                           @PathVariable Long postId, @RequestBody ContentReportReq contentReportReq) {
+        postService.reportPost(user, postId, contentReportReq);
+        return new BaseResponse<>("게시글을 신고했습니다.");
     }
 }

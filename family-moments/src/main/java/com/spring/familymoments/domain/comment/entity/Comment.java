@@ -38,6 +38,10 @@ public class Comment extends BaseEntity {
     @Column(name = "content", columnDefinition = "TEXT", nullable = false)
     private String content;
 
+    @Column(columnDefinition = "int unsigned")
+    @ColumnDefault("0")
+    private int reported;
+
     @Column(name = "countLove", columnDefinition = "int unsigned")
     @ColumnDefault("0")
     private int countLove;
@@ -55,5 +59,19 @@ public class Comment extends BaseEntity {
     public void updateContent(String content) {
         this.content = content;
     }
+
+
+    public void increaseCountLove() {
+        this.countLove = countLove + 1;
+    }
+
+    public void decreaseCountLove() {
+        this.countLove = countLove - 1;
+    }
+
+    /**
+     * 댓글 신고 API 관련 메소드
+     */
+    public void updateReported(int reported) { this.reported = reported; }
 }
 
