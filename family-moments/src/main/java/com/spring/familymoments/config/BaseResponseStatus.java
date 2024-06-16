@@ -90,7 +90,8 @@ public enum BaseResponseStatus {
     ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
     COMMENTS_EMPTY_CONTENT(false, HttpStatus.NOT_FOUND.value(), "댓글 내용을 입력해주세요."),
 
-    minnie_POSTS_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
+    minnie_POSTS_EDIT_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
+    minnie_POSTS_DELETE_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "삭제 권한이 없습니다."),
     minnie_POSTS_INVALID_POST_ID(false, HttpStatus.NOT_FOUND.value(), "유효하지 않은 postId 입니다."),
     minnie_POSTS_NON_EXISTS_POST(false, HttpStatus.NOT_FOUND.value(), "post가 존재하지 않습니다."),
     minnie_POSTS_EMPTY_UPDATE(false, HttpStatus.BAD_REQUEST.value(), "수정할 내용을 보내주세요."),

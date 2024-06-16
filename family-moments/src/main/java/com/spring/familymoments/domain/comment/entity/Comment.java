@@ -60,6 +60,15 @@ public class Comment extends BaseEntity {
         this.content = content;
     }
 
+
+    public void increaseCountLove() {
+        this.countLove = countLove + 1;
+    }
+
+    public void decreaseCountLove() {
+        this.countLove = countLove - 1;
+    }
+
     /**
      * 댓글 신고 API 관련 메소드
      */

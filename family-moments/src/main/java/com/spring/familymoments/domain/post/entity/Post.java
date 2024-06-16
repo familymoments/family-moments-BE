@@ -65,7 +65,15 @@ public class Post extends BaseEntity {
     }
 
     /**
+     * 게시물 조회 API 관련 메소드
+     */
+    public boolean isWriter(User user) {
+        return user.equals(this.writer);
+    }
+
+    /**
      * 게시물 신고 API 관련 메소드
      */
     public void updateReported(int reported) { this.reported = reported; }
+
 }

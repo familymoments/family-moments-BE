@@ -35,14 +35,14 @@ public class PostService {
     private final PostReportRepository postReportRepository;
     private final PostDocumentRepository postDocumentRepository;
     private final PostLoveService postLoveService;
-    private final AwsS3Service awsS3Service;
     private final FamilyRepository familyRepository;
+    private final AwsS3Service awsS3Service;
 
     private static final int POST_PAGES = 10;
     private static final int ALBUM_PAGES = 30;
 
     @Transactional
-    public SinglePostRes createPosts(User user, PostReq postReq) {
+    public SinglePostRes createPost(User user, PostReq postReq) {
         // familyID 유효성 검사
         Family family = familyRepository.findById(postReq.getFamilyId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
@@ -56,11 +56,10 @@ public class PostService {
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
         // Post builder 생성
-        Post.PostBuilder postBuilder = Post.builder()
-                .writer(user).familyId(family);
-
-        // build
-        Post params = postBuilder.build();
+        Post params = Post.builder()
+                .writer(user)
+                .familyId(family)
+                .build();
 
         Post result = postRepository.save(params);
 
@@ -74,13 +73,11 @@ public class PostService {
         family.updateLatestUploadAt();
 
         // PostDocument builder 생성
-        PostDocument.PostDocumentBuilder postDocumentBuilder = PostDocument.builder()
+        PostDocument docParams = PostDocument.builder()
                 .entityId(result.getPostId())
                 .content(postReq.getContent())
-                .urls(urls);
-
-        // build
-        PostDocument docParams = postDocumentBuilder.build();
+                .urls(urls)
+                .build();
 
         PostDocument docResult = postDocumentRepository.save(docParams);
 
@@ -97,9 +94,10 @@ public class PostService {
                 .content(docResult.getContent())
                 .imgs(docResult.getUrls())
                 .createdAt(result.getCreatedAt().toLocalDate())
-                .countLove(0).loved(false) // 새로 생성된 정보이므로 default return
+                .countLove(0).loved(false) // 새로 생성된 Post 이므로 default return
+                .written(true) // 새로 생성된 Post 이므로 default return
                 .build();
-        
+
         // 새로 만들어진 객체 반환
         return singlePostRes;
     }
@@ -116,7 +114,7 @@ public class PostService {
         }
 
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALID_USER);
+            throw new BaseException(minnie_POSTS_EDIT_INVALID_USER);
         }
 
         // 수정할 Post Document 정보 불러오기
@@ -156,6 +154,7 @@ public class PostService {
         });
 
         boolean isLoved = postLoveService.checkPostLoveByUser(editedPost.getPostId(), editedPost.getWriter().getUserId());
+        boolean isWritten = editedPost.isWriter(user);
 
         SinglePostDocumentRes singlePostDocumentRes = SinglePostDocumentRes.builder()
                 .content(postReq.getContent())
@@ -169,7 +168,7 @@ public class PostService {
                 editedPost.getWriter().getProfileImg(),
                 editedPost.getCreatedAt(),
                 editedPost.getCountLove(),
-                isLoved, singlePostDocumentRes
+                isLoved, isWritten, singlePostDocumentRes
         );
     }
 
@@ -187,7 +186,7 @@ public class PostService {
         }
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
-            throw new BaseException(minnie_POSTS_INVALID_USER);
+            throw new BaseException(minnie_POSTS_DELETE_INVALID_USER);
         }
 
         deletedPost.delete();
@@ -196,17 +195,17 @@ public class PostService {
 
     // 현재 가족의 모든 게시물 중 최근 10개를 조회
     @Transactional(readOnly = true)
-    public List<SinglePostRes> getPosts(long userId, long familyId) {
+    public List<SinglePostRes> getPosts(User user, long familyId) {
         Pageable pageable = PageRequest.of(0, POST_PAGES);
 
-        List<SinglePostRes> posts = getCombinedPosts(familyId, pageable);
+        List<SinglePostRes> posts = getCombinedPosts(user, familyId, pageable);
 
         return posts;
     }
 
     // 현재 가족의 모든 게시물 중 특정 postId 보다 작은 10개를 조회
     @Transactional(readOnly = true)
-    public List<SinglePostRes> getPosts(long userId, long familyId, long postId) {
+    public List<SinglePostRes> getPosts(User user, long familyId, long postId) {
         Pageable pageable = PageRequest.of(0, POST_PAGES);
         List<Post> filteredPosts = postRepository.findByFamilyIdAfterPostId(familyId, postId, pageable);
 
@@ -218,6 +217,7 @@ public class PostService {
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
             boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
             String writer = p.getWriter().getNickname();
@@ -226,7 +226,7 @@ public class PostService {
             int countLove = p.getCountLove();
 
             SinglePostRes singlePostRes = toSinglePostRes(filteredPostId, writer, profileImg,
-                    datetime, countLove, isLoved, singlePostDocumentRes);
+                    datetime, countLove, isLoved, isWritten, singlePostDocumentRes);
 
             posts.add(singlePostRes);
         }
@@ -236,7 +236,7 @@ public class PostService {
 
     // 특정 post 조회
     @Transactional
-    public SinglePostRes getPost(long userId, long postId) {
+    public SinglePostRes getPost(User user, long postId) {
         // countLove 칼럼 갱신
         postRepository.updateCountLove(postId);
 
@@ -250,7 +250,10 @@ public class PostService {
         }
         
         // 로그인 유저의 post love 정보 받아오기
+        Long userId = user.getUserId();
         boolean isLoved = postLoveService.checkPostLoveByUser(postId, userId);
+        // 로그인 유저가 게시물의 작성자인지 확인하기
+        boolean isWritten = post.isWriter(user);
 
         Long filteredPostId = post.getPostId();
         String writer = post.getWriter().getNickname();
@@ -259,26 +262,26 @@ public class PostService {
         int countLove = post.getCountLove();
 
         return toSinglePostRes(filteredPostId, writer, profileImg,
-                datetime, countLove, isLoved, singlePostDocumentRes);
+                datetime, countLove, isLoved, isWritten, singlePostDocumentRes);
     }
 
     // 특정 일 최신 post 조회
     @Transactional(readOnly = true)
-    public List<SinglePostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day) {
+    public List<SinglePostRes> getPostsOfDate(User user, long familyId, int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
         LocalDateTime dateTime = LocalDateTime.of(date, dummy);
         Pageable pageable = PageRequest.of(0, POST_PAGES);
 
-        List<SinglePostRes> posts = getCombinedPostsByDate(familyId, dateTime, pageable);
+        List<SinglePostRes> posts = getCombinedPostsByDate(user, familyId, dateTime, pageable);
 
         return posts;
     }
 
     // 특정 일 postId 이후 post 조회
     @Transactional(readOnly = true)
-    public List<SinglePostRes> getPostsOfDate(long userId, long familyId, int year, int month, int day, long postId) {
+    public List<SinglePostRes> getPostsOfDate(User user, long familyId, int year, int month, int day, long postId) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalTime dummy = LocalTime.MIDNIGHT; // LocalDateTime 변수 생성을 위한 dummy 값
 
@@ -295,6 +298,7 @@ public class PostService {
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
             boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
             String writer = p.getWriter().getNickname();
@@ -303,7 +307,7 @@ public class PostService {
             int countLove = p.getCountLove();
 
             SinglePostRes singlePostRes = toSinglePostRes(filteredPostId, writer, profileImg,
-                    datetime, countLove, isLoved, singlePostDocumentRes);
+                    datetime, countLove, isLoved, isWritten, singlePostDocumentRes);
 
             posts.add(singlePostRes);
         }
@@ -338,14 +342,15 @@ public class PostService {
     @Transactional(readOnly = true)
     public List<AlbumRes> getAlbum (long familyId) {
         Pageable pageable = PageRequest.of(0, ALBUM_PAGES);
-
-        List<SinglePostRes> posts = getCombinedPosts(familyId, pageable);
+        List<Post> filteredPosts = postRepository.findByFamilyIdOrderByCreatedAtDesc(familyId, pageable);
 
         List<AlbumRes> albumResList = new ArrayList<>();
-        for(SinglePostRes singlePostRes : posts) {
+        for(Post p : filteredPosts) {
+            SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
+
             AlbumRes albumRes = AlbumRes.builder()
-                    .postId(singlePostRes.getPostId())
-                    .img1(singlePostRes.getImgs().get(0))
+                    .postId(p.getPostId())
+                    .img1(singlePostDocumentRes.getUrls().get(0))
                     .build();
 
             albumResList.add(albumRes);
@@ -393,7 +398,7 @@ public class PostService {
      * @return List<SinglePostRes>
      */
     @Transactional(readOnly = true)
-    private List<SinglePostRes> getCombinedPosts(long familyId, Pageable pageable) {
+    private List<SinglePostRes> getCombinedPosts(User user, long familyId, Pageable pageable) {
         // 1. familyId에 따라서 post 목록 받아오기
         List<Post> filteredPosts = postRepository.findByFamilyIdOrderByCreatedAtDesc(familyId, pageable);
 
@@ -407,6 +412,8 @@ public class PostService {
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
             // 3. 로그인 유저의 post love 정보 받아오기
             boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            // 4. 로그인 유저가 게시물의 작성자인지 확인하기
+            boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
             String writer = p.getWriter().getNickname();
@@ -416,7 +423,7 @@ public class PostService {
 
             // 4. 반환된 SinglePostRes 객체 목록 생성
             SinglePostRes singlePostRes = toSinglePostRes(filteredPostId, writer, profileImg,
-                    datetime, countLove, isLoved, singlePostDocumentRes);
+                    datetime, countLove, isLoved, isWritten, singlePostDocumentRes);
 
             posts.add(singlePostRes);
         }
@@ -432,13 +439,14 @@ public class PostService {
      * @return List<SinglePostRes>
      */
     @Transactional(readOnly = true)
-    private List<SinglePostRes> getCombinedPostsByDate(long familyId, LocalDateTime dateTime, Pageable pageable) {
+    private List<SinglePostRes> getCombinedPostsByDate(User user, long familyId, LocalDateTime dateTime, Pageable pageable) {
         List<Post> filteredPosts = postRepository.findByFamilyIdAndCreatedAtDesc(familyId, dateTime, pageable);
 
         List<SinglePostRes> posts = new ArrayList<>();
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
             boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
             String writer = p.getWriter().getNickname();
@@ -447,7 +455,7 @@ public class PostService {
             int countLove = p.getCountLove();
 
             SinglePostRes singlePostRes = toSinglePostRes(filteredPostId, writer, profileImg,
-                    datetime, countLove, isLoved, singlePostDocumentRes);
+                    datetime, countLove, isLoved, isWritten, singlePostDocumentRes);
 
             posts.add(singlePostRes);
         }
@@ -461,8 +469,8 @@ public class PostService {
      * @return SinglePostRes
      */
     private static SinglePostRes toSinglePostRes(long postId, String writer, String profileImg,
-                                                  LocalDateTime dateTime, int countLove, boolean isLoved,
-                                                  SinglePostDocumentRes singlePostDocumentRes) {
+                                                 LocalDateTime dateTime, int countLove, boolean isLoved,
+                                                 boolean isWritten, SinglePostDocumentRes singlePostDocumentRes) {
 
         return SinglePostRes.builder()
                 .postId(postId)
@@ -473,6 +481,7 @@ public class PostService {
                 .createdAt(dateTime.toLocalDate())
                 .countLove(countLove)
                 .loved(isLoved)
+                .written(isWritten)
                 .build();
     }
     @Transactional

@@ -30,15 +30,6 @@ public class PostLoveService {
     private final PostRepository postRepository;
 
     /**
-     * checkDuplicatePostLove
-     * [GET]
-     * @return
-     */
-    public boolean checkDuplicatePostLove(Post post, User member) throws BaseException {
-        return postLoveRepository.existsByPostIdAndUserId(post, member);
-    }
-
-    /**
      * checkUserPostLove
      * [GET]
      * @return
@@ -60,7 +51,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void createLove(User user, PostLoveReq postLoveReq) throws BaseException {
+    public void createLove(User user, PostLoveReq postLoveReq){
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
@@ -88,7 +79,7 @@ public class PostLoveService {
      * @return
      */
     @Transactional
-    public void deleteLove(User user, PostLoveReq postLoveReq) throws BaseException {
+    public void deleteLove(User user, PostLoveReq postLoveReq){
 
         User member = userRepository.findById(user.getId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
@@ -123,5 +114,14 @@ public class PostLoveService {
         List<PostLoveRes> users = postLoveRepository.findByPost(post);
 
         return users;
+    }
+
+    /**
+     * checkDuplicatePostLove
+     * [GET]
+     * @return
+     */
+    private boolean checkDuplicatePostLove(Post post, User member) {
+        return postLoveRepository.existsByPostIdAndUserId(post, member);
     }
 }
