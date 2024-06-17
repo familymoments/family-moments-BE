@@ -27,7 +27,7 @@ public class EmailService {
     private final UserRepository userRepository;
 
     private final RedisService redisService;
-    
+
     private final JavaMailSender emailSender;
 
     private String randomVerificationCode;
@@ -59,15 +59,15 @@ public class EmailService {
         String title = "Family Moments 본인 인증 번호";
         String messageContext = "";
         messageContext += "<div style = \"background-color: #F7E1E3; margin: -8px -8px 50px -8px; height: 100px; padding-top: 50px;\">\n" +
-                          "<span style = \"color: #5B6380; margin-left:50px; text-align: left; font-weight:900; font-family: Segoe Script; font-size: 25px;\">Family Moments</span>\n" +
-                          "</div>\n" +
-                          "<h1 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:35px; margin-bottom: 80px;\">이메일 인증</h1>\n" +
-                          "<h2 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:20px; margin-bottom: 10px;\">안녕하세요, 고객님</h2>\n" +
-                          "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 60px;\">아이디 찾기/비밀번호 재설정을 위해 이메일 인증을 진행합니다.\n" +
-                          "아래 발급된 이메일 인증번호를 복사하거나 직접 입력하여 인증을 완료해주세요.</p>\n" +
-                          "<span style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 10px;\">인증번호 : " + randomVerificationCode + "</span>\n" +
-                          "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 100px;\">감사합니다.</p>\n" +
-                          "<p style = \"color: #96979C; display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size: 10px;\">* 귀하가 한 행동이 아니라면 이 이메일을 무시하셔도 됩니다.</p>\n";
+                "<span style = \"color: #5B6380; margin-left:50px; text-align: left; font-weight:900; font-family: Segoe Script; font-size: 25px;\">Family Moments</span>\n" +
+                "</div>\n" +
+                "<h1 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:35px; margin-bottom: 80px;\">이메일 인증</h1>\n" +
+                "<h2 style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size:20px; margin-bottom: 10px;\">안녕하세요, 고객님</h2>\n" +
+                "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 60px;\">아이디 찾기/비밀번호 재설정을 위해 이메일 인증을 진행합니다.\n" +
+                "아래 발급된 이메일 인증번호를 복사하거나 직접 입력하여 인증을 완료해주세요.</p>\n" +
+                "<span style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 10px;\">인증번호 : " + randomVerificationCode + "</span>\n" +
+                "<p style = \"display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; margin-bottom: 100px;\">감사합니다.</p>\n" +
+                "<p style = \"color: #96979C; display: flex; justify-content: flex-start; margin-left:50px; font-weight:900; font-family: Roboto; font-size: 10px;\">* 귀하가 한 행동이 아니라면 이 이메일을 무시하셔도 됩니다.</p>\n";
 
         MimeMessage message = emailSender.createMimeMessage();
         message.setFrom(new InternetAddress("sonshumc75@gmail.com", "Family Moments")); //발신자 설정
@@ -111,7 +111,12 @@ public class EmailService {
         if(!checkNameAndEmail(req)) {
             throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
         }
-        
+
+        // 인증 코드를 입력하지 않은 경우
+        if(req.getCode().isEmpty()) {
+            throw new BaseException(EMPTY_VERIFICATION_CODE);
+        }
+
         // 유효 시간이 만료된 경우
         if(!redisService.hasKey("VC("+ req.getEmail() + "):")) {
             throw new BaseException(VERIFICATION_TIME_EXPIRED);

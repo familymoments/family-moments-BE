@@ -21,7 +21,6 @@ public class PostEmailReq {
         @NotBlank(message = "인증 코드를 받으실 이메일을 입력해주세요.")
         @Schema(description = "이메일", example = "family@gmail.com")
         private String email;
-        @NotBlank(message = "받은 인증 코드를 입력해주세요.")
         @Schema(description = "인증 코드", example = "여섯 자리 숫자로 이루어진 임의의 인증 코드")
         private String code;
     }
