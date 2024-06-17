@@ -112,6 +112,11 @@ public class EmailService {
             throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
         }
 
+        // 인증 코드를 입력하지 않은 경우
+        if(req.getCode().isEmpty()) {
+            throw new BaseException(EMPTY_VERIFICATION_CODE);
+        }
+
         // 유효 시간이 만료된 경우
         if(!redisService.hasKey("VC("+ req.getEmail() + "):")) {
             throw new BaseException(VERIFICATION_TIME_EXPIRED);
