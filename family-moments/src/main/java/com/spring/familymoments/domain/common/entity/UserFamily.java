@@ -1,6 +1,5 @@
 package com.spring.familymoments.domain.common.entity;
 
-import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.BaseTime;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.user.entity.User;
@@ -43,11 +42,9 @@ public class UserFamily extends BaseTime {
     private User inviteUserId;
 
     public enum Status {
-        ACTIVE, INACTIVE, DEACCEPT, REJECT;
+        ACTIVE, INACTIVE, DEACCEPT, REJECT
     }
-    /**
-     * 회원 탈퇴 API 관련 메소드
-     */
+
     public void updateStatus(Status status) {
         this.status = status;
     }

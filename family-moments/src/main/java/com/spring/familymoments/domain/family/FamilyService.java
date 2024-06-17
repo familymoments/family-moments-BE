@@ -8,8 +8,6 @@ import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.family.model.*;
-import com.spring.familymoments.domain.fcm.model.MessageTemplate;
-import com.spring.familymoments.domain.fcm.model.UploadaAlramDto;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
@@ -19,14 +17,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
@@ -45,7 +41,7 @@ public class FamilyService {
 
     // 가족 생성하기
     @Transactional
-    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException{
+    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException {
 
         checkFamilyLimit(owner);
 
@@ -53,7 +49,7 @@ public class FamilyService {
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
-        String inviteLink = "https://family-moments.com/invite/"+ invitationCode;
+        String inviteLink = "https://family-moments.com/invite/" + invitationCode;
 
         // 가족 입력 객체 생성
         Family family = Family.builder()
@@ -96,7 +92,7 @@ public class FamilyService {
 
     //특정 가족 정보 조회
     @Transactional(readOnly = true)
-    public FamilyRes getFamily(Long id){
+    public FamilyRes getFamily(Long id) {
         Family family = familyRepository.findById(id)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -116,17 +112,16 @@ public class FamilyService {
 
     // 가족원 전체 조회
     @Transactional
-    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) throws BaseException{
+    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) throws BaseException {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        List<GetFamilyAllResInterface> getFamilyAllResList = userFamilyRepository.findActiveUsersByFamilyId(familyId);
-        return getFamilyAllResList;
+        return userFamilyRepository.findActiveUsersByFamilyId(familyId);
     }
 
     //초대코드로 가족 조회
     @Transactional(readOnly = true)
-    public FamilyRes getFamilyByInviteCode(String inviteCode){
+    public FamilyRes getFamilyByInviteCode(String inviteCode) {
         return familyRepository.findByInviteCode(inviteCode)
                 .map(Family::toFamilyRes)
                 .orElse(null);
@@ -135,7 +130,7 @@ public class FamilyService {
 
     // 가족 초대
     @Transactional
-    public void inviteUser(User user, List<String> userIds, Long familyId){
+    public void inviteUser(User user, List<String> userIds, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -168,22 +163,35 @@ public class FamilyService {
 
     // 가족 초대 수락
     @Transactional
-    public void acceptFamily(User user, Long familyId){
+    public void acceptFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
-                .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_INVITATION));
 
-        checkFamilyLimit(user);
+        this.checkFamilyLimit(user);
 
         userFamily.updateStatus(ACTIVE);
         userFamilyRepository.save(userFamily);
     }
 
+    // 가족 초대 거절
+    @Transactional
+    public void rejectFamily(User user, Long familyId) {
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_INVITATION));
+
+        userFamily.updateStatus(REJECT);
+        userFamilyRepository.save(userFamily);
+    }
+
     // 업로드 주기 수정
     @Transactional
-    public void updateUploadCycle(User user, Long familyId, int uploadCycle) throws BaseException{
+    public void updateUploadCycle(User user, Long familyId, int uploadCycle) throws BaseException {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -198,7 +206,7 @@ public class FamilyService {
 
     // 가족 삭제
     @Transactional
-    public void deleteFamily(User user, Long familyId) throws BaseException{
+    public void deleteFamily(User user, Long familyId) throws BaseException {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -229,7 +237,7 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl){
+    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -241,7 +249,7 @@ public class FamilyService {
 
     // 가족 탈퇴
     @Transactional
-    public void withdrawFamily(User user, Long familyId) throws BaseException{
+    public void withdrawFamily(User user, Long familyId) throws BaseException {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -263,7 +271,7 @@ public class FamilyService {
 
     // 가족 강제 탈퇴
     @Transactional
-    public void emissionFamily(User user, Long familyId, List<String> userIds){
+    public void emissionFamily(User user, Long familyId, List<String> userIds) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -281,18 +289,26 @@ public class FamilyService {
 
     // 가족 권한 수정
     @Transactional
-    public void changeFamilyAuthority(User user, Long familyId, String newOwner){
+    public void changeFamilyAuthority(User user, Long familyId, FamilyAuthorityReq familyAuthorityReq) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if(!family.isOwner(user)){
+        if (!family.isOwner(user)) {
             throw new BaseException(NOT_FAMILY_OWNER);
         }
 
-        User userToOwner = userRepository.findById(newOwner)
+        User userToOwner = userRepository.findById(familyAuthorityReq.getUserId())
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
         family.updateFamilyOwner(userToOwner);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean getFamilyAuthority(User user, Long familyId) {
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        return family.isOwner(user);
     }
 
     @Transactional
@@ -325,7 +341,7 @@ public class FamilyService {
 
     // 내 가족 리스트 조회
     @Transactional(readOnly = true)
-    public List<MyFamilyRes> getMyFamilies(User user){
+    public List<MyFamilyRes> getMyFamilies(User user) {
         List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
         List<MyFamilyRes> MyFamilies = new ArrayList<>();
 
@@ -337,10 +353,10 @@ public class FamilyService {
 
     }
 
-    private void checkFamilyLimit(User user){
+    private void checkFamilyLimit(User user) {
         List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
 
-        if (activeFamilies.size() >= MAX_FAMILY_COUNT){
+        if (activeFamilies.size() >= MAX_FAMILY_COUNT) {
             throw new BaseException(FAMILY_LIMIT_EXCEEDED);
         }
     }
@@ -352,7 +368,7 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        if(!userFamilyRepository.existsByUserIdAndFamilyId(user, family)) {
+        if (!userFamilyRepository.existsByUserIdAndFamilyId(user, family)) {
             throw new BaseException(FIND_FAIL_USER_IN_FAMILY);
         }
 
@@ -361,7 +377,7 @@ public class FamilyService {
         }
 
         return family.getFamilyName();
-      
+
     }
 
 }

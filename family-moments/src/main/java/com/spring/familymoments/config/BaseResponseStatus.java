@@ -44,6 +44,7 @@ public enum BaseResponseStatus {
     POST_USERS_INVALID_BIRTH(false, HttpStatus.BAD_REQUEST.value(), "생년월일 형식을 확인해주세요."),
     POST_USERS_EMPTY_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임을 입력해주세요."),
     POST_USERS_INVALID_NICKNAME(false, HttpStatus.BAD_REQUEST.value(), "닉네임 형식을 확인해주세요."),
+    EMPTY_VERIFICATION_CODE(false, HttpStatus.BAD_REQUEST.value(), "받은 인증 코드를 입력해주세요."),
     NOT_EQUAL_VERIFICATION_CODE(false, HttpStatus.BAD_REQUEST.value(), "인증 번호가 일치하지 않습니다."),
     VERIFICATION_TIME_EXPIRED(false, HttpStatus.BAD_REQUEST.value(), "인증 유효 시간이 만료되었습니다. 다시 인증을 요청해주세요."),
     FIND_FAIL_USER_NAME_EMAIL(false,HttpStatus.NOT_FOUND.value(), "이름과 이메일이 정확히 입력되었는지 확인해주세요."),
