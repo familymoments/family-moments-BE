@@ -145,7 +145,7 @@ public class FamilyController {
 
     /**
      * 초대 수락 API
-     * [GET] /{familyId}/invite-accept
+     * [GET] /{familyId}/invitations/accept
      *
      * @return BaseResponse<String>
      */
@@ -158,6 +158,23 @@ public class FamilyController {
                                              @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         familyService.acceptFamily(user, familyId);
         return new BaseResponse<>("초대가 수락되었습니다.");
+    }
+
+    /**
+     * 초대 거절 API
+     * [GET] /{familyId}/invitations/reject
+     *
+     * @return BaseResponse<String>
+     */
+    @Operation(summary = "가족 초대 거절 API")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PatchMapping(value = "/{familyId}/invitations/reject", produces = MediaType.APPLICATION_JSON_VALUE)
+    public BaseResponse<String> rejectFamily(@PathVariable Long familyId,
+                                             @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        familyService.rejectFamily(user, familyId);
+        return new BaseResponse<>("초대가 거절되었습니다.");
     }
 
     /**

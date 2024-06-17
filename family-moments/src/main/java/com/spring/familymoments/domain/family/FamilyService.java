@@ -8,8 +8,6 @@ import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.family.model.*;
-import com.spring.familymoments.domain.fcm.model.MessageTemplate;
-import com.spring.familymoments.domain.fcm.model.UploadaAlramDto;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
@@ -20,14 +18,11 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
@@ -121,8 +116,7 @@ public class FamilyService {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        List<GetFamilyAllResInterface> getFamilyAllResList = userFamilyRepository.findActiveUsersByFamilyId(familyId);
-        return getFamilyAllResList;
+        return userFamilyRepository.findActiveUsersByFamilyId(familyId);
     }
 
     //초대코드로 가족 조회
@@ -174,11 +168,24 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
-                .orElseThrow(() -> new BaseException("존재하지 않는 초대 내역입니다.", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_INVITATION));
 
-        checkFamilyLimit(user);
+        this.checkFamilyLimit(user);
 
         userFamily.updateStatus(ACTIVE);
+        userFamilyRepository.save(userFamily);
+    }
+
+    // 가족 초대 거절
+    @Transactional
+    public void rejectFamily(User user, Long familyId) {
+        Family family = familyRepository.findById(familyId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_INVITATION));
+
+        userFamily.updateStatus(REJECT);
         userFamilyRepository.save(userFamily);
     }
 
