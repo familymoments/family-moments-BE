@@ -260,20 +260,26 @@ public class FamilyController {
     @PatchMapping(value = "/{familyId}/authority", produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<String> changeFamilyAuthority(@PathVariable Long familyId,
                                                       @AuthenticationPrincipal @Parameter(hidden = true) User user,
-                                                      @RequestBody Map<String, String> map) {
-        familyService.changeFamilyAuthority(user, familyId, map.get("userId"));
+                                                      @Valid @RequestBody FamilyAuthorityReq familyAuthorityReq) {
+        familyService.changeFamilyAuthority(user, familyId, familyAuthorityReq);
         return new BaseResponse<>("가족 대표가 변경되었습니다.");
     }
 
-    @Operation(summary = "가족에 가입")
+    /**
+     * 가족 권한 확인 API
+     * [GET] /families/{familyId}/authority
+     * @return BaseResponse<String>
+     */
+
+    @Operation(summary = "가족 권한 확인")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PostMapping(value = "/{familyId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
-    BaseResponse<String> joinFamily(@PathVariable Long familyId,
+    @PostMapping(value = "/{familyId}/authority", produces = MediaType.APPLICATION_JSON_VALUE)
+    BaseResponse<Object> joinFamily(@PathVariable Long familyId,
                                     @AuthenticationPrincipal @Parameter(hidden = true) User user) {
-        familyService.joinFamily(user, familyId);
-        return new BaseResponse<>("가족에 가입되었습니다");
+        Map<String, Boolean> result = Map.of("isOwner", familyService.getFamilyAuthority(user, familyId));
+        return new BaseResponse<>(result);
     }
 
     /**
