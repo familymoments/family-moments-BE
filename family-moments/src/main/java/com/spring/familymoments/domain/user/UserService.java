@@ -216,15 +216,15 @@ public class UserService {
 //        if (userFamilyList.isEmpty()) {
 //            throw new InternalServerErrorException("초대 요청이 존재하지 않습니다.");
 //        } else {
-            for (UserFamily invitation : userFamilyList) {
-                GetInvitationRes getInvitationRes = new GetInvitationRes(invitation.getFamilyId().getFamilyName(),
-                        // invitation.getFamilyId().getOwner().getNickname(),
-                        // invitation.getFamilyId().getOwner().getProfileImg());
-                        invitation.getInviteUserId().getNickname(),
-                        invitation.getInviteUserId().getProfileImg());
+        for (UserFamily invitation : userFamilyList) {
+            GetInvitationRes getInvitationRes = new GetInvitationRes(invitation.getFamilyId().getFamilyName(),
+                    // invitation.getFamilyId().getOwner().getNickname(),
+                    // invitation.getFamilyId().getOwner().getProfileImg());
+                    invitation.getInviteUserId().getNickname(),
+                    invitation.getInviteUserId().getProfileImg());
 
-                getInvitationResList.add(getInvitationRes);
-            }
+            getInvitationResList.add(getInvitationRes);
+        }
 //        }
 
         return getInvitationResList;
