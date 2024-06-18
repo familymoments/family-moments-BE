@@ -66,12 +66,8 @@ public class PostController {
                 .content(postInfoReq.getContent())
                 .build();
 
-        try {
-            SinglePostRes singlePostRes = postService.createPost(user, postReq);
-            return new BaseResponse<>(singlePostRes);
-        } catch (RuntimeException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }
+        SinglePostRes singlePostRes = postService.createPost(user, postReq);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
