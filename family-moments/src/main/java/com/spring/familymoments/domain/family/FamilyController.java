@@ -125,6 +125,17 @@ public class FamilyController {
         return new BaseResponse<>(familyRes);
     }
 
+    @Operation(summary = "가족에 가입")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK"),
+    })
+    @PostMapping(value = "/{familyId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
+    BaseResponse<String> joinFamily(@PathVariable Long familyId,
+                                    @AuthenticationPrincipal @Parameter(hidden = true) User user) {
+        familyService.joinFamily(user, familyId);
+        return new BaseResponse<>("가족에 가입되었습니다");
+    }
+
     /**
      * 초대 API
      * [GET] /familyId
@@ -287,13 +298,12 @@ public class FamilyController {
      * [GET] /families/{familyId}/authority
      * @return BaseResponse<String>
      */
-
     @Operation(summary = "가족 권한 확인")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
     })
-    @PostMapping(value = "/{familyId}/authority", produces = MediaType.APPLICATION_JSON_VALUE)
-    BaseResponse<Object> joinFamily(@PathVariable Long familyId,
+    @GetMapping(value = "/{familyId}/authority", produces = MediaType.APPLICATION_JSON_VALUE)
+    BaseResponse<Object> getFamilyAuthority(@PathVariable Long familyId,
                                     @AuthenticationPrincipal @Parameter(hidden = true) User user) {
         Map<String, Boolean> result = Map.of("isOwner", familyService.getFamilyAuthority(user, familyId));
         return new BaseResponse<>(result);

@@ -16,7 +16,7 @@ import javax.validation.constraints.NotBlank;
 @Schema(description = "로그인 관련 Request")
 public class PostLoginReq {
     @NotBlank(message = "아이디를 입력하세요.")
-    @Schema(description = "아이디", example = "familya5")
+    @Schema(description = "아이디", example = "family5")
     private String id;
     @NotBlank(message = "비밀번호를 입력하세요.")
     @Schema(description = "비밀번호", example = "family1212")
