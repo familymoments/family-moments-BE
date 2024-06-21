@@ -66,14 +66,8 @@ public class PostController {
                 .content(postInfoReq.getContent())
                 .build();
 
-        try {
-            SinglePostRes singlePostRes = postService.createPost(user, postReq);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        } catch (RuntimeException e) {
-            return new BaseResponse<>(FIND_FAIL_FAMILY);
-        }
+        SinglePostRes singlePostRes = postService.createPost(user, postReq);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -101,12 +95,9 @@ public class PostController {
                 .imgs(imgs)
                 .build();
 
-        try {
-            SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
+        return new BaseResponse<>(singlePostRes);
+
     }
 
     /**
@@ -118,12 +109,8 @@ public class PostController {
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
-        try {
-            postService.deletePost(user, postId);
-            return new BaseResponse<>(SUCCESS);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        postService.deletePost(user, postId);
+        return new BaseResponse<>(SUCCESS);
     }
 
     /**
@@ -135,12 +122,8 @@ public class PostController {
     @GetMapping(params = {"familyId"})
     @Operation(summary = "게시글 10건 조회", description = "최근 10개의 게시글을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getRecentPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId) {
-        try {
-            List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -152,12 +135,8 @@ public class PostController {
     @GetMapping(params = {"familyId", "postId"})
     @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
-        try {
-            List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId, postId);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId, postId);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -169,13 +148,8 @@ public class PostController {
     @GetMapping("/{postId}")
     @Operation(summary = "게시글 조회", description = "게시글 1건을 조회합니다.")
     public BaseResponse<SinglePostRes> getPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
-        try {
-            SinglePostRes singlePostRes = postService.getPost(user, postId);
-
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        SinglePostRes singlePostRes = postService.getPost(user, postId);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -191,12 +165,8 @@ public class PostController {
                                                               @RequestParam("year") int year,
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day) {
-        try {
-            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -213,12 +183,8 @@ public class PostController {
                                                               @RequestParam("month") int month,
                                                               @RequestParam("day") int day,
                                                               @RequestParam("postId") long postId) {
-        try {
-            List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day, postId);
-            return new BaseResponse<>(singlePostRes);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<SinglePostRes> singlePostRes = postService.getPostsOfDate(user, familyId, year, month, day, postId);
+        return new BaseResponse<>(singlePostRes);
     }
 
     /**
@@ -234,12 +200,8 @@ public class PostController {
        }
 
        List<LocalDate> dates = null;
-       try {
-           dates = postService.getDayExistsPost(familyId, year, month);
-           return new BaseResponse<>(dates);
-       } catch (BaseException e) {
-           return new BaseResponse<>(e.getStatus());
-       }
+       dates = postService.getDayExistsPost(familyId, year, month);
+       return new BaseResponse<>(dates);
    }
 
     /**
@@ -250,12 +212,8 @@ public class PostController {
     @GetMapping(value = "/album")
     @Operation(summary = "앨범 30건 조회", description = "최근 30건의 게시물을 앨범 형태에 맞춰 조회합니다.")
     public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId) {
-        try {
-            List<AlbumRes> album = postService.getAlbum(familyId);
-            return new BaseResponse<>(album);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<AlbumRes> album = postService.getAlbum(familyId);
+        return new BaseResponse<>(album);
     }
 
     /**
@@ -266,12 +224,8 @@ public class PostController {
     @GetMapping(value = "/album", params = {"familyId", "postId"})
     @Operation(summary = "앨범 30건 조회(with paging)", description = "커서 이전의 30건의 게시물을 앨범 형태에 맞춰 조회합니다.")
     public BaseResponse<List<AlbumRes>> getRecentAlbum(@RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
-        try {
-            List<AlbumRes> album = postService.getAlbum(familyId, postId);
-            return new BaseResponse<>(album);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<AlbumRes> album = postService.getAlbum(familyId, postId);
+        return new BaseResponse<>(album);
     }
 
     /**
@@ -282,12 +236,8 @@ public class PostController {
     @GetMapping(value = "/album/{postId}")
     @Operation(summary = "앨범 상세 조회", description = "앨범의 상세 페이지를 조회합니다.")
     public BaseResponse<List<String>> getAlbumImages(@PathVariable long postId) {
-        try {
-            List<String> imgs = postService.getPostImages(postId);
-            return new BaseResponse<>(imgs);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<String> imgs = postService.getPostImages(postId);
+        return new BaseResponse<>(imgs);
     }
 
     /**
@@ -298,13 +248,8 @@ public class PostController {
     @GetMapping("/{postId}/post-loves")
     @Operation(summary = "좋아요 명단 조회", description = "특정 게시물의 좋아요를 누른 사람의 명단을 조회합니다.")
     public BaseResponse<List<PostLoveRes>> getLovedList(@PathVariable long postId) {
-        try {
-            List<PostLoveRes> heartedList = postLoveService.getHeartList(postId);
-
-            return new BaseResponse<>(heartedList);
-        } catch (BaseException e) {
-            return new BaseResponse<>(e.getStatus());
-        }
+        List<PostLoveRes> heartedList = postLoveService.getHeartList(postId);
+        return new BaseResponse<>(heartedList);
     }
 
     /**
