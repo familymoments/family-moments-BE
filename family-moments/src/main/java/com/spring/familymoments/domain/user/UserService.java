@@ -298,11 +298,24 @@ public class UserService {
     @Transactional
     public void deleteUser(User user) {
         Long userId = user.getUserId();
+
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
-        if(ownerFamilies.size() != 0) {
-            throw new BaseException(FAILED_TO_LEAVE); //생성자 권한을 다른 사람에게 넘기고 탈퇴
+        if(!ownerFamilies.isEmpty()) {
+            //로그인 유저가 가족 생성자 + 가족 내에 본인 혼자일 때는 탈퇴 처리
+            for(Family family : ownerFamilies) {
+                List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+                if(uf.size() == 1) {
+                    //가족 삭제 후 탈퇴 진행
+                    family.updateStatus(INACTIVE);
+                    familyRepository.save(family);
+                    continue;
+                }
+                //생성자 권한을 다른 사람에게 넘겨야 탈퇴 가능
+                throw new BaseException(FAILED_TO_LEAVE);
+            }
         }
+
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
         for(CommentLove commentLove : commentLoves) {
