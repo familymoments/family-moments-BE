@@ -18,6 +18,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Objects;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
+import static com.spring.familymoments.utils.ValidationRegex.isRegexCode;
 
 @Slf4j
 @Service
@@ -83,7 +84,7 @@ public class EmailService {
      * 이메일 전송
      * @return String randomVerificationCode
      */
-    public String sendEmail(String name, String emailReceiver) throws MessagingException, BaseException, UnsupportedEncodingException {
+    public String sendEmail(String emailReceiver) throws MessagingException, BaseException, UnsupportedEncodingException {
 
         MimeMessage emailForm = createEmailForm(emailReceiver);
         emailSender.send(emailForm);
@@ -97,7 +98,7 @@ public class EmailService {
      * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
      */
     public boolean checkNameAndEmail(PostEmailReq.sendVerificationEmail req) {
-        return userRepository.existsByNameAndEmail(req.getName(), req.getEmail());
+        return userRepository.existsByEmail(req.getEmail());
     }
 
     /**
@@ -109,12 +110,17 @@ public class EmailService {
 
         // 일치하는 회원 정보가 없는 경우
         if(!checkNameAndEmail(req)) {
-            throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
+            throw new BaseException(FIND_FAIL_USER_NAME_AND_EMAIL);
         }
 
         // 인증 코드를 입력하지 않은 경우
         if(req.getCode().isEmpty()) {
             throw new BaseException(EMPTY_VERIFICATION_CODE);
+        }
+
+        // 인증 코드 형식이 잘못된 경우
+        if(!isRegexCode(req.getCode())) {
+            throw new BaseException(INVALID_VERIFICATION_CODE);
         }
 
         // 유효 시간이 만료된 경우
