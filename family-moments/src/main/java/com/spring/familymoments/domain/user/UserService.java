@@ -174,32 +174,39 @@ public class UserService {
     public List<GetSearchUserRes> searchUserById(String keyword, Long familyId, User loginUser) {
         List<GetSearchUserRes> getSearchUserResList = new ArrayList<>();
 
-        PageRequest pageRequest = PageRequest.of(0, 5);
-        Page<User> keywordUserList = userRepository.findTop5ByIdContainingKeywordOrderByIdAsc(keyword, pageRequest);
-
+        List<User> keywordUserList = userRepository.searchUserByKeyword(keyword);
         for(User keywordUser: keywordUserList) {
             Long checkUserId = keywordUser.getUserId();
             int appear = 1;
+
+            //로그인한 유저 제외
             if(loginUser.getUserId() == checkUserId) {
-                log.info("[로그인 유저이면 리스트에 추가 X]");
                 continue;
             }
+
+            //현재 가족과 관련된 유저들
             List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, checkUserId);
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
-                    log.info("UserFamily is null. Skipping...");
                     continue;
                 }
+                //현재 가족에 이미 초대 당하거나 대기 중일 때 비활성화
                 if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT) {
-                    log.info("[이미 다른 가족에 초대 대기 중이거나 초대 당한 사람이니까 비활성화]");
                     appear = 0;
                     break;
                 }
             }
-            GetSearchUserRes getSearchUserRes = new GetSearchUserRes(keywordUser.getId(), keywordUser.getProfileImg(), appear);
-            getSearchUserResList.add(getSearchUserRes);
+
+            getSearchUserResList.add(
+                    GetSearchUserRes.of(
+                            keywordUser.getId(),
+                            keywordUser.getProfileImg(),
+                            appear
+                    )
+            );
         }
+
         return getSearchUserResList;
     }
     /**
