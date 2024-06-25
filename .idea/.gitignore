@@ -9,3 +9,6 @@
 /aws.xml
 /dbnavigator.xml
 !/misc.xml
+/sshConfigs.xml
+/webServers.xml
+/aws.xml
