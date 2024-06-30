@@ -174,32 +174,39 @@ public class UserService {
     public List<GetSearchUserRes> searchUserById(String keyword, Long familyId, User loginUser) {
         List<GetSearchUserRes> getSearchUserResList = new ArrayList<>();
 
-        PageRequest pageRequest = PageRequest.of(0, 5);
-        Page<User> keywordUserList = userRepository.findTop5ByIdContainingKeywordOrderByIdAsc(keyword, pageRequest);
-
+        List<User> keywordUserList = userRepository.searchUserByKeyword(keyword);
         for(User keywordUser: keywordUserList) {
             Long checkUserId = keywordUser.getUserId();
             int appear = 1;
+
+            //로그인한 유저 제외
             if(loginUser.getUserId() == checkUserId) {
-                log.info("[로그인 유저이면 리스트에 추가 X]");
                 continue;
             }
+
+            //현재 가족과 관련된 유저들
             List<Object[]> results = userRepository.findUsersByFamilyIdAndUserId(familyId, checkUserId);
             for(Object[] result : results) {
                 UserFamily userFamily = (UserFamily) result[1];
                 if (userFamily == null) {
-                    log.info("UserFamily is null. Skipping...");
                     continue;
                 }
+                //현재 가족에 이미 초대 당하거나 대기 중일 때 비활성화
                 if(userFamily.getStatus() == ACTIVE || userFamily.getStatus() == DEACCEPT) {
-                    log.info("[이미 다른 가족에 초대 대기 중이거나 초대 당한 사람이니까 비활성화]");
                     appear = 0;
                     break;
                 }
             }
-            GetSearchUserRes getSearchUserRes = new GetSearchUserRes(keywordUser.getId(), keywordUser.getProfileImg(), appear);
-            getSearchUserResList.add(getSearchUserRes);
+
+            getSearchUserResList.add(
+                    GetSearchUserRes.of(
+                            keywordUser.getId(),
+                            keywordUser.getProfileImg(),
+                            appear
+                    )
+            );
         }
+
         return getSearchUserResList;
     }
     /**
@@ -291,11 +298,24 @@ public class UserService {
     @Transactional
     public void deleteUser(User user) {
         Long userId = user.getUserId();
+
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
-        if(ownerFamilies.size() != 0) {
-            throw new BaseException(FAILED_TO_LEAVE); //생성자 권한을 다른 사람에게 넘기고 탈퇴
+        if(!ownerFamilies.isEmpty()) {
+            //로그인 유저가 가족 생성자 + 가족 내에 본인 혼자일 때는 탈퇴 처리
+            for(Family family : ownerFamilies) {
+                List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+                if(uf.size() == 1) {
+                    //가족 삭제 후 탈퇴 진행
+                    family.updateStatus(INACTIVE);
+                    familyRepository.save(family);
+                    continue;
+                }
+                //생성자 권한을 다른 사람에게 넘겨야 탈퇴 가능
+                throw new BaseException(FAILED_TO_LEAVE);
+            }
         }
+
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
         for(CommentLove commentLove : commentLoves) {

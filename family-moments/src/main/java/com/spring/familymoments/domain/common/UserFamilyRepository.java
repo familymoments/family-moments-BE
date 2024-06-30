@@ -26,6 +26,8 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
     //회원 탈퇴 시, UserFamily 매핑 테이블 해제를 위한 조회
     @Query("SELECT uf FROM UserFamily uf WHERE uf.userId.userId = :userId")
     List<UserFamily> findUserFamilyByUserId(@Param("userId") Long userId);
+    @Query("SELECT uf FROM UserFamily uf WHERE uf.familyId.familyId = :familyId")
+    List<UserFamily> findUserFamilyByFamilyId(@Param("familyId") Long familyId);
 
     @Query(value = "SELECT u.userId AS userId, u.id AS id, u.nickname AS nickname, u.profileImg AS profileImg " +
             "FROM User u " +
