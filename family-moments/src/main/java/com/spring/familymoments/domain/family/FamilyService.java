@@ -111,7 +111,7 @@ public class FamilyService {
 
     // 가족원 전체 조회
     @Transactional
-    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) {
+    public List<GetFamilyAllResInterface> getFamilyAllMembers(Long familyId) {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
