@@ -53,11 +53,18 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN_ID(false,HttpStatus.NOT_FOUND.value(),"아이디가 일치하지 않습니다."),
     FAILED_TO_LOGIN_PWD(false,HttpStatus.NOT_FOUND.value(),"비밀번호가 일치하지 않습니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(), "탈퇴하거나 신고당한 유저입니다."),
+    NEED_TO_JOIN_AS_THIS_SOCIAL(false, 481, "해당 소셜로 회원 가입을 해야 합니다."),
+
+    // family
     FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
     FIND_FAIL_USER_IN_FAMILY(false, HttpStatus.NOT_FOUND.value(), "해당 유저가 해당 가족에 존재하지 않습니다."),
-    NEED_TO_JOIN_AS_THIS_SOCIAL(false, 481, "해당 소셜로 회원 가입을 해야 합니다."),
     FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
     FAMILY_LIMIT_EXCEEDED(false, HttpStatus.CONFLICT.value(), "가족은 최대 5개까지만 가능합니다."),
+    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다."),
+    ALREADY_INVITED_USER(false, HttpStatus.CONFLICT.value(), "이미 초대 요청을 받은 회원이 있습니다."),
+    ALREADY_JOINED_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가입된 가족입니다."),
+    FIND_FAIL_FAMILY_CREATION_DATE(false, HttpStatus.NOT_FOUND.value(), "가족 생성일을 찾을 수 없습니다."),
+
     FAILED_SOCIAL_JOIN(false, HttpStatus.CONFLICT.value(), "이미 해당 소셜 계정이 있는 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
@@ -71,7 +78,6 @@ public enum BaseResponseStatus {
      */
     DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
     SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
-
 
     FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
     FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
@@ -109,7 +115,6 @@ public enum BaseResponseStatus {
 
     COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
     FIND_FAIL_COMMENTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
-    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다."),
     FIND_FAIL_FCMTOKEN(false,HttpStatus.NOT_FOUND.value(),"해당 사용자의 FCM Token이 존재하지 않습니다."),
     FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다.");
 

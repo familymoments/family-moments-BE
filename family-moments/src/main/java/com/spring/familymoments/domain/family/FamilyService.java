@@ -36,7 +36,6 @@ public class FamilyService {
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
     private final CommentWithUserRepository commentWithUserRepository;
-
     private final int MAX_FAMILY_COUNT = 5;
 
     // 가족 생성하기
@@ -105,7 +104,7 @@ public class FamilyService {
         LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
         String dday = familyRepository.findCreatedAtNicknameById(familyId, today);
         if (dday == null) {
-            throw new BaseException("가족 생성일을 찾을 수 없습니다.", HttpStatus.INTERNAL_SERVER_ERROR.value());
+            throw new BaseException(FIND_FAIL_FAMILY_CREATION_DATE);
         }
         return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
     }
@@ -143,7 +142,7 @@ public class FamilyService {
             userFamily.ifPresentOrElse(
                     existingUserFamily -> {
                         if (existingUserFamily.getStatus() == ACTIVE || existingUserFamily.getStatus() == DEACCEPT) {
-                            throw new BaseException("이미 초대 요청을 받은 회원이 있습니다.", HttpStatus.CONFLICT.value());
+                            throw new BaseException(ALREADY_INVITED_USER);
                         }
                         existingUserFamily.updateStatus(DEACCEPT);
                     },
@@ -264,7 +263,7 @@ public class FamilyService {
         }
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
-                .orElseThrow(() -> new BaseException("가족에 가입되어 있지 않은 유저입니다.", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_IN_FAMILY);
 
         userFamilyRepository.delete(userFamily);
     }
@@ -323,7 +322,7 @@ public class FamilyService {
         userFamily.ifPresentOrElse(
                 existingUserFamily -> {
                     if (existingUserFamily.getStatus() == ACTIVE) {
-                        throw new BaseException("이미 가입된 가족입니다.", HttpStatus.CONFLICT.value());
+                        throw new BaseException(ALREADY_JOINED_FAMILY);
                     }
                     existingUserFamily.updateStatus(ACTIVE);
                 },
