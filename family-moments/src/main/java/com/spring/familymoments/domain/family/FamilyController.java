@@ -31,7 +31,6 @@ import java.util.Map;
 public class FamilyController {
 
     private final FamilyService familyService;
-    @Autowired
     private final AwsS3Service awsS3Service;
 
 
