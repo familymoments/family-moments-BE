@@ -35,6 +35,7 @@ public class FamilyService {
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
     private final CommentWithUserRepository commentWithUserRepository;
+
     private static final int MAX_FAMILY_COUNT = 5;
     private static final String INVITE_LINK = "https://family-moments.com/invite/";
 
@@ -101,6 +102,7 @@ public class FamilyService {
         if (dday == null) {
             throw new BaseException(FIND_FAIL_FAMILY_CREATION_DATE);
         }
+
         return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
     }
 
@@ -113,7 +115,7 @@ public class FamilyService {
         return userFamilyRepository.findActiveUsersByFamilyId(familyId);
     }
 
-    //초대코드로 가족 조회
+    // 초대코드로 가족 조회
     @Transactional(readOnly = true)
     public FamilyRes getFamilyByInviteCode(String inviteCode) {
         return familyRepository.findByInviteCode(inviteCode)
@@ -375,7 +377,6 @@ public class FamilyService {
         }
 
         return family.getFamilyName();
-
     }
 
 }
