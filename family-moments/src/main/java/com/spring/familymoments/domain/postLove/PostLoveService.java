@@ -31,11 +31,11 @@ public class PostLoveService {
 
     /**
      * checkUserPostLove
+     * 유저가 게시들에 좋아요를 눌렀는지 여부 확인
      * [GET]
      * @return
      */
     public boolean checkPostLoveByUser(Long postId, Long userId) {
-
         User member = userRepository.findById(userId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
 
@@ -68,8 +68,7 @@ public class PostLoveService {
                 .userId(member)
                 .build();
 
-        int countLove = post.getCountLove();
-        post.increaseCountLove(countLove);
+        post.increaseCountLove();
         postLoveRepository.save(postLove);
     }
 
@@ -94,8 +93,7 @@ public class PostLoveService {
         PostLove postLove = postLoveRepository.findByPostIdAndUserId(post, member)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_POSTLOVE));
 
-        int countLove = post.getCountLove();
-        post.decreaseCountLove(countLove);
+        post.decreaseCountLove();
         postLoveRepository.delete(postLove);
     }
 

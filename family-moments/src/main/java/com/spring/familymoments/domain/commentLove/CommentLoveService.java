@@ -50,6 +50,10 @@ public class CommentLoveService {
         commentLoveRepository.delete(commentLove);
     }
 
+
+    /**
+     * 댓글 좋아요 중복 확인
+     */
     private boolean checkDuplicateCommentLove(Comment comment, User user) throws BaseException {
         return commentLoveRepository.existsByCommentIdAndUserId(comment, user);
     }
