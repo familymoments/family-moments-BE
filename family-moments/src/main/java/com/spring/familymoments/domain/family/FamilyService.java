@@ -41,9 +41,6 @@ public class FamilyService {
     // 가족 생성하기
     @Transactional
     public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) {
-
-        checkFamilyLimit(owner);
-
         checkFamilyLimit(owner);
 
         // 초대 링크 생성
@@ -61,7 +58,6 @@ public class FamilyService {
 
         // 가족 저장
         Family savedFamily = familyRepository.save(family);
-
 
         // 2. 유저 가족 매핑 튜플 생성
         // 가족 외래키 생성
@@ -85,7 +81,6 @@ public class FamilyService {
                 owner.getNickname(),
                 savedFamily.getInviteCode()
         );
-
     }
 
 
@@ -195,7 +190,7 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 생성자 권한 확인
-        if (!family.getOwner().getUserId().equals(user.getUserId())) {
+        if (!family.isOwner(user)) {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
 
@@ -210,9 +205,10 @@ public class FamilyService {
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
         // 생성자 권한 확인
-        if (!family.getOwner().getUserId().equals(user.getUserId())) {
+        if (!family.isOwner(user)) {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
+
 
         // 1. 가족 내 게시글의 댓글 일괄 삭제
         List<Post> postsToDelete = postWithUserRepository.findByFamilyId(family);
@@ -302,6 +298,7 @@ public class FamilyService {
         family.updateFamilyOwner(userToOwner);
     }
 
+    // 가족 권한 확인
     @Transactional(readOnly = true)
     public boolean getFamilyAuthority(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
@@ -310,6 +307,7 @@ public class FamilyService {
         return family.isOwner(user);
     }
 
+    // 가족 가입
     @Transactional
     public void joinFamily(User user, Long familyId) {
         checkFamilyLimit(user);
@@ -352,6 +350,7 @@ public class FamilyService {
 
     }
 
+    // 가족 최대 가입 유효성 확인
     private void checkFamilyLimit(User user) {
         List<Family> activeFamilies = familyRepository.findActiveFamilyByUserId(user);
 
