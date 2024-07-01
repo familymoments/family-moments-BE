@@ -13,7 +13,6 @@ import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +35,8 @@ public class FamilyService {
     private final UserRepository userRepository;
     private final PostWithUserRepository postWithUserRepository;
     private final CommentWithUserRepository commentWithUserRepository;
-    private final int MAX_FAMILY_COUNT = 5;
+    private static final int MAX_FAMILY_COUNT = 5;
+    private static final String INVITE_LINK = "https://family-moments.com/invite/";
 
     // 가족 생성하기
     @Transactional
@@ -48,7 +48,7 @@ public class FamilyService {
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
-        String inviteLink = "https://family-moments.com/invite/" + invitationCode;
+        String inviteLink = INVITE_LINK + invitationCode;
 
         // 가족 입력 객체 생성
         Family family = Family.builder()
@@ -263,7 +263,7 @@ public class FamilyService {
         }
 
         UserFamily userFamily = userFamilyRepository.findByUserIdAndFamilyId(user, family)
-                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_IN_FAMILY);
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_IN_FAMILY));
 
         userFamilyRepository.delete(userFamily);
     }
