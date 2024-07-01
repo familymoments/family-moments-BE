@@ -41,7 +41,7 @@ public class FamilyService {
 
     // 가족 생성하기
     @Transactional
-    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) throws BaseException {
+    public PostFamilyRes createFamily(User owner, PostFamilyReq postFamilyReq, String fileUrl) {
 
         checkFamilyLimit(owner);
 
@@ -112,7 +112,7 @@ public class FamilyService {
 
     // 가족원 전체 조회
     @Transactional
-    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) throws BaseException {
+    public List<GetFamilyAllResInterface> getFamilyAll(Long familyId) {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -191,7 +191,7 @@ public class FamilyService {
 
     // 업로드 주기 수정
     @Transactional
-    public void updateUploadCycle(User user, Long familyId, int uploadCycle) throws BaseException {
+    public void updateUploadCycle(User user, Long familyId, int uploadCycle) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -206,7 +206,7 @@ public class FamilyService {
 
     // 가족 삭제
     @Transactional
-    public void deleteFamily(User user, Long familyId) throws BaseException {
+    public void deleteFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
@@ -249,7 +249,7 @@ public class FamilyService {
 
     // 가족 탈퇴
     @Transactional
-    public void withdrawFamily(User user, Long familyId) throws BaseException {
+    public void withdrawFamily(User user, Long familyId) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
