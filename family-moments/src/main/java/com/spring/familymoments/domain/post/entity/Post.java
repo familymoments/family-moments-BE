@@ -46,11 +46,11 @@ public class Post extends BaseEntity {
     @ColumnDefault("0")
     private int countLove;
 
-    public void increaseCountLove(int countLove) {
+    public void increaseCountLove() {
         this.countLove = countLove + 1;
     }
 
-    public void decreaseCountLove(int countLove) {
+    public void decreaseCountLove() {
         this.countLove = countLove - 1;
     }
 
