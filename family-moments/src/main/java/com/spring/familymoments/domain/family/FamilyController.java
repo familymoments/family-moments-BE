@@ -49,7 +49,7 @@ public class FamilyController {
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @RequestParam(name = "representImg") MultipartFile representImg,
             @Valid @RequestPart PostFamilyReq postFamilyReq) {
-        String fileUrl = awsS3Service.uploadImage(representImg);        // 대표 이미지 넣기
+        String fileUrl = awsS3Service.uploadProfileImage(representImg);        // 대표 이미지 넣기
         PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
         return new BaseResponse<>(postFamilyRes);
     }
@@ -235,7 +235,7 @@ public class FamilyController {
     public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
                                                 @RequestParam(name = "representImg") MultipartFile representImg,
                                                 @Valid @RequestPart FamilyUpdateReq familyUpdateReq){
-        String fileUrl = awsS3Service.uploadImage(representImg);
+        String fileUrl = awsS3Service.uploadProfileImage(representImg);
         FamilyRes familyRes = familyService.updateFamily(familyId, familyUpdateReq, fileUrl);
         return new BaseResponse<>(familyRes);
     }
