@@ -364,6 +364,13 @@ public class UserService {
         //socialUserService.deleteSocialUserWithRedisProcess(user);
     }
 
+    // TODO: 임시 method, 차후 삭제
+    public User getUserById(String userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(FIND_FAIL_USER_ID));
+
+        return user;
+    }
+  
     public void reportUser(Long toUserId) {
         User toUser = userRepository.findById(toUserId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
@@ -377,5 +384,4 @@ public class UserService {
         toUser.updateReported(toUser.getReported() + 1);
         userRepository.save(toUser);
     }
-
 }
