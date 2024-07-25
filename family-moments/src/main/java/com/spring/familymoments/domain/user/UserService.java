@@ -44,6 +44,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -141,13 +142,9 @@ public class UserService {
      * [GET]
      * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
      */
-    public boolean checkDuplicateIdByStatus(String UserId) {
-        boolean alreadyUser = true;
-        List<User> activeMemberList = userRepository.findUserById(UserId);
-        if(activeMemberList.isEmpty()) {
-            alreadyUser = false;
-        }
-        return alreadyUser;
+    public boolean checkDuplicateIdByStatus(String userId) {
+        Optional<User> activeUser = userRepository.findById(userId);
+        return activeUser.isPresent();
     }
 
 //    /**
@@ -179,12 +176,8 @@ public class UserService {
      * @return
      */
     public boolean checkDuplicateEmailByStatus(String email) {
-        boolean alreadyUser = true;
-        List<User> activeMemberList = userRepository.findUserByEmail(email);
-        if(activeMemberList.isEmpty()) {
-            alreadyUser = false;
-        }
-        return alreadyUser;
+        Optional<User> activeUser = userRepository.findByEmail(email);
+        return activeUser.isPresent();
     }
 
 

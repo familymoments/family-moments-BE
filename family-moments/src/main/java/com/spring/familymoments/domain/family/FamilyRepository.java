@@ -19,6 +19,7 @@ public interface FamilyRepository extends JpaRepository<Family, Long> {
     Optional<Family> findByInviteCode(String inviteCode);
 
     //회원 탈퇴 시, 가족 생성자 권한 여부를 확인하기 위한 조회
+    @Query("SELECT f FROM Family f WHERE f.owner = :user AND f.owner.status = 'ACTIVE' ")
     List<Family> findByOwner(User user);
 
     @Query("SELECT CASE WHEN COUNT(uf) = 0 THEN false ELSE true END " +

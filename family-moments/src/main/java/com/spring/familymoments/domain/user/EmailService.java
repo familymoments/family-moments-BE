@@ -17,6 +17,7 @@ import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -107,12 +108,8 @@ public class EmailService {
      * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
      */
     public boolean checkNameAndEmailByStatus(PostEmailReq.sendVerificationEmail req) {
-        boolean alreadyUser = true;
-        List<User> userList = userRepository.findUserByNameAndEmail(req.getName(), req.getEmail());
-        if(userList.isEmpty()) {
-            alreadyUser = false;
-        }
-        return alreadyUser;
+        Optional<User> user = userRepository.findByNameAndEmail(req.getName(), req.getEmail());
+        return user.isPresent();
     }
 
     /**

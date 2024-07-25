@@ -15,13 +15,19 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
+    @Query("SELECT u FROM User u WHERE u.userId = :userId " +
+            "AND u.status = 'ACTIVE' ")
     Optional<User> findUserByUserId(Long userId);
 
+    @Query("SELECT u FROM User u WHERE u.uuid = :uuid " +
+            "AND u.status = 'ACTIVE' ")
     Optional<User> findUserByUuid(String uuid);
 
     // Optional<User> findByEmailAndStatus(String email, BaseEntity.Status status);
-    Optional<User> findById(String id);
-    Optional<User> findByEmail(String email);
+    @Query("SELECT u FROM User u WHERE u.id = :id " +
+            "AND u.status = 'ACTIVE' ")
+    Optional<User> findById(@Param("id") String id);
+//    Optional<User> findByEmail(String email);
 
 //    boolean existsById(String id);
 //    boolean existsByName(String name);
@@ -29,23 +35,19 @@ public interface UserRepository extends JpaRepository<User, Long> {
 //    boolean existsByNameAndEmail(String name, String email);
 //    boolean existsByIdAndStatus(String id, User.Status Status);
 
-    @Query("SELECT u FROM User u WHERE u.id = :id " +
-            "AND u.status = 'ACTIVE' ")
-    List<User> findUserById(@Param("id") String id);
-
     @Query("SELECT u FROM User u WHERE u.email = :email AND u.name = :name " +
             "AND u.status = 'ACTIVE' ")
-    List<User> findUserByNameAndEmail(@Param("name") String name, @Param ("email")String email);
+    Optional<User> findByNameAndEmail(@Param("name") String name, @Param ("email")String email);
 
     @Query("SELECT u FROM User u WHERE u.email = :email " +
             "AND u.status = 'ACTIVE' ")
-    List<User> findUserByEmail(@Param("email") String email);
+    Optional<User> findByEmail(@Param("email") String email);
 
     //유저 검색
-    @Query("SELECT u FROM User u WHERE u.id LIKE :keyword% ORDER BY u.id ASC")
+    @Query("SELECT u FROM User u WHERE u.id LIKE :keyword% AND u.status = 'ACTIVE' ORDER BY u.id ASC ")
     List<User> searchUserByKeyword(String keyword);
     @Query("SELECT u, uf FROM User u LEFT JOIN UserFamily uf ON u.userId = uf.userId.userId " +
-            "WHERE (uf.familyId.familyId = :familyId) AND (u.userId = :userId)")
+            "WHERE (uf.familyId.familyId = :familyId) AND (u.userId = :userId) AND u.status = 'ACTIVE' AND uf.status = 'ACTIVE' ")
     List<Object[]> findUsersByFamilyIdAndUserId(Long familyId, Long userId);
 
     User findByNickname(String nickname);

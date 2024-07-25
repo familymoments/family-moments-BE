@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PostLoveRepository extends JpaRepository<PostLove, Long> {
+public interface git lPostLoveRepository extends JpaRepository<PostLove, Long> {
 
     Optional<PostLove> findByPostIdAndUserId(Post post, User user);
 
