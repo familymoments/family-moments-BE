@@ -96,7 +96,7 @@ public class SocialUserService {
             String strBirthDate = null;
 
             //기존회원 토큰발급 (회원가입 필요없음)
-            if(existedU != null && existedU.isPresent()) {
+            if(existedU != null && existedU.isPresent() && existedU.get().getStatus() == User.Status.ACTIVE) {
                 isExisted = true;
                 tokenDto = setAuthenticationInSocial(existedU.get());
                 //familyId 반환
@@ -156,7 +156,7 @@ public class SocialUserService {
             throw new BaseException(POST_USERS_INVALID_ID);
         }
         //아이디 중복 체크
-        if (userService.checkDuplicateId(userJoinRequest.getId())) {
+        if (userService.checkDuplicateIdByStatus(userJoinRequest.getId())) {
             throw new BaseException(POST_USERS_EXISTS_ID);
         }
         //이름
