@@ -95,7 +95,7 @@ public class UserController {
         String fileUrl = null;
 
         if (postUserReq.getProfileImg() == null) {
-            fileUrl = awsS3Service.uploadImage(profileImage);
+            fileUrl = awsS3Service.uploadProfileImage(profileImage);
         }
 
         postUserReq.setProfileImg(fileUrl);
@@ -287,7 +287,7 @@ public class UserController {
         if(profileImg == null || profileImg.isEmpty()) { //이미지 비어있으면 원래 이미지 넣어주기
             patchProfileReqRes.setProfileImg(user.getProfileImg());
         } else {
-            String fileUrl = awsS3Service.uploadImage(profileImg);
+            String fileUrl = awsS3Service.uploadProfileImage(profileImg);
             patchProfileReqRes.setProfileImg(fileUrl);
         }
         if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
