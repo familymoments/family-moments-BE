@@ -28,7 +28,7 @@ public class Comment extends BaseEntity {
     private Long commentId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "writer", nullable = false)
+    @JoinColumn(name = "writer")
     private User writer;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -51,6 +51,13 @@ public class Comment extends BaseEntity {
      */
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    /***
+     * SET NULL -> 추후 변경 예정
+     */
+    public void updateWriter() {
+        this.writer = null;
     }
 
     /**

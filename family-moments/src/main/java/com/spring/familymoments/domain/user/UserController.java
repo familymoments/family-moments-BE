@@ -430,7 +430,6 @@ public class UserController {
     })
     public BaseResponse<String> deleteUser(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestHeader("X-AUTH-TOKEN") String requestAccessToken) {
         userService.deleteUserWithRedisProcess(user, requestAccessToken);
-        fcmService.deleteToken(user.getId());     // FCM Token 삭제
         return new BaseResponse<>("계정을 삭제했습니다.");
     }
 
