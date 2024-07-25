@@ -118,8 +118,22 @@ public class UserService {
      * [GET]
      * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
      */
-    public boolean checkDuplicateId(String UserId) throws BaseException {
+    /*public boolean checkDuplicateId(String UserId) throws BaseException {
         return userRepository.existsById(UserId);
+    }*/
+
+    /**
+     * 아이디 중복 확인 ACTIVE 포함 ver.
+     * [GET]
+     * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
+     */
+    public boolean checkDuplicateIdByStatus(String UserId) {
+        boolean alreadyUser = true;
+        List<User> activeMemberList = userRepository.findUserById(UserId);
+        if(activeMemberList.isEmpty()) {
+            alreadyUser = false;
+        }
+        return alreadyUser;
     }
 
 //    /**
@@ -135,13 +149,30 @@ public class UserService {
 //    }
 
     /**
-     * 이메일 중복 확인
+     * 이메일 중복 확인 ACTIVE 포함 ver.
      * [GET]
      * @return 이미 가입된 이메일이면 -> true, 그렇지 않으면 -> false
      */
-    public boolean checkDuplicateEmail(String email) throws BaseException {
+    /*public boolean checkDuplicateEmail(String email) throws BaseException {
         return userRepository.existsByEmail(email);
+    }*/
+
+    /**
+     * 이메일 중복 확인 ACTIVE 포함 ver.
+     * [GET]
+     * 이미 가입된 이메일이면 -> true, 그렇지 않으면 false
+     * @param email
+     * @return
+     */
+    public boolean checkDuplicateEmailByStatus(String email) {
+        boolean alreadyUser = true;
+        List<User> activeMemberList = userRepository.findUserByEmail(email);
+        if(activeMemberList.isEmpty()) {
+            alreadyUser = false;
+        }
+        return alreadyUser;
     }
+
 
     /**
      * 회원정보 조회 API

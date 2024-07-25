@@ -66,7 +66,7 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
         // TODO: 아이디 중복 체크
-        if (userService.checkDuplicateId(postUserReq.getId())) {
+        if (userService.checkDuplicateIdByStatus(postUserReq.getId())) {
             // log.info("[createUser]: 이미 존재하는 아이디입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
         }
@@ -79,7 +79,7 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
         }
         // TODO: 이메일 중복 체크
-        if (userService.checkDuplicateEmail(postUserReq.getEmail())) {
+        if (userService.checkDuplicateEmailByStatus(postUserReq.getEmail())) {
             // log.info("[createUser]: 이미 존재하는 이메일입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
@@ -116,7 +116,7 @@ public class UserController {
     public BaseResponse<String> checkDuplicateId(@Parameter(description = "회원 가입할 때 중복 검사를 할 아이디")
                                                      @Valid @RequestBody GetDuplicateUserIdReq getDuplicateUserIdReq) {
 
-        if(!userService.checkDuplicateId(getDuplicateUserIdReq.getId())) {
+        if(!userService.checkDuplicateIdByStatus(getDuplicateUserIdReq.getId())) {
             return new BaseResponse<>("사용 가능한 아이디입니다.");
         } else {
             return new BaseResponse<>(POST_USERS_EXISTS_ID);
@@ -134,7 +134,7 @@ public class UserController {
     public BaseResponse<String> checkDuplicateEmail(@Parameter(description = "회원 가입할 때 중복 검사를 할 이메일")
                                                         @Valid @RequestBody GetDuplicateUserEmailReq getDuplicateUserEmailReq) {
 
-        if(!userService.checkDuplicateEmail(getDuplicateUserEmailReq.getEmail())) {
+        if(!userService.checkDuplicateEmailByStatus(getDuplicateUserEmailReq.getEmail())) {
             return new BaseResponse<>("사용 가능한 이메일입니다.");
         } else {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
@@ -180,7 +180,7 @@ public class UserController {
                                                               @Valid @RequestBody GetUserIdReq getUserIdReq)
             throws MessagingException, BaseException {
 
-        if (userService.checkDuplicateId(getUserIdReq.getUserId())) {
+        if (userService.checkDuplicateIdByStatus(getUserIdReq.getUserId())) {
             // GetUserIdRes getUserIdRes = new GetUserIdRes(id);
             // return new BaseResponse<>(getUserIdRes);
             return new BaseResponse<>("입력하신 아이디로 가입을 확인했습니다. 본인 확인을 위하여 이메일로 인증해주세요.");
@@ -379,9 +379,8 @@ public class UserController {
                                                            @RequestParam String id) throws BaseException{
 
         String memberId = emailService.getUserId(id);
-
         try {
-            if(userService.checkDuplicateId(memberId)) {
+            if(userService.checkDuplicateIdByStatus(memberId)) {
                 // 새 비밀번호 형식
                 if(!isRegexPw(patchPwdWithoutLoginReq.getPasswordA()) || !isRegexPw(patchPwdWithoutLoginReq.getPasswordB())) {
                     return new BaseResponse<>(POST_USERS_INVALID_PW);
