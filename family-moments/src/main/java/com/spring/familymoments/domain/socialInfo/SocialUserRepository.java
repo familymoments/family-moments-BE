@@ -13,8 +13,9 @@ import java.util.Optional;
 @Repository
 public interface SocialUserRepository extends JpaRepository<SocialInfo, Long> {
     //rest api/sdk version
-    @Query("SELECT u FROM User u LEFT JOIN SocialInfo si ON u = si.user WHERE u.email = :email AND si.type = :userType")
+    @Query("SELECT u FROM User u LEFT JOIN SocialInfo si ON u = si.user WHERE u.email = :email AND si.type = :userType And si.status = 'ACTIVE' AND u.status = 'ACTIVE' ")
     Optional<User> findUserByEmailAndUserType(@Param("email") String email, @Param("userType") UserType userType);
 
+    @Query("SELECT si FROM SocialInfo si WHERE si.user = :user AND si.status = 'ACTIVE' ")
     List<SocialInfo> findSocialInfoByUser(User user);
 }
