@@ -23,7 +23,7 @@ public class CommentReport extends BaseEntity {
     private Long commentReportId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "userId")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,6 +43,13 @@ public class CommentReport extends BaseEntity {
                 .reportReason(reportReason)
                 .details(details)
                 .build();
+    }
+
+    /***
+     * SET NULL -> 추후 변경 예정
+     */
+    public void updateUser() {
+        this.user = null;
     }
 
 }
