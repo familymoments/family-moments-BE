@@ -63,7 +63,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // [Album] Paging by postId
     @Query("SELECT p FROM Post p WHERE p.familyId.familyId = :familyId " +
             "AND p.status = 'ACTIVE' " +
-            "AND p.postId > :postId " +
+            "AND p.postId < :postId " +
             "ORDER BY p.createdAt DESC")
     List<Post> findByFamilyIdAndBeforePostId(@Param("familyId") long familyId, @Param("postId") long postId, Pageable pageable);
 
