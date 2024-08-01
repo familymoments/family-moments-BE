@@ -224,10 +224,11 @@ public class FamilyController {
     })
     @PatchMapping(value ="/{familyId}/update",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
+                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @RequestParam(name = "representImg") MultipartFile representImg,
                                                 @Valid @RequestPart FamilyUpdateReq familyUpdateReq){
         String fileUrl = awsS3Service.uploadProfileImage(representImg);
-        FamilyRes familyRes = familyService.updateFamily(familyId, familyUpdateReq, fileUrl);
+        FamilyRes familyRes = familyService.updateFamily(user, familyId, familyUpdateReq, fileUrl);
         return new BaseResponse<>(familyRes);
     }
 

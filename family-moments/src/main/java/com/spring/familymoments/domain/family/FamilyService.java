@@ -234,9 +234,13 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl) {
+    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        if (!family.isOwner(user)) {
+            throw new BaseException(NOT_FAMILY_OWNER);
+        }
 
         family.updateFamily(familyUpdateReq.getFamilyName(), fileUrl);
         familyRepository.save(family);
