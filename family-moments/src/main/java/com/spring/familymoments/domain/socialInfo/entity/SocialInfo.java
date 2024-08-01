@@ -26,16 +26,16 @@ public class SocialInfo extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "snsInfoId", nullable = false, updatable = false)
     private Long snsInfoId;
-    @ManyToOne(fetch = FetchType.EAGER)
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user", nullable = false)
     private User user;
+
     @Column(name = "type", nullable = false, length = 10)
     private UserType type = UserType.NORMAL;
 
-    @ColumnDefault("temp")
     @Builder.Default()
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String snsUserId = "temp";
+    private String snsUserId  = "temp";
 
     /**
      * 회원 탈퇴 API 관련 메소드

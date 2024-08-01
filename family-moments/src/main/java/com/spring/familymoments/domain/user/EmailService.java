@@ -15,7 +15,9 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -96,8 +98,18 @@ public class EmailService {
      * [GET]
      * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
      */
-    public boolean checkNameAndEmail(PostEmailReq.sendVerificationEmail req) {
+    /*public boolean checkNameAndEmail(PostEmailReq.sendVerificationEmail req) {
         return userRepository.existsByNameAndEmail(req.getName(), req.getEmail());
+    }*/
+
+    /**
+     * 아이디/비밀번호 찾기 -> 입력한 이름, 이메일과 일치하는 회원 정보가 있는지 확인
+     * [GET]
+     * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
+     */
+    public boolean checkNameAndEmailByStatus(PostEmailReq.sendVerificationEmail req) {
+        Optional<User> user = userRepository.findByNameAndEmail(req.getName(), req.getEmail());
+        return user.isPresent();
     }
 
     /**
@@ -108,7 +120,7 @@ public class EmailService {
     public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) throws BaseException {
 
         // 일치하는 회원 정보가 없는 경우
-        if(!checkNameAndEmail(req)) {
+        if(!checkNameAndEmailByStatus(req)) {
             throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
         }
 

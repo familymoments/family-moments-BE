@@ -2,28 +2,36 @@ package com.spring.familymoments.domain.user;
 
 import com.spring.familymoments.config.BaseException;
 import com.spring.familymoments.config.secret.jwt.JwtService;
+import com.spring.familymoments.domain.alarmSetting.AlarmSettingRepository;
 import com.spring.familymoments.domain.alarmSetting.AlarmSettingService;
+import com.spring.familymoments.domain.alarmSetting.entity.AlarmSetting;
+import com.spring.familymoments.domain.comment.CommentReportRepository;
 import com.spring.familymoments.domain.comment.CommentWithUserRepository;
 import com.spring.familymoments.domain.comment.entity.Comment;
+import com.spring.familymoments.domain.comment.entity.CommentReport;
 import com.spring.familymoments.domain.commentLove.CommentLoveWithUserRepository;
 import com.spring.familymoments.domain.commentLove.entity.CommentLove;
+import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.common.UserFamilyRepository;
 import com.spring.familymoments.domain.common.entity.UserFamily;
 import com.spring.familymoments.domain.family.FamilyRepository;
 import com.spring.familymoments.domain.family.entity.Family;
+import com.spring.familymoments.domain.fcm.FCMService;
+import com.spring.familymoments.domain.post.PostReportRepository;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
+import com.spring.familymoments.domain.post.entity.PostReport;
 import com.spring.familymoments.domain.postLove.PostLoveRepository;
 import com.spring.familymoments.domain.postLove.entity.PostLove;
 import com.spring.familymoments.domain.redis.RedisService;
-//import com.spring.familymoments.domain.socialInfo.SocialUserService;
+import com.spring.familymoments.domain.socialInfo.*;
+import com.spring.familymoments.domain.socialInfo.entity.SocialInfo;
+import com.spring.familymoments.domain.socialInfo.model.GoogleDeleteDto;
 import com.spring.familymoments.domain.user.model.*;
 import com.spring.familymoments.domain.user.entity.User;
 import com.spring.familymoments.utils.UuidUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +44,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -58,7 +67,13 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final RedisService redisService;
     private final AlarmSettingService alarmSettingService;
-    //private final SocialUserService socialUserService;
+
+    private final PostReportRepository postReportRepository;
+    private final CommentReportRepository commentReportRepository;
+    private final SocialUserRepository socialUserRepository;
+    private final AlarmSettingRepository alarmSettingRepository;
+
+    private final FCMService fcmService;
 
     /**
      * createUser
@@ -118,8 +133,18 @@ public class UserService {
      * [GET]
      * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
      */
-    public boolean checkDuplicateId(String UserId) throws BaseException {
+    /*public boolean checkDuplicateId(String UserId) throws BaseException {
         return userRepository.existsById(UserId);
+    }*/
+
+    /**
+     * 아이디 중복 확인 ACTIVE 포함 ver.
+     * [GET]
+     * @return 이미 가입된 아이디면 -> true, 그렇지 않으면 -> false
+     */
+    public boolean checkDuplicateIdByStatus(String userId) {
+        Optional<User> activeUser = userRepository.findById(userId);
+        return activeUser.isPresent();
     }
 
 //    /**
@@ -135,13 +160,26 @@ public class UserService {
 //    }
 
     /**
-     * 이메일 중복 확인
+     * 이메일 중복 확인 ACTIVE 포함 ver.
      * [GET]
      * @return 이미 가입된 이메일이면 -> true, 그렇지 않으면 -> false
      */
-    public boolean checkDuplicateEmail(String email) throws BaseException {
+    /*public boolean checkDuplicateEmail(String email) throws BaseException {
         return userRepository.existsByEmail(email);
+    }*/
+
+    /**
+     * 이메일 중복 확인 ACTIVE 포함 ver.
+     * [GET]
+     * 이미 가입된 이메일이면 -> true, 그렇지 않으면 false
+     * @param email
+     * @return
+     */
+    public boolean checkDuplicateEmailByStatus(String email) {
+        Optional<User> activeUser = userRepository.findByEmail(email);
+        return activeUser.isPresent();
     }
+
 
     /**
      * 회원정보 조회 API
@@ -293,28 +331,38 @@ public class UserService {
     /**
      * 회원 탈퇴 API
      * [DELETE] /users
+     *
+     * set null (탈퇴한 유저의 댓글 알수없음 / 탈퇴한 유저의 신고 내역(탈퇴한 유저가 신고한) 남김)
+     *
      * @return
      */
+    //soft delete
     @Transactional
     public void deleteUser(User user) {
-        Long userId = user.getUserId();
-
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
         if(!ownerFamilies.isEmpty()) {
             //로그인 유저가 가족 생성자 + 가족 내에 본인 혼자일 때는 탈퇴 처리
             for(Family family : ownerFamilies) {
-                List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
-                if(uf.size() == 1) {
-                    //가족 삭제 후 탈퇴 진행
-                    family.updateStatus(INACTIVE);
-                    familyRepository.save(family);
-                    continue;
+                //가족 ACTIVE 조건 추가
+                if(family.getStatus() == BaseEntity.Status.ACTIVE) {
+                    List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+                    if(uf.size() == 1) {
+                        //가족 삭제 후 탈퇴 진행
+                        family.updateStatus(INACTIVE);
+                        familyRepository.save(family);
+                        continue;
+                    }
+                    //생성자 권한을 다른 사람에게 넘겨야 탈퇴 가능
+                    throw new BaseException(FAILED_TO_LEAVE);
                 }
-                //생성자 권한을 다른 사람에게 넘겨야 탈퇴 가능
-                throw new BaseException(FAILED_TO_LEAVE);
             }
         }
+        commonDeleteProcess(user);
+    }
+
+    public void commonDeleteProcess(User user) {
+        Long userId = user.getUserId();
 
         //2) 로그인 유저의 댓글 좋아요 일괄 INACTIVE
         List<CommentLove> commentLoves = commentLoveWithUserRepository.findCommentLovesByUserId(userId);
@@ -328,11 +376,12 @@ public class UserService {
             postLove.updateStatus(INACTIVE);
         }
 
-        //4) 로그인 유저의 댓글 일괄 INACTIVE
+        //4) 로그인 유저의 댓글 '알수없음' 처리 (일괄 INACTIVE)
         List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
         for(Comment comment : comments) {
-            comment.updateStatus(INACTIVE);
+            comment.updateWriter();
         }
+
         //5) 로그인 유저의 게시글 일괄 INACTIVE
         List<Post> posts = postWithUserRepository.findPostByUserId(userId);
         for(Post post : posts) {
@@ -344,10 +393,36 @@ public class UserService {
         for(UserFamily userFamily : userFamilyList) {
             userFamily.updateStatus(UserFamily.Status.INACTIVE);
         }
-        //7) 로그인 유저 INACTIVE
+
+        //7) 소셜 정보 INACTIVE
+        List<SocialInfo> socialInfos = socialUserRepository.findSocialInfoByUser(user);
+        if(!socialInfos.isEmpty()) {
+            for (SocialInfo socialInfo : socialInfos) {
+                socialInfo.updateStatus(INACTIVE);
+            }
+        }
+
+        //8) 알람 세팅 INACTIVE
+        List<AlarmSetting> alarmSettingList = alarmSettingRepository.findAlarmSettingByUser(user);
+        for(AlarmSetting alarmSetting : alarmSettingList) {
+            alarmSetting.setStatus(INACTIVE);
+        }
+
+        //9) 게시글, 댓글 신고 관련 user null 처리 (탈퇴한 유저가 신고했던 내용만 남기기) -
+        List<CommentReport> commentReportList = commentReportRepository.findCommentReportByUser(user);
+        for(CommentReport commentReport : commentReportList) {
+            commentReport.updateUser();
+        }
+        List<PostReport> postReportList = postReportRepository.findPostReportByUser(user);
+        for(PostReport postReport : postReportList) {
+            postReport.updateUser();
+        }
+
+        //10) 로그인 유저 INACTIVE
         user.updateStatus(User.Status.INACTIVE);
         userRepository.save(user);
     }
+
     @Transactional
     public void deleteUserWithRedisProcess(User user, String requestAccessToken) {
         this.deleteUser(user);
@@ -360,22 +435,39 @@ public class UserService {
         long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
         redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
 
-        //소셜 회원 탈퇴 처리
-        //socialUserService.deleteSocialUserWithRedisProcess(user);
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
     }
 
+    @Transactional
     public void reportUser(Long toUserId) {
-        User toUser = userRepository.findById(toUserId)
+        User toUser = userRepository.findUserByUserId(toUserId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
 
         //누적 횟수 3회차, INACTIVE
-        if(toUser.getReported() == 2) {
-            toUser.updateStatus(User.Status.INACTIVE);
+        if (toUser.getReported() == 2) {
+            deleteReportedUser(toUser);
+            return;
         }
 
         //신고 횟수 업데이트
         toUser.updateReported(toUser.getReported() + 1);
         userRepository.save(toUser);
+    }
+
+    @Transactional
+    public void deleteReportedUser(User user) {
+        //1) 가족 일괄 INACTIVE
+        List<Family> familyList = familyRepository.findActiveFamilyByUserId(user);
+        for(Family family : familyList) {
+            family.updateStatus(INACTIVE);
+
+            //1-1) 가족 내 구성원 모두 INACTIVE
+            List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+            for(UserFamily uf1 : uf) {
+                uf1.updateStatus(UserFamily.Status.INACTIVE);
+            }
+        }
+        commonDeleteProcess(user);
     }
 
 }

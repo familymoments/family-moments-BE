@@ -18,9 +18,9 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.spring.familymoments.config.BaseResponseStatus.DELETE_FAIL_S3;
 import static com.spring.familymoments.config.BaseResponseStatus.POST_FAIL_S3;
@@ -35,10 +35,59 @@ public class AwsS3Service {
     @Autowired
     private final AmazonS3 amazonS3;
 
-    public String uploadImage(MultipartFile image) throws BaseException {
+    private static final String ORIGIN_PREFIX = "fm-origin/";
+    private static final String THUMBNAIL_PREFIX = "thumbnails/";
+    private static final String PROFILE_PREFIX = "profile-";
+
+    public String uploadImage(MultipartFile image) {
+        String fileName = ORIGIN_PREFIX + createFileName(image.getOriginalFilename());
+        String originUrl = putImage(fileName, image);
+        String thumbnailUrl = originUrl.replace(ORIGIN_PREFIX, THUMBNAIL_PREFIX);
+
+        return thumbnailUrl;
+    }
+
+    public String uploadProfileImage(MultipartFile image) throws BaseException {
+        String fileName = ORIGIN_PREFIX + PROFILE_PREFIX + createFileName(image.getOriginalFilename());
+        String originUrl = putImage(fileName, image);
+        String thumbnailUrl = originUrl.replace(ORIGIN_PREFIX, THUMBNAIL_PREFIX);
+
+        return thumbnailUrl;
+    }
+
+    public List<String> uploadImages(List<MultipartFile> images) {
+        List<String> fileUrlList = images.stream()
+                .map(file -> uploadImage(file))
+                .collect(Collectors.toList());
+
+//        List<String> fileNameList = new ArrayList<>();
+//        List<String> fileUrlList = new ArrayList<>();
+//
+//        images.forEach(file -> {
+//            String fileName = createFileName(file.getOriginalFilename());
+//            String fileUrl = amazonS3.getUrl(bucket, fileName).toString();
+//
+//            ObjectMetadata objectMetadata = new ObjectMetadata();
+//            objectMetadata.setContentLength(file.getSize());
+//            objectMetadata.setContentType(file.getContentType());
+//
+//            try(InputStream inputStream = file.getInputStream()) {
+//                amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
+//                        .withCannedAcl(CannedAccessControlList.PublicRead));
+//            } catch(IOException e) {
+//                log.error(e.getMessage());
+//                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.");
+//            }
+//
+//            fileNameList.add(fileName);
+//            fileUrlList.add(fileUrl);
+//        });
+//
+        return fileUrlList;
+    }
+
+    public String putImage(String fileName, MultipartFile image) {
         try {
-            String fileName = createFileName(image.getOriginalFilename());
-//            String fileName = UUID.randomUUID().toString();
             String fileUrl = amazonS3.getUrl(bucket, fileName).toString();
             ObjectMetadata objectMetadata = new ObjectMetadata();
             objectMetadata.setContentLength(image.getSize());
@@ -58,37 +107,9 @@ public class AwsS3Service {
         }
     }
 
-    public List<String> uploadImages(List<MultipartFile> images) {
-        List<String> fileNameList = new ArrayList<>();
-        List<String> fileUrlList = new ArrayList<>();
-
-        images.forEach(file -> {
-            String fileName = createFileName(file.getOriginalFilename());
-            String fileUrl = amazonS3.getUrl(bucket, fileName).toString();
-
-            ObjectMetadata objectMetadata = new ObjectMetadata();
-            objectMetadata.setContentLength(file.getSize());
-            objectMetadata.setContentType(file.getContentType());
-
-            try(InputStream inputStream = file.getInputStream()) {
-                amazonS3.putObject(new PutObjectRequest(bucket, fileName, inputStream, objectMetadata)
-                        .withCannedAcl(CannedAccessControlList.PublicRead));
-            } catch(IOException e) {
-                log.error(e.getMessage());
-                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "이미지 업로드에 실패했습니다.");
-            }
-
-            fileNameList.add(fileName);
-            fileUrlList.add(fileUrl);
-        });
-
-        return fileUrlList;
-    }
-
     public void deleteImage(String fileName) throws BaseException {
         try {
             amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
-
         }
         catch (Exception e){
             throw new BaseException(DELETE_FAIL_S3);
