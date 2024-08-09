@@ -47,8 +47,9 @@ public class CommentController {
      */
     @GetMapping("")
     @Operation(summary = "특정 게시물의 댓글 목록 조회", description = "특정 게시물의 댓글 목록을 조회합니다.")
-    public BaseResponse<List<GetCommentsRes>> getCommentsByPostId(@RequestParam("postId") Long postId) {
-        List<GetCommentsRes> getCommentsRes = commentService.getCommentsByPostId(postId);
+    public BaseResponse<List<GetCommentsRes>> getCommentsByPostId(@AuthenticationPrincipal @Parameter(hidden = true) User user,
+                                                                  @RequestParam("postId") Long postId) {
+        List<GetCommentsRes> getCommentsRes = commentService.getCommentsByPostId(user, postId);
         return new BaseResponse<>(getCommentsRes);
     }
 

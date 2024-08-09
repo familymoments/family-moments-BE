@@ -211,6 +211,9 @@ public class FamilyService {
             throw new BaseException(FAILED_USERSS_UNATHORIZED);
         }
 
+        // 가족 - 유저 매핑 확인
+        UserFamily userFamily = userFamilyRepository.findActiveUserFamilyByUserIdAndFamilyId(user, family)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USER_IN_FAMILY));
 
         // 1. 가족 내 게시글의 댓글 일괄 삭제
         List<Post> postsToDelete = postWithUserRepository.findByFamilyId(family);
@@ -226,6 +229,10 @@ public class FamilyService {
         for (Post post : postsToDelete) {
             post.updateStatus(BaseEntity.Status.INACTIVE);
         }
+
+        // +. 가족-유저 매핑 삭제
+        userFamily.updateStatus(UserFamily.Status.INACTIVE);
+        userFamilyRepository.save(userFamily);
 
         // 3. 가족 삭제
         family.updateStatus(BaseEntity.Status.INACTIVE);
