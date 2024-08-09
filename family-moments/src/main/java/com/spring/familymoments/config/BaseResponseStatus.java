@@ -85,6 +85,8 @@ public enum BaseResponseStatus {
     ALREADY_JOINED_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가입된 가족입니다."),
     FIND_FAIL_FAMILY_CREATION_DATE(false, HttpStatus.NOT_FOUND.value(), "가족 생성일을 찾을 수 없습니다."),
     FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
+    CANNOT_EMISSION_SELF(false, 409, "본인은 강제 탈퇴할 수 없습니다." ),
+    CANNOT_CHANGE_AUTHORITY_SELF(false, 409, "본인으로 권한을 변경할 수 없습니다." ),
 
 
     /**

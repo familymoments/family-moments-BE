@@ -234,9 +234,13 @@ public class FamilyService {
 
     //가족 정보 수정
     @Transactional
-    public FamilyRes updateFamily(Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl) {
+    public FamilyRes updateFamily(User user, Long familyId, FamilyUpdateReq familyUpdateReq, String fileUrl) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
+
+        if (!family.isOwner(user)) {
+            throw new BaseException(NOT_FAMILY_OWNER);
+        }
 
         family.updateFamily(familyUpdateReq.getFamilyName(), fileUrl);
         familyRepository.save(family);
@@ -276,7 +280,12 @@ public class FamilyService {
             throw new BaseException(NOT_FAMILY_OWNER);
         }
 
+        String requestUserId = user.getId();
         for (String userId : userIds) {
+            if (requestUserId.equals(userId)) {
+                throw new BaseException(CANNOT_EMISSION_SELF);
+            }
+
             User emissionUser = userRepository.findById(userId)
                     .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
@@ -290,11 +299,17 @@ public class FamilyService {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
+        String updateUserId = familyAuthorityReq.getUserId();
+
+        if (user.getId().equals(updateUserId)){
+            throw new BaseException(CANNOT_CHANGE_AUTHORITY_SELF);
+        }
+
         if (!family.isOwner(user)) {
             throw new BaseException(NOT_FAMILY_OWNER);
         }
 
-        User userToOwner = userRepository.findById(familyAuthorityReq.getUserId())
+        User userToOwner = userRepository.findById(updateUserId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USER));
 
         family.updateFamilyOwner(userToOwner);
