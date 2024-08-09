@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.config.BaseResponse;
-import com.spring.familymoments.config.NoAuthCheck;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.family.model.*;
 import com.spring.familymoments.domain.user.entity.User;
@@ -14,7 +13,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +29,6 @@ import java.util.Map;
 public class FamilyController {
 
     private final FamilyService familyService;
-    @Autowired
     private final AwsS3Service awsS3Service;
 
 
@@ -41,15 +38,15 @@ public class FamilyController {
      *
      * @return BaseResponse<PostFamilyRes>
      */
-    @ResponseBody
-    @NoAuthCheck
     @PostMapping(value ="/family", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "가족 생성", description = "가족 그룹을 생성합니다.")
     public BaseResponse<PostFamilyRes> createFamily(
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @RequestParam(name = "representImg") MultipartFile representImg,
             @Valid @RequestPart PostFamilyReq postFamilyReq) {
+
         String fileUrl = awsS3Service.uploadProfileImage(representImg);        // 대표 이미지 넣기
+      
         PostFamilyRes postFamilyRes = familyService.createFamily(user, postFamilyReq, fileUrl);
         return new BaseResponse<>(postFamilyRes);
     }
@@ -60,7 +57,6 @@ public class FamilyController {
      *
      * @return BaseResponse<FamilyDto>
      */
-    @ResponseBody
     @Operation(summary = "가족 정보 조회", description = "가족아이디로 가족 정보 조회")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Ok")
@@ -77,8 +73,6 @@ public class FamilyController {
      *
      * @return BaseResponse<FamilyDto>
      */
-    @ResponseBody
-    @NoAuthCheck
     @GetMapping("/{familyId}/created")
     @Operation(summary = "닉네임 및 가족 생성일 조회", description = "메인 페이지의 닉네임 및 가족 생성일 정보를 조회합니다.")
     public BaseResponse<GetFamilyCreatedNicknameRes> getFamilyCreatedNickname(
@@ -94,12 +88,11 @@ public class FamilyController {
      *
      * @return BaseResponse<FamilyDto>
      */
-    @NoAuthCheck
     @GetMapping("/{familyId}/users")
     @Operation(summary = "가족원 전체 조회", description = "현재 활동 중인 전체 가족 구성원을 조회합니다.")
-    public BaseResponse<List<GetFamilyAllResInterface>> getFamilyAll(
+    public BaseResponse<List<GetFamilyAllResInterface>> getFamilyAllMembers(
             @PathVariable Long familyId) {
-        List<GetFamilyAllResInterface> getFamilyAllRes = familyService.getFamilyAll(familyId);
+        List<GetFamilyAllResInterface> getFamilyAllRes = familyService.getFamilyAllMembers(familyId);
         return new BaseResponse<>(getFamilyAllRes);
     }
 
@@ -194,7 +187,6 @@ public class FamilyController {
      *
      * @return BaseResponse<String>
      */
-    @NoAuthCheck
     @PatchMapping("/{familyId}")
     @Operation(summary = "업로드 주기 수정", description = "가족 업로드 알림 주기를 수정합니다.")
     public BaseResponse<String> updateUploadCycle(
@@ -211,7 +203,6 @@ public class FamilyController {
      *
      * @return BaseResponse<String>
      */
-    @NoAuthCheck
     @DeleteMapping("/{familyId}")
     @Operation(summary = "가족 삭제", description = "가족을 삭제합니다. 댓글, 게시글, 가족이 일괄 삭제됩니다.")
     public BaseResponse<String> deleteFamily(
@@ -233,10 +224,11 @@ public class FamilyController {
     })
     @PatchMapping(value ="/{familyId}/update",  consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public BaseResponse<FamilyRes> updateFamily(@PathVariable Long familyId,
+                                                @AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @RequestParam(name = "representImg") MultipartFile representImg,
                                                 @Valid @RequestPart FamilyUpdateReq familyUpdateReq){
         String fileUrl = awsS3Service.uploadProfileImage(representImg);
-        FamilyRes familyRes = familyService.updateFamily(familyId, familyUpdateReq, fileUrl);
+        FamilyRes familyRes = familyService.updateFamily(user, familyId, familyUpdateReq, fileUrl);
         return new BaseResponse<>(familyRes);
     }
 
