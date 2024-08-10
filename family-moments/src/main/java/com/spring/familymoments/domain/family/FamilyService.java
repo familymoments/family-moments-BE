@@ -18,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.entity.UserFamily.Status.*;
@@ -108,11 +105,23 @@ public class FamilyService {
 
     // 가족원 전체 조회
     @Transactional
-    public List<GetFamilyAllResInterface> getFamilyAllMembers(Long familyId) {
+    public List<GetFamilyAllResInterface> getFamilyAllMembers(Long familyId, User user) {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        return userFamilyRepository.findActiveUsersByFamilyId(familyId);
+        String userId = user.getId();
+        List<GetFamilyAllResInterface> members = userFamilyRepository.findActiveUsersByFamilyId(familyId);
+
+        // 요청한 본인은 제외하고 반환
+        Iterator<GetFamilyAllResInterface> iterator = members.iterator();
+        while (iterator.hasNext()) {
+            if (iterator.next().getId().equals(userId)) {
+                iterator.remove();
+                break;
+            }
+        }
+
+        return members;
     }
 
     // 초대코드로 가족 조회
