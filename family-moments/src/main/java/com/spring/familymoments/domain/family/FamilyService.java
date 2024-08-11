@@ -181,7 +181,7 @@ public class FamilyService {
 
     // 업로드 주기 수정
     @Transactional
-    public void updateUploadCycle(User user, Long familyId, int uploadCycle) {
+    public void updateUploadCycle(User user, Long familyId, Integer uploadCycle) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
