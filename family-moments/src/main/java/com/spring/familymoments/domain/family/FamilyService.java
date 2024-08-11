@@ -35,7 +35,6 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     private static final int MAX_FAMILY_COUNT = 5;
-    private static final String INVITE_LINK = "https://family-moments.com/invite/";
 
     // 가족 생성하기
     @Transactional
@@ -44,14 +43,13 @@ public class FamilyService {
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
-        String inviteLink = INVITE_LINK + invitationCode;
 
         // 가족 입력 객체 생성
         Family family = Family.builder()
                 .owner(owner)
                 .familyName(postFamilyReq.getFamilyName())
                 .uploadCycle(postFamilyReq.getUploadCycle())
-                .inviteCode(inviteLink)
+                .inviteCode(invitationCode)
                 .representImg(fileUrl)
                 .build();
 
