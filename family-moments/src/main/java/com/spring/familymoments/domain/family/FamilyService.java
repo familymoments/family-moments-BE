@@ -12,6 +12,7 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.utils.CustomDateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -94,13 +95,11 @@ public class FamilyService {
     // 닉네임 및 가족 생성일 조회
     @Transactional
     public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) {
-        LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        String dday = familyRepository.findCreatedAtNicknameById(familyId, today);
-        if (dday == null) {
-            throw new BaseException(FIND_FAIL_FAMILY_CREATION_DATE);
-        }
 
-        return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
+        String createdAtStr = familyRepository.findCreatedAtNicknameById(familyId);
+        return new GetFamilyCreatedNicknameRes(
+                user.getNickname(),
+                CustomDateTimeUtils.format_yyyyMMddHHmmss(createdAtStr));
     }
 
     // 가족원 전체 조회
