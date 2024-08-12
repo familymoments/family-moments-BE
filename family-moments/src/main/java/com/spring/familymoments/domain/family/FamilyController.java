@@ -194,7 +194,8 @@ public class FamilyController {
             @AuthenticationPrincipal @Parameter(hidden = true) User user,
             @PathVariable Long familyId,
             @RequestParam("uploadCycle") int uploadCycle) {
-        familyService.updateUploadCycle(user, familyId, uploadCycle);
+        Integer cycle = (uploadCycle == 0) ? null : uploadCycle;
+        familyService.updateUploadCycle(user, familyId, cycle);
         return new BaseResponse<>("업로드 주기가 수정되었습니다.");
     }
 

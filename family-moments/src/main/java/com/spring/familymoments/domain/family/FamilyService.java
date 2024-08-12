@@ -12,6 +12,7 @@ import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
 import com.spring.familymoments.domain.user.UserRepository;
 import com.spring.familymoments.domain.user.entity.User;
+import com.spring.familymoments.utils.CustomDateTimeUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,7 +35,6 @@ public class FamilyService {
     private final CommentWithUserRepository commentWithUserRepository;
 
     private static final int MAX_FAMILY_COUNT = 5;
-    private static final String INVITE_LINK = "https://family-moments.com/invite/";
 
     // 가족 생성하기
     @Transactional
@@ -43,14 +43,13 @@ public class FamilyService {
 
         // 초대 링크 생성
         String invitationCode = UUID.randomUUID().toString();
-        String inviteLink = INVITE_LINK + invitationCode;
 
         // 가족 입력 객체 생성
         Family family = Family.builder()
                 .owner(owner)
                 .familyName(postFamilyReq.getFamilyName())
                 .uploadCycle(postFamilyReq.getUploadCycle())
-                .inviteCode(inviteLink)
+                .inviteCode(invitationCode)
                 .representImg(fileUrl)
                 .build();
 
@@ -94,13 +93,11 @@ public class FamilyService {
     // 닉네임 및 가족 생성일 조회
     @Transactional
     public GetFamilyCreatedNicknameRes getFamilyCreatedNickname(User user, Long familyId) {
-        LocalDateTime today = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
-        String dday = familyRepository.findCreatedAtNicknameById(familyId, today);
-        if (dday == null) {
-            throw new BaseException(FIND_FAIL_FAMILY_CREATION_DATE);
-        }
 
-        return new GetFamilyCreatedNicknameRes(user.getNickname(), dday);
+        String createdAtStr = familyRepository.findCreatedAtNicknameById(familyId);
+        return new GetFamilyCreatedNicknameRes(
+                user.getNickname(),
+                CustomDateTimeUtils.format_yyyyMMddHHmmss(createdAtStr));
     }
 
     // 가족원 전체 조회
@@ -109,19 +106,7 @@ public class FamilyService {
         familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
-        String userId = user.getId();
-        List<GetFamilyAllResInterface> members = userFamilyRepository.findActiveUsersByFamilyId(familyId);
-
-        // 요청한 본인은 제외하고 반환
-        Iterator<GetFamilyAllResInterface> iterator = members.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().getId().equals(userId)) {
-                iterator.remove();
-                break;
-            }
-        }
-
-        return members;
+        return userFamilyRepository.findActiveUsersByFamilyId(familyId, user.getUserId());
     }
 
     // 초대코드로 가족 조회
@@ -196,7 +181,7 @@ public class FamilyService {
 
     // 업로드 주기 수정
     @Transactional
-    public void updateUploadCycle(User user, Long familyId, int uploadCycle) {
+    public void updateUploadCycle(User user, Long familyId, Integer uploadCycle) {
         Family family = familyRepository.findById(familyId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_FAMILY));
 
