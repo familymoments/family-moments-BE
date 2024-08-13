@@ -1,9 +1,7 @@
 package com.spring.familymoments.domain.family;
 
 import com.spring.familymoments.domain.family.entity.Family;
-import com.spring.familymoments.domain.family.model.GetFamilyCreatedNicknameRes;
 import com.spring.familymoments.domain.user.entity.User;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +14,7 @@ import java.util.Optional;
 public interface FamilyRepository extends JpaRepository<Family, Long> {
     Optional<Family> findById(Long familyId);
 
+    @Query("SELECT f FROM Family f WHERE f.inviteCode = :inviteCode AND f.status = 'ACTIVE' ")
     Optional<Family> findByInviteCode(String inviteCode);
 
     //회원 탈퇴 시, 가족 생성자 권한 여부를 확인하기 위한 조회
