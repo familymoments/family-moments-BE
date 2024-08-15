@@ -28,6 +28,8 @@ public enum BaseResponseStatus {
     TOKEN_RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
     TOKEN_REISSUE_ERROR(false, 471, "토큰 발급을 실패했습니다."),
+    FIND_FAIL_DATE(false, HttpStatus.BAD_REQUEST.value(), "날짜가 존재하지 않습니다."),
+    INVALID_TIME_FORMAT(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "날짜 형식이 맞지 않습니다."),
 
 
     /**
