@@ -286,15 +286,6 @@ public class UserController {
             String fileUrl = awsS3Service.uploadProfileImage(profileImg);
             patchProfileReqRes.setProfileImg(fileUrl);
         }
-        if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
-        if(patchProfileReqRes.getBirthdate() == null || patchProfileReqRes.getBirthdate().isEmpty()) { //생년월일 비어있으면
-            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
-        }
-        if(!isRegexBirth(patchProfileReqRes.getBirthdate())) { //생년월일 형식 다르면
-            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
-        }
         if(patchProfileReqRes.getNickname() == null || patchProfileReqRes.getNickname().isEmpty()) { //닉네임 비어있으면
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);
         }
