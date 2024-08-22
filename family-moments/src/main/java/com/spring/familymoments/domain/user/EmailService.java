@@ -107,7 +107,7 @@ public class EmailService {
      * [GET]
      * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
      */
-    public boolean checkNameAndEmailByStatus(PostEmailReq.sendVerificationEmail req) {
+    public boolean checkEmailByStatus(PostEmailReq.sendVerificationEmail req) {
         Optional<User> user = userRepository.findByEmail(req.getEmail());
         return user.isPresent();
     }
@@ -120,7 +120,7 @@ public class EmailService {
     public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) throws BaseException {
 
         // 일치하는 회원 정보가 없는 경우
-        if(!checkNameAndEmailByStatus(req)) {
+        if(!checkEmailByStatus(req)) {
             throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
         }
 
