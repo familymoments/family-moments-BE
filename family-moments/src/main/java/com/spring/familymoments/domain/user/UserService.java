@@ -82,7 +82,7 @@ public class UserService {
      */
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
-    public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
+    public PostUserRes createUser(PostUserReq.joinUser postUserReq) throws BaseException {
         // TODO: UUID 생성
         String uuid = UuidUtils.generateUUID();
 

@@ -96,7 +96,7 @@ public class UserController {
 
         postUserReq.setProfileImg(fileUrl);
 
-        PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
+        PostUserRes postUserRes = userService.createUser(postUserReq);
         // log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>("회원가입을 성공했습니다.");
     }
