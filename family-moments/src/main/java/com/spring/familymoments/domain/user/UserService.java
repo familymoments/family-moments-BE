@@ -95,24 +95,16 @@ public class UserService {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }*/
 
-        // TODO: BirthDate -> String에서 LocalDateTime으로 변환
-        String strBirthDate = postUserReq.getStrBirthDate();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-        LocalDateTime parsedBirthDate = null;
-        parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
-
         User user = User.builder()
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
                 .password(passwordEncoder.encode(postUserReq.getPassword()))
-                .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
-                .birthDate(parsedBirthDate)
                 .profileImg(postUserReq.getProfileImg())
                 .status(User.Status.ACTIVE)
                 .build();
+
         userRepository.save(user);
         alarmSettingService.createAlarmSetting(user);   // 알림 ON으로 설정(채팅알림, 업로드주기알림, 포스팅알림)
 
