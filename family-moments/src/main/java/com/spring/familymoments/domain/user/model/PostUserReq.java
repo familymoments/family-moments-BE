@@ -19,15 +19,9 @@ public class PostUserReq {
         @NotBlank(message = "비밀번호를 입력해주세요.")
         @Schema(description = "비밀번호", example = "family1212")
         private String password;
-        @NotBlank(message = "이름을 입력해주세요.")
-        @Schema(description = "이름", example = "김철수")
-        private String name;
         @NotBlank(message = "이메일을 입력해주세요.")
         @Schema(description = "이메일", example = "family@gmail.com")
         private String email;
-        @NotBlank(message = "생년월일을 입력해주세요.")
-        @Schema(description = "생년월일", example = "20240101")
-        private String strBirthDate;
         @NotBlank(message = "닉네임을 입력해주세요.")
         @Schema(description = "닉네임", example = "영희남편철수")
         private String nickname;

@@ -83,10 +83,6 @@ public class UserController {
             // log.info("[createUser]: 이미 존재하는 이메일입니다!");
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
-        //생년월일
-        if (!isRegexBirth(postUserReq.getStrBirthDate())) {
-            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
-        }
         //닉네임
         if (!isRegexNickName(postUserReq.getNickname())) {
             return new BaseResponse<>(POST_USERS_INVALID_NICKNAME);
