@@ -185,15 +185,11 @@ public class UserService {
             totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
         }
 
-        String formatPattern = "yyyyMMdd"; //생년월일
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
-        String strBirth = user.getBirthDate().format(formatter);
-
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
      * 유저 5명 검색 API
