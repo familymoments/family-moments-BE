@@ -122,7 +122,7 @@ public class EmailService {
 
         // 일치하는 회원 정보가 없는 경우
         if(!checkNameAndEmailByStatus(req)) {
-            throw new BaseException(FIND_FAIL_USER_NAME_EMAIL);
+            throw new BaseException(FIND_FAIL_USER_EMAIL);
         }
 
         // 인증 코드를 입력하지 않은 경우
