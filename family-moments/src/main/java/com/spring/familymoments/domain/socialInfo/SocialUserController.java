@@ -62,7 +62,7 @@ public class SocialUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK")
     })
-    public ResponseEntity<BaseResponse<SocialJoinResponse>> createSocialUser(@Parameter(description = "신규 회원의 가입 정보") @RequestPart("userJoinReq") UserJoinRequest userJoinRequest,
+    public ResponseEntity<?> createSocialUser(@Parameter(description = "신규 회원의 가입 정보") @RequestPart("userJoinReq") UserJoinRequest userJoinRequest,
                                               @Parameter(description = "신규 회원의 프로필 첨부파일") @RequestPart("profileImg") MultipartFile profileImage) {
         SocialJoinDto socialJoinDto = socialUserService.createSocialUser(userJoinRequest, profileImage);
 
@@ -70,13 +70,19 @@ public class SocialUserController {
         String accessToken = (tokenDto != null) ? tokenDto.getAccessToken() : null;
         String refreshToken = (tokenDto != null) ? tokenDto.getRefreshToken() : null;
 
-        return ResponseEntity.ok()
+        ResponseEntity.BodyBuilder responseBuilder =  ResponseEntity.ok()
                 .header("X-AUTH-TOKEN", accessToken)
-                .header("REFRESH-TOKEN", refreshToken)
-                .body(
-                        new BaseResponse<>(SocialJoinResponse.of(
-                        socialJoinDto.getFamilyId()))
-                );
+                .header("REFRESH-TOKEN", refreshToken);
+
+        if(socialJoinDto.getFamilyId() != null) {
+            return responseBuilder.body(new BaseResponse<>(
+                    SocialJoinResponse.of(socialJoinDto.getFamilyId())
+            ));
+        } else {
+            return responseBuilder.body(new BaseResponse<>(
+                    "회원가입을 성공했습니다."
+            ));
+        }
     }
 
 

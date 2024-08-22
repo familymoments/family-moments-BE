@@ -44,8 +44,8 @@ public class EmailController {
         }
 
         try{
-            if(emailService.checkNameAndEmail(sendEmailReq)){
-                String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
+            if(emailService.checkNameAndEmailByStatus(sendEmailReq)){
+                String verificationCode = emailService.sendEmail(sendEmailReq.getName(), sendEmailReq.getEmail());
                 return new BaseResponse<>("입력하신 이메일로 인증 코드가 전송되었습니다.");
             } else {
                 return new BaseResponse<>(false, FIND_FAIL_USER_NAME_AND_EMAIL.getMessage(), HttpStatus.NOT_FOUND.value());

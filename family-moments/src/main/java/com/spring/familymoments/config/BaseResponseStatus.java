@@ -8,17 +8,16 @@ import org.springframework.http.HttpStatus;
  */
 @Getter
 public enum BaseResponseStatus {
+
     /**
      * 200 : 요청 성공
      */
     SUCCESS(true, HttpStatus.OK.value(), "요청에 성공하였습니다."),
 
 
-
     /**
-     * 400 : Request 오류, Response 오류
+     * common
      */
-    // Common
     REQUEST_ERROR(false, HttpStatus.BAD_REQUEST.value(), "입력값을 확인해주세요."),
     EMPTY_JWT(false, HttpStatus.UNAUTHORIZED.value(), "JWT를 입력해주세요."),
     INVALID_JWT(false, 461, "Access Token의 기한이 만료되었습니다. 재발급 API를 호출해주세요"),
@@ -29,10 +28,14 @@ public enum BaseResponseStatus {
     TOKEN_RESPONSE_ERROR(false, HttpStatus.NOT_FOUND.value(), "값을 불러오는데 실패하였습니다."),
     EXPIRED_JWT(false, HttpStatus.UNAUTHORIZED.value(), "만료된 토큰입니다."),
     TOKEN_REISSUE_ERROR(false, 471, "토큰 발급을 실패했습니다."),
+    FIND_FAIL_DATE(false, HttpStatus.BAD_REQUEST.value(), "날짜가 존재하지 않습니다."),
+    INVALID_TIME_FORMAT(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "날짜 형식이 맞지 않습니다."),
 
-    // users
+
+    /**
+     * user
+     */
     USERS_EMPTY_USER_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디를 입력해주세요."),
-
     POST_USERS_INVALID_ID(false, HttpStatus.BAD_REQUEST.value(), "아이디 형식을 확인해주세요."),
     POST_USERS_EXISTS_ID(false,HttpStatus.BAD_REQUEST.value(),"이미 가입한 아이디가 존재합니다."),
     POST_USERS_INVALID_PW(false, HttpStatus.BAD_REQUEST.value(), "비밀번호 형식을 확인해주세요."),
@@ -53,43 +56,46 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN_ID(false,HttpStatus.NOT_FOUND.value(),"아이디가 일치하지 않습니다."),
     FAILED_TO_LOGIN_PWD(false,HttpStatus.NOT_FOUND.value(),"비밀번호가 일치하지 않습니다."),
     FAILED_TO_LOGIN(false,HttpStatus.NOT_FOUND.value(), "탈퇴하거나 신고당한 유저입니다."),
-    FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
-    FIND_FAIL_USER_IN_FAMILY(false, HttpStatus.NOT_FOUND.value(), "해당 유저가 해당 가족에 존재하지 않습니다."),
     NEED_TO_JOIN_AS_THIS_SOCIAL(false, 481, "해당 소셜로 회원 가입을 해야 합니다."),
-    FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
-    FAMILY_LIMIT_EXCEEDED(false, HttpStatus.CONFLICT.value(), "가족은 최대 5개까지만 가능합니다."),
     FAILED_SOCIAL_JOIN(false, HttpStatus.CONFLICT.value(), "이미 해당 소셜 계정이 있는 회원입니다."),
     EMPTY_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "비밀번호를 입력해주세요."),
     FAILED_AUTHENTICATION(false, HttpStatus.FORBIDDEN.value(), "비밀번호가 올바르지 않습니다."),
     EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "기존 비밀번호와 같습니다."),
     FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
-    FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
     NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
     EXPIRED_AT_ERROR(false, 471, "탈퇴를 위해 가입했던 소셜 계정으로 재로그인 하세요"),
-    /**
-     * 500 : Database, Server 오류
-     */
-    DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
-    SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
-
-
-    FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
-    FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
-    FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
-    FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
-    FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
-
     FIND_FAIL_USER(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 사용자입니다."),
     MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
     PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
     PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 
+    FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
+    FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
+    FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
+    FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
+
+
+    /**
+     * family
+     */
+    FIND_FAIL_FAMILY(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 가족입니다."),
+    FIND_FAIL_USER_IN_FAMILY(false, HttpStatus.NOT_FOUND.value(), "해당 유저가 해당 가족에 존재하지 않습니다."),
+    FAILED_INVITE_USER_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가족에 가입된 회원입니다."),
+    FAMILY_LIMIT_EXCEEDED(false, HttpStatus.CONFLICT.value(), "가족은 최대 5개까지만 가능합니다."),
+    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다."),
+    ALREADY_INVITED_USER(false, HttpStatus.CONFLICT.value(), "이미 초대 요청을 받은 회원이 있습니다."),
+    ALREADY_JOINED_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가입된 가족입니다."),
+    FIND_FAIL_FAMILY_CREATION_DATE(false, HttpStatus.NOT_FOUND.value(), "가족 생성일을 찾을 수 없습니다."),
+    FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
+    CANNOT_EMISSION_SELF(false, 409, "본인은 강제 탈퇴할 수 없습니다." ),
+    CANNOT_CHANGE_AUTHORITY_SELF(false, 409, "본인으로 권한을 변경할 수 없습니다." ),
+
+
+    /**
+     * post
+     */
     POST_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 업로드에 실패하였습니다."),
     DELETE_FAIL_S3(false,HttpStatus.NOT_FOUND.value(),"사진 삭제에 실패하였습니다."),
-    NO_ACTIVE_COMMENTS(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다."),
-    FIND_FAIL_COMMENT(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
-    ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
-    COMMENTS_EMPTY_CONTENT(false, HttpStatus.NOT_FOUND.value(), "댓글 내용을 입력해주세요."),
 
     minnie_POSTS_EDIT_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "수정 권한이 없습니다."),
     minnie_POSTS_DELETE_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "삭제 권한이 없습니다."),
@@ -103,22 +109,42 @@ public enum BaseResponseStatus {
     minnie_POST_SAVE_FAIL(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "게시물 저장에 실패했습니다."),
     minnie_POSTLOVES_NON_EXISTS_LOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요가 존재하지 않습니다."),
     minnie_FAMILY_INVALID_USER(false, HttpStatus.FORBIDDEN.value(), "해당 가족의 멤버가 아닙니다"),
-
     POSTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
     FIND_FAIL_POSTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
+    FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
 
-    COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 게시물입니다."),
+
+    /**
+     * comment
+     */
+    NO_ACTIVE_COMMENTS(false, HttpStatus.NOT_FOUND.value(), "댓글이 존재하지 않습니다."),
+    FIND_FAIL_COMMENT(false, HttpStatus.NOT_FOUND.value(), "존재하지 않는 댓글입니다."),
+    ALREADY_DELETE_COMMENT(false, HttpStatus.NOT_FOUND.value(), "이미 삭제된 댓글입니다."),
+    COMMENTS_EMPTY_CONTENT(false, HttpStatus.NOT_FOUND.value(), "댓글 내용을 입력해주세요."),
+    COMMENTLOVE_ALREADY_EXISTS(false, HttpStatus.BAD_REQUEST.value(), "이미 좋아요를 누른 댓글입니다."),
     FIND_FAIL_COMMENTLOVE(false, HttpStatus.NOT_FOUND.value(), "좋아요를 누르지 않아 취소할 수 없습니다."),
-    NOT_FAMILY_OWNER(false, HttpStatus.FORBIDDEN.value(), "가족 권한이 없습니다."),
+
+
+    /**
+     * alarm
+     */
     FIND_FAIL_FCMTOKEN(false,HttpStatus.NOT_FOUND.value(),"해당 사용자의 FCM Token이 존재하지 않습니다."),
-    FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다.");
+    FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다."),
+
+
+    /**
+     * 500 : Database, Server 오류
+     */
+    DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
+    SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
+    ;
 
 
     private final boolean isSuccess;
     private final int code;
     private final String message;
 
-    private BaseResponseStatus(boolean isSuccess, int code, String message) {
+    BaseResponseStatus(boolean isSuccess, int code, String message) {
         this.isSuccess = isSuccess;
         this.code = code;
         this.message = message;

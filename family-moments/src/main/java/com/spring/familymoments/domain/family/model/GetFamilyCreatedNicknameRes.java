@@ -15,7 +15,7 @@ import lombok.Setter;
 public class GetFamilyCreatedNicknameRes {
     @Schema(description = "유저 닉네임" , example = "몰리")
     private String nickname;
-    @Schema(description = "가족 생성일 디데이" , example = "10")
-    private String dday;
+    @Schema(description = "가족 생성일" , example = "2023-08-01 00:47:39")
+    private String createdAt;
 
 }

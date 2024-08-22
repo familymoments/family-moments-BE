@@ -20,7 +20,7 @@ public class PostReport extends BaseEntity {
     private Long postReportId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "userId")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -40,6 +40,13 @@ public class PostReport extends BaseEntity {
                 .reportReason(reportReason)
                 .details(details)
                 .build();
+    }
+
+    /**
+     * 게시글 신고 null 처리
+     */
+    public void updateUser() {
+        this.user = null;
     }
 
 }
