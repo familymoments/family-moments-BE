@@ -51,13 +51,7 @@ public class User extends BaseTime implements UserDetails {
     private String password;
 
     @Column(nullable = false, length = 20)
-    private String name;
-
-    @Column(nullable = false, length = 20)
     private String nickname;
-
-    @Column(nullable = false)
-    private LocalDateTime birthDate;
 
     @Column(columnDefinition = "TEXT")
     private String profileImg;
