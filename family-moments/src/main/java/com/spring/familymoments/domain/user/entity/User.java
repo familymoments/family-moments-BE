@@ -107,19 +107,8 @@ public class User extends BaseTime implements UserDetails {
      * 회원 정보 수정 API 관련 메소드
      */
     public void updateProfile(PatchProfileReqRes req) {
-        if(req.getName() != null) {
-            this.name = req.getName();
-        }
         if(req.getNickname() != null) {
             this.nickname = req.getNickname();
-        }
-        if(req.getBirthdate() != null) {
-            String strBirthDate = req.getBirthdate();
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-            LocalDateTime parsedBirthDate = null;
-            parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
-            this.birthDate = parsedBirthDate;
         }
         if(req.getProfileImg() != null) {
             this.profileImg = req.getProfileImg();
