@@ -65,11 +65,6 @@ public class UserController {
         if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
-        // TODO: 아이디 중복 체크
-        if (userService.checkDuplicateIdByStatus(postUserReq.getId())) {
-            // log.info("[createUser]: 이미 존재하는 아이디입니다!");
-            return new BaseResponse<>(POST_USERS_EXISTS_ID);
-        }
         //비밀번호
         if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
@@ -77,11 +72,6 @@ public class UserController {
         //이메일
         if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
-        }
-        // TODO: 이메일 중복 체크
-        if (userService.checkDuplicateEmailByStatus(postUserReq.getEmail())) {
-            // log.info("[createUser]: 이미 존재하는 이메일입니다!");
-            return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
         }
         //닉네임
         if (!isRegexNickName(postUserReq.getNickname())) {

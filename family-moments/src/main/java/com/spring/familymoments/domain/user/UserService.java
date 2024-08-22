@@ -83,6 +83,17 @@ public class UserService {
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
     public PostUserRes createUser(PostUserReq.joinUser postUserReq) throws BaseException {
+
+        // TODO: 아이디 중복 체크
+        if (checkDuplicateIdByStatus(postUserReq.getId())) {
+            throw new BaseException(POST_USERS_EXISTS_ID);
+        }
+
+        // TODO: 이메일 중복 체크
+        if (checkDuplicateEmailByStatus(postUserReq.getEmail())) {
+            throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+
         // TODO: UUID 생성
         String uuid = UuidUtils.generateUUID();
 
@@ -94,6 +105,14 @@ public class UserService {
         } catch (Exception exception) {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }*/
+
+        // 이메일 인증을 완료하지 않고 회원가입을 진행하려는 경우 예외 처리
+        if(redisService.getValues("VC(" + postUserReq.getEmail() + "):") == null) {
+            throw new BaseException(POST_USERS_FAILED_TO_VERIFY);
+        } else {
+            // 이메일 인증 완료 후 redis 에서 인증 코드 삭제
+            redisService.deleteValues("VC(" + postUserReq.getEmail() + "):");
+        }
 
         User user = User.builder()
                 .id(postUserReq.getId())
