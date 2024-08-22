@@ -271,11 +271,7 @@ public class UserService {
         user.updateProfile(patchProfileReqRes);
         User updatedUser = userRepository.save(user);
 
-        String formatPattern = "yyyyMMdd";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
-        String updateUserBirth = updatedUser.getBirthDate().format(formatter);
-
-        return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());
+        return new PatchProfileReqRes(updatedUser.getNickname(), updatedUser.getProfileImg());
     }
     /**
      * 비밀번호 인증 API
