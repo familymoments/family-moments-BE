@@ -72,7 +72,7 @@ public class Family extends BaseEntity {
                 .familyId(familyId)
                 .ownerId(owner.getUserId())
                 .familyName(familyName)
-                .uploadCycle(uploadCycle)
+                .uploadCycle(uploadCycle == null ? 0 : uploadCycle)
                 .inviteCode(inviteCode)
                 .representImg(representImg)
                 .build();
