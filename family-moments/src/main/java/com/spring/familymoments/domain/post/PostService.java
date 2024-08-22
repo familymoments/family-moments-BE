@@ -213,10 +213,13 @@ public class PostService {
             throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
+        // 로그인 유저의 post love 정보 받아오기
+        Long loginUser = user.getUserId();
+
         List<SinglePostRes> posts = new ArrayList<>();
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
-            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), loginUser);
             boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
@@ -294,10 +297,13 @@ public class PostService {
             throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
+        // 로그인 유저의 post love 정보 받아오기
+        Long loginUser = user.getUserId();
+
         List<SinglePostRes> posts = new ArrayList<>();
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
-            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), loginUser);
             boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();
@@ -406,12 +412,15 @@ public class PostService {
             throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
 
+        // 로그인 유저의 post love 정보 받아오기
+        Long loginUser = user.getUserId();
+
         List<SinglePostRes> posts = new ArrayList<>();
         for(Post p: filteredPosts){
             // 2. 1단계에서 구한 post 목록의 postId와 일치하는 post document 받아오기
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
             // 3. 로그인 유저의 post love 정보 받아오기
-            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), loginUser);
             // 4. 로그인 유저가 게시물의 작성자인지 확인하기
             boolean isWritten = p.isWriter(user);
 
@@ -442,10 +451,13 @@ public class PostService {
     private List<SinglePostRes> getCombinedPostsByDate(User user, long familyId, LocalDateTime dateTime, Pageable pageable) {
         List<Post> filteredPosts = postRepository.findByFamilyIdAndCreatedAtDesc(familyId, dateTime, pageable);
 
+        // 로그인 유저의 post love 정보 받아오기
+        Long loginUser = user.getUserId();
+
         List<SinglePostRes> posts = new ArrayList<>();
         for(Post p: filteredPosts){
             SinglePostDocumentRes singlePostDocumentRes = postDocumentRepository.findByEntityId(p.getPostId());
-            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), p.getWriter().getUserId());
+            boolean isLoved = postLoveService.checkPostLoveByUser(p.getPostId(), loginUser);
             boolean isWritten = p.isWriter(user);
 
             Long filteredPostId = p.getPostId();

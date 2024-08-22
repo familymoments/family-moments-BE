@@ -19,6 +19,9 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
 
     Optional<UserFamily> findByUserIdAndFamilyId(User userId, Family familyId);
 
+    @Query("SELECT uf FROM UserFamily uf WHERE uf.userId = :userId AND uf.familyId = :familyId AND uf.status = 'ACTIVE'")
+    Optional<UserFamily> findActiveUserFamilyByUserIdAndFamilyId(@Param("userId") User user, @Param("familyId") Family family);
+
     @Query(value = "SELECT uf FROM UserFamily uf WHERE uf.userId = ?1 AND uf.status = 'DEACCEPT'"
             + "ORDER BY uf.createdAt DESC")
     List<UserFamily> findAllByUserIdOrderByCreatedAtDesc(User userId);
@@ -26,7 +29,7 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
     //회원 탈퇴 시, UserFamily 매핑 테이블 해제를 위한 조회
     @Query("SELECT uf FROM UserFamily uf WHERE uf.userId.userId = :userId")
     List<UserFamily> findUserFamilyByUserId(@Param("userId") Long userId);
-    @Query("SELECT uf FROM UserFamily uf WHERE uf.familyId.familyId = :familyId")
+    @Query("SELECT uf FROM UserFamily uf WHERE uf.familyId.familyId = :familyId AND uf.status = 'ACTIVE' ")
     List<UserFamily> findUserFamilyByFamilyId(@Param("familyId") Long familyId);
 
     @Query(value = "SELECT u.userId AS userId, u.id AS id, u.nickname AS nickname, u.profileImg AS profileImg " +
@@ -34,9 +37,11 @@ public interface UserFamilyRepository extends JpaRepository<UserFamily, Long> {
             "INNER JOIN UserFamilyMapping m ON u.userId = m.userId " +
             "INNER JOIN Family f ON m.familyId = f.familyId " +
             "WHERE m.status = 'ACTIVE' " +
-            "AND f.familyId = :familyId",
+            "AND f.familyId = :familyId " +
+            "AND u.userId <> :userId",
             nativeQuery = true)
-    List<GetFamilyAllResInterface> findActiveUsersByFamilyId(@Param("familyId") Long familyId);
+    List<GetFamilyAllResInterface> findActiveUsersByFamilyId(@Param("familyId") Long familyId,
+                                                             @Param("userId") Long userId);
 
     boolean existsByUserIdAndFamilyId(User userId, Family familyId);
 
