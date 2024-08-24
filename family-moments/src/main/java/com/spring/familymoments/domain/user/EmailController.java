@@ -44,11 +44,10 @@ public class EmailController {
 
         if(emailService.checkEmailByStatus(sendEmailReq)) {
             return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
-        } else {
-            String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
-            // return new BaseResponse<>("사용 가능한 이메일입니다.");
-            return new BaseResponse<>("입력하신 이메일로 인증 번호가 발송되었습니다. 발송된 인증 번호를 입력한 후, '인증확인' 버튼을 눌러주세요.");
         }
+
+        String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
+        return new BaseResponse<>("입력하신 이메일로 인증 번호가 발송되었습니다. 발송된 인증 번호를 입력한 후, '인증확인' 버튼을 눌러주세요.");
     }
 
     /**
@@ -75,7 +74,6 @@ public class EmailController {
     @PostMapping("/users/auth/send-email")
     public BaseResponse<String> sendVerificationEmail(@Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq)
             throws BaseException, MessagingException, UnsupportedEncodingException {
-
         //이메일
         if(!isRegexEmail(sendEmailReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
@@ -83,9 +81,9 @@ public class EmailController {
 
         if(!emailService.checkEmailByStatus(sendEmailReq)){
             return new BaseResponse<>(false, FIND_FAIL_USER_NAME_AND_EMAIL.getMessage(), HttpStatus.NOT_FOUND.value());
-        } else {
-            String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
-            return new BaseResponse<>("입력하신 이메일로 인증 코드가 전송되었습니다.");
         }
+
+        String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
+        return new BaseResponse<>("입력하신 이메일로 인증 코드가 전송되었습니다.");
     }
 }
