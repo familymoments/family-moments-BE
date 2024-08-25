@@ -332,12 +332,120 @@ public class UserService {
      * 회원 탈퇴 API
      * [DELETE] /users
      *
+     * hard delete
      * set null (탈퇴한 유저의 댓글 알수없음 / 탈퇴한 유저의 신고 내역(탈퇴한 유저가 신고한) 남김)
      *
      * @return
      */
-    //soft delete
     @Transactional
+    public void deleteUser(User user) {
+        //1) 가족 생성자면 예외처리
+        List<Family> ownerFamilies = familyRepository.findByOwner(user);
+        if(!ownerFamilies.isEmpty()) {
+            //로그인 유저가 가족 생성자 + 가족 내에 본인 혼자일 때는 탈퇴 처리
+            for(Family family : ownerFamilies) {
+                //가족 ACTIVE 조건 추가
+                if(family.getStatus() == BaseEntity.Status.ACTIVE) {
+                    List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+                    if(uf.size() == 1) {
+                        //가족 삭제 후 탈퇴 진행
+                        family.updateStatus(INACTIVE);
+                        familyRepository.save(family);
+                        continue;
+                    }
+                    //생성자 권한을 다른 사람에게 넘겨야 탈퇴 가능
+                    throw new BaseException(FAILED_TO_LEAVE);
+                }
+            }
+        }
+        commonDeleteProcess(user);
+    }
+
+    public void commonDeleteProcess(User user) {
+        Long userId = user.getUserId();
+
+        //1) 게시글, 댓글 신고 관련 내가 신고 당한 내역들은 남기기 comment/post null 처리 (내가 신고한 내역은 삭제)
+        List<Comment> comments = commentWithUserRepository.findCommentsByUserId(userId);
+        for(Comment comment : comments) {
+            List<CommentReport> imbadguyCommentReports = commentReportRepository.findCommentReportByComment(comment);
+            for(CommentReport commentReport : imbadguyCommentReports) {
+                commentReport.updateComment();
+            }
+        }
+        List<Post> posts = postWithUserRepository.findPostByUserId(userId);
+        for(Post post : posts) {
+            List<PostReport> imbadguyPostReports = postReportRepository.findPostReportByPost(post);
+            for(PostReport postReport : imbadguyPostReports) {
+                postReport.updatePost();
+            }
+        }
+
+        //2) 로그인 유저의 댓글 '알수없음' 처리 (일괄 INACTIVE)
+        for(Comment comment : comments) {
+            comment.updateWriter();
+        }
+
+        //3) UserFamilyMapping 관련 inviteUserId null 처리
+        List<UserFamily> userFamilyList = userFamilyRepository.findUserFamilyByInviteUserId(user.getUserId());
+        for(UserFamily userFamily : userFamilyList) {
+            userFamily.updateInviteUserId();
+        }
+
+        //4) 로그인 유저 완전 삭제
+        userRepository.delete(user);
+    }
+
+    @Transactional
+    public void deleteUserWithRedisProcess(User user, String requestAccessToken) {
+        //Redis에 저장되어 있는 RT 삭제
+        String refreshTokenInRedis = redisService.getValues("RT(" + "SERVER" + "):" + user);
+        if(refreshTokenInRedis != null) {
+            redisService.deleteValues("RT(" + "SERVER" + "):" + user);
+        }
+        //Redis에 탈퇴 처리한 AT 저장
+        long expiration = jwtService.getTokenExpirationTime(requestAccessToken) - new Date().getTime();
+        redisService.setValuesWithTimeout(requestAccessToken, "delete", expiration);
+
+        fcmService.deleteToken(user.getId());     // FCM Token 삭제
+
+        //유저 완전 삭제
+        this.deleteUser(user);
+    }
+
+    @Transactional
+    public void reportUser(Long toUserId) {
+        User toUser = userRepository.findUserByUserId(toUserId)
+                .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        //누적 횟수 3회차, INACTIVE
+        if (toUser.getReported() == 2) {
+            deleteReportedUser(toUser);
+            return;
+        }
+
+        //신고 횟수 업데이트
+        toUser.updateReported(toUser.getReported() + 1);
+        userRepository.save(toUser);
+    }
+
+    @Transactional
+    public void deleteReportedUser(User user) {
+        //1) 가족 일괄 INACTIVE
+        List<Family> familyList = familyRepository.findActiveFamilyByUserId(user);
+        for(Family family : familyList) {
+            family.updateStatus(INACTIVE);
+
+            //1-1) 가족 내 구성원 모두 INACTIVE
+            List<UserFamily> uf = userFamilyRepository.findUserFamilyByFamilyId(family.getFamilyId());
+            for(UserFamily uf1 : uf) {
+                uf1.updateStatus(UserFamily.Status.INACTIVE);
+            }
+        }
+        commonDeleteProcess(user);
+    }
+
+    //soft delete
+    /*@Transactional
     public void deleteUser(User user) {
         //1) 가족 생성자면 예외처리
         List<Family> ownerFamilies = familyRepository.findByOwner(user);
@@ -468,6 +576,6 @@ public class UserService {
             }
         }
         commonDeleteProcess(user);
-    }
+    }*/
 
 }

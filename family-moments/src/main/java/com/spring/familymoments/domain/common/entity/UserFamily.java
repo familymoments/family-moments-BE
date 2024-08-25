@@ -38,7 +38,7 @@ public class UserFamily extends BaseTime {
     protected Status status = Status.DEACCEPT;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "inviteUserId", nullable = false)
+    @JoinColumn(name = "inviteUserId")
     private User inviteUserId;
 
     public enum Status {
@@ -47,5 +47,9 @@ public class UserFamily extends BaseTime {
 
     public void updateStatus(Status status) {
         this.status = status;
+    }
+
+    public void updateInviteUserId() {
+        this.inviteUserId = null;
     }
 }
