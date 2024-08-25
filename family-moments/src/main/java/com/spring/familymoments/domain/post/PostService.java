@@ -511,7 +511,8 @@ public class PostService {
                fromUser,
                post,
                ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
-               contentReportReq.getDetails()
+               contentReportReq.getDetails(),
+               post.getWriter().getEmail()
        );
        postReportRepository.save(reportedPost);
 

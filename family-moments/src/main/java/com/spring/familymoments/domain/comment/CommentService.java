@@ -142,7 +142,8 @@ public class CommentService {
                 fromUser,
                 comment,
                 ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
-                contentReportReq.getDetails()
+                contentReportReq.getDetails(),
+                comment.getWriter().getEmail()
         );
         commentReportRepository.save(reportedComment);
 
