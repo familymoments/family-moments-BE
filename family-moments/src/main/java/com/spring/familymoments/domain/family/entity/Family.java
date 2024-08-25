@@ -41,7 +41,7 @@ public class Family extends BaseEntity {
     private String familyName;
 
     @Column(columnDefinition = "int unsigned")
-    private int uploadCycle;
+    private Integer uploadCycle;
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String inviteCode;
@@ -72,7 +72,7 @@ public class Family extends BaseEntity {
                 .familyId(familyId)
                 .ownerId(owner.getUserId())
                 .familyName(familyName)
-                .uploadCycle(uploadCycle)
+                .uploadCycle(uploadCycle == null ? 0 : uploadCycle)
                 .inviteCode(inviteCode)
                 .representImg(representImg)
                 .build();
@@ -97,7 +97,7 @@ public class Family extends BaseEntity {
     /**
      * 가족 업로드 주기 수정 API 관련 메소드
      */
-    public void updateUploadCycle(int uploadCycle) {
+    public void updateUploadCycle(Integer uploadCycle) {
         this.uploadCycle = uploadCycle;
     }
 

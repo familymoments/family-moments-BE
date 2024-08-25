@@ -6,6 +6,7 @@ import com.spring.familymoments.domain.comment.entity.CommentReport;
 import com.spring.familymoments.domain.comment.model.GetCommentsRes;
 import com.spring.familymoments.domain.comment.model.PatchCommentReq;
 import com.spring.familymoments.domain.comment.model.PostCommentReq;
+import com.spring.familymoments.domain.commentLove.CommentLoveRepository;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.post.PostWithUserRepository;
 import com.spring.familymoments.domain.post.entity.Post;
@@ -28,6 +29,7 @@ public class CommentService {
     private final CommentWithUserRepository commentWithUserRepository;
     private final PostWithUserRepository postWithUserRepository;
     private final CommentReportRepository commentReportRepository;
+    private final CommentLoveRepository commentLoveRepository;
 
     // 댓글 생성하기
     @Transactional
@@ -60,8 +62,8 @@ public class CommentService {
     }
 
     // 특정 게시물의 댓글 목록 조회
-    @Transactional
-    public List<GetCommentsRes> getCommentsByPostId(Long postId) throws BaseException{
+    @Transactional(readOnly = true)
+    public List<GetCommentsRes> getCommentsByPostId(User user, Long postId) throws BaseException{
 
         // 게시글 존재 확인
         postWithUserRepository.findById(postId)
@@ -80,7 +82,7 @@ public class CommentService {
                         comment.getWriter().getNickname(),
                         comment.getWriter().getProfileImg(),
                         comment.getContent(),
-                        comment.getCountLove() != 0,
+                        commentLoveRepository.existsByCommentIdAndUserId(comment, user),
                         comment.getCreatedAt()
                 ))
                 .collect(Collectors.toList());
