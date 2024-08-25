@@ -413,9 +413,14 @@ public class UserService {
     }
 
     @Transactional
-    public void reportUser(Long toUserId) {
-        User toUser = userRepository.findUserByUserId(toUserId)
+    public void reportUser(User fromUser, String toUserId) {
+        User toUser = userRepository.findById(toUserId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_USERNAME));
+
+        //본인 신고 불가
+        if(fromUser.getId().equals(toUserId)) {
+            throw new BaseException(FAILED_USER_REPORT);
+        }
 
         //누적 횟수 3회차, INACTIVE
         if (toUser.getReported() == 2) {

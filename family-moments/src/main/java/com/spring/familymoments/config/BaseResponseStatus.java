@@ -66,6 +66,7 @@ public enum BaseResponseStatus {
     FIND_FAIL_POST(false, HttpStatus.BAD_REQUEST.value(), "비활성화된 게시글입니다."),
     NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
     EXPIRED_AT_ERROR(false, 471, "탈퇴를 위해 가입했던 소셜 계정으로 재로그인 하세요"),
+    FAILED_USER_REPORT(false, HttpStatus.BAD_REQUEST.value(), "본인을 신고할 수 없습니다."),
     /**
      * 500 : Database, Server 오류
      */
