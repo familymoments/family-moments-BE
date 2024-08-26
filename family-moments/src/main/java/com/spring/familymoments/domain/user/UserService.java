@@ -41,10 +41,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -106,13 +103,20 @@ public class UserService {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }*/
 
-        // 이메일 인증을 완료하지 않고 회원가입을 진행하려는 경우 예외 처리
+        // 이메일 인증(/users/send-email)을 시도하지 않고 회원가입을 진행하려는 경우 예외 처리
         if(redisService.getValues("VC(" + postUserReq.getEmail() + "):") == null) {
             throw new BaseException(POST_USERS_FAILED_TO_VERIFY);
-        } else {
-            // 이메일 인증 완료 후 redis 에서 인증 코드 삭제
-            redisService.deleteValues("VC(" + postUserReq.getEmail() + "):");
         }
+
+        // 이메일 인증(/users/verify-email)을 완료하지 않고 회원가입을 진행하려는 경우 예외 처리
+        String randomVerificationCode = redisService.getValues("VC(" + postUserReq.getEmail() + "):");
+        if(!Objects.equals(redisService.getValues("VE(" + postUserReq.getEmail() + "):"), randomVerificationCode)) {
+            throw new BaseException(POST_USERS_FAILED_TO_COMPLETE_VERIFY);
+        }
+
+        // 이메일 인증 완료 후 redis 에서 인증 코드 삭제
+        redisService.deleteValues("VC(" + postUserReq.getEmail() + "):");
+        redisService.deleteValues("VE(" + postUserReq.getEmail() + "):");
 
         User user = User.builder()
                 .id(postUserReq.getId())

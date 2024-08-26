@@ -15,7 +15,6 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -151,7 +150,13 @@ public class EmailService {
         // randomVerificationCode = emailService.sendEmail(req.getName(), req.getEmail());
         randomVerificationCode = redisService.getValues("VC("+ req.getEmail() + "):");
 
-        return Objects.equals(req.getCode(), randomVerificationCode);
+        if(!Objects.equals(req.getCode(), randomVerificationCode)) {
+            return false;
+        } else {
+            redisService.setValues("VE(" + req.getEmail() + "):", randomVerificationCode);
+            return true;
+        }
+        // return Objects.equals(req.getCode(), randomVerificationCode);
     }
 
     /**
