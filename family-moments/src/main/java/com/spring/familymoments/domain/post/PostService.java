@@ -176,7 +176,9 @@ public class PostService {
     @Transactional
     public void deletePost(User user, long postId) {
         // 삭제할 Post 정보 불러오기
-        Post deletedPost = postRepository.findById(postId).orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+        Post deletedPost = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+
         // 수정할 Post Document 정보 불러오기
         PostDocument deletedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
@@ -189,7 +191,7 @@ public class PostService {
             throw new BaseException(minnie_POSTS_DELETE_INVALID_USER);
         }
 
-        deletedPost.delete();
+        postRepository.delete(deletedPost);
         postDocumentRepository.delete(deletedPostDocument);
     }
 
