@@ -84,6 +84,6 @@ public class EmailController {
         }
 
         String verificationCode = emailService.sendEmail(sendEmailReq.getEmail());
-        return new BaseResponse<>("입력하신 이메일로 인증 코드가 전송되었습니다.");
+        return new BaseResponse<>("입력하신 이메일로 인증 번호가 전송되었습니다.");
     }
 }
