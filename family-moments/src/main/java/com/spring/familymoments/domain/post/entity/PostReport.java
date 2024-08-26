@@ -24,7 +24,7 @@ public class PostReport extends BaseEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "postId")
+    @JoinColumn(name = "postId", nullable = false)
     private Post post;
 
     @Enumerated(EnumType.STRING)
@@ -33,21 +33,13 @@ public class PostReport extends BaseEntity {
 
     private String details;
 
-    @Column(nullable = false, length = 45)
-    private String offenderEmail;
-
-    public static PostReport createPostReport(User fromUser, Post reportedPost, ReportReason reportReason, String details, String offenderEmail) {
+    public static PostReport createPostReport(User fromUser, Post reportedPost, ReportReason reportReason, String details) {
         return PostReport.builder()
                 .user(fromUser)
                 .post(reportedPost)
                 .reportReason(reportReason)
                 .details(details)
-                .offenderEmail(offenderEmail)
                 .build();
     }
 
-    /**
-     * 게시글 신고 null 처리
-     */
-    public void updatePost() { this.post = null; }
 }

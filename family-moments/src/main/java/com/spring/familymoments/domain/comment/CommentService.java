@@ -134,9 +134,9 @@ public class CommentService {
         Comment comment = commentWithUserRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
 
-        //누적 횟수 3회차, INACTIVE
+        //누적 횟수 3회차
         if(comment.getReported() == 2) {
-            comment.updateStatus(BaseEntity.Status.INACTIVE);
+            commentWithUserRepository.delete(comment);
         }
 
         //신고 사유 저장
@@ -144,8 +144,7 @@ public class CommentService {
                 fromUser,
                 comment,
                 ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
-                contentReportReq.getDetails(),
-                comment.getWriter().getEmail()
+                contentReportReq.getDetails()
         );
         commentReportRepository.save(reportedComment);
 

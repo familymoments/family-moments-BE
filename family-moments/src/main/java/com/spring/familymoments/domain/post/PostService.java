@@ -501,9 +501,9 @@ public class PostService {
        Post post = postRepository.findById(postId)
                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-       //누적 횟수 3회차, INACTIVE
+       //누적 횟수 3회차
        if(post.getReported() == 2) {
-           post.updateStatus(BaseEntity.Status.INACTIVE);
+           postRepository.delete(post);
        }
 
        //신고 사유 저장
@@ -511,8 +511,7 @@ public class PostService {
                fromUser,
                post,
                ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
-               contentReportReq.getDetails(),
-               post.getWriter().getEmail()
+               contentReportReq.getDetails()
        );
        postReportRepository.save(reportedPost);
 

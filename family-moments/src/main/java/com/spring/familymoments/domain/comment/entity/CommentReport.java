@@ -27,7 +27,7 @@ public class CommentReport extends BaseEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "commentId")
+    @JoinColumn(name = "commentId", nullable = false)
     private Comment comment;
 
     @Enumerated(EnumType.STRING)
@@ -36,21 +36,13 @@ public class CommentReport extends BaseEntity {
 
     private String details;
 
-    @Column(nullable = false, length = 45)
-    private String offenderEmail;
-
-    public static CommentReport createCommentReport(User fromUser, Comment reportedComment, ReportReason reportReason, String details, String offenderEmail) {
+    public static CommentReport createCommentReport(User fromUser, Comment reportedComment, ReportReason reportReason, String details) {
         return CommentReport.builder()
                 .user(fromUser)
                 .comment(reportedComment)
                 .reportReason(reportReason)
                 .details(details)
-                .offenderEmail(offenderEmail)
                 .build();
     }
 
-    /***
-     * 댓글 신고 NULL 처리
-     */
-    public void updateComment() {this.comment = null;}
 }
