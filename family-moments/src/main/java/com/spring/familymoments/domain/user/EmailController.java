@@ -60,9 +60,9 @@ public class EmailController {
     public BaseResponse<String> verifyEmailBeforeSignUp(@Valid @RequestBody PostEmailReq.sendVerificationEmail sendEmailReq) throws BaseException {
         if(!emailService.checkVerificationCodeBeforeSignUp(sendEmailReq)) {
             return new BaseResponse<>(NOT_EQUAL_VERIFICATION_CODE);
-        } else {
-            return new BaseResponse<>("이메일 인증이 완료되었습니다! 회원가입을 완료해주세요!");
         }
+
+        return new BaseResponse<>("이메일 인증이 완료되었습니다! 회원가입을 완료해주세요!");
     }
 
     /**
