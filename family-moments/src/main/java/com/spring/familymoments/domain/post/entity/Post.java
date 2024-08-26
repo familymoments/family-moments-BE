@@ -54,9 +54,6 @@ public class Post extends BaseEntity {
         this.countLove = countLove - 1;
     }
 
-    public void delete() {
-        this.status = Status.INACTIVE;
-    }
     /**
      * 가족 삭제 API 관련 메소드
      */
