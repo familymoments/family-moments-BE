@@ -80,9 +80,9 @@ public class PostController {
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @PathVariable long postId,
-                                                @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
+                                                @RequestPart(name = "postInfo", required = false) PostEditInfoReq postEditInfoReq,
                                                 @RequestPart("imgs") List<MultipartFile> imgs) {
-        if(postInfoReq == null && imgs.isEmpty()) {
+        if(postEditInfoReq == null && imgs.isEmpty()) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
 
@@ -90,12 +90,13 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
         }
 
-        PostReq postReq = PostReq.builder()
-                .content((postInfoReq != null) ? postInfoReq.getContent() : null)
+        PostEditReq postEditReq = PostEditReq.builder()
+                .urls(postEditInfoReq != null ? postEditInfoReq.getUrls() : null)
                 .imgs(imgs)
+                .content((postEditInfoReq != null) ? postEditInfoReq.getContent() : null)
                 .build();
 
-        SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
+        SinglePostRes singlePostRes = postService.editPost(user, postId, postEditReq);
         return new BaseResponse<>(singlePostRes);
 
     }

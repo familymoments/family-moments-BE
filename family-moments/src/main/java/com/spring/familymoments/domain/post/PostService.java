@@ -24,6 +24,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -104,7 +106,7 @@ public class PostService {
 
     // post update
     @Transactional
-    public SinglePostRes editPost(User user, long postId, PostReq postReq) {
+    public SinglePostRes editPost(User user, long postId, PostEditReq postEditReq) {
         // 수정할 Post 정보 불러오기
         Post editedPost = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
@@ -121,34 +123,30 @@ public class PostService {
         PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        // SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
-
-        // int currentImgCount = editedPostDocument.getUrls().size();
-
-        // for(int i = 0 ; i < currentImgCount ; i++) {
-        //     String url = editedPostDocument.getUrls().get(i);
-        //     awsS3Service.deleteImage(url);
-        // }
+        List<String> originalImgs = postEditReq.getUrls();
 
         // image 업로드 (S3)
-        int newImgCount = postReq.getImgs().size();
+        List<String> newImgs = new ArrayList<>();
+        int newImgCount = postEditReq.getImgs().size();
 
-        ArrayList<String> editedImgs = new ArrayList<>();
-        for(int i = 0 ; i < newImgCount ; i++) {
+        for(int i = 0 ; i < newImgCount ; i++){
             String url = null;
 
-            if(postReq.getImgs().get(i) != null) {
-                MultipartFile img = postReq.getImgs().get(i);
+            if(!postEditReq.getImgs().get(i).isEmpty()) {
+                MultipartFile img = postEditReq.getImgs().get(i);
                 url = awsS3Service.uploadImage(img);
-                editedImgs.add(url);
+                newImgs.add(url);
             }
 
         }
 
+        List<String> editedImgs = Stream.concat(originalImgs.stream(), newImgs.stream())
+                                        .collect(Collectors.toList());
+
         // MongoDB에 수정된 이미지 및 내용 저장
         postDocumentRepository.findPostDocumentByEntityId(editedPostDocument.getEntityId())
                 .ifPresent(postDocument -> { // 일치하는 post document 가 있는 경우에만 수정
-            postDocument.updateContent(postReq.getContent());
+            postDocument.updateContent(postEditReq.getContent());
             postDocument.updateUrls(editedImgs);
             postDocumentRepository.save(postDocument);
         });
@@ -157,7 +155,7 @@ public class PostService {
         boolean isWritten = editedPost.isWriter(user);
 
         SinglePostDocumentRes singlePostDocumentRes = SinglePostDocumentRes.builder()
-                .content(postReq.getContent())
+                .content(postEditReq.getContent())
                 .urls(editedImgs)
                 .build();
 
