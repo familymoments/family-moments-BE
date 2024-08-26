@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.isRegexCode;
+import static com.spring.familymoments.utils.ValidationRegex.isRegexEmail;
 
 @Slf4j
 @Service
@@ -114,15 +115,22 @@ public class EmailService {
     }
 
     /**
-     * 아이디/비밀번호 찾기 -> 입력한 코드와 발송한 코드가 서로 같은지 확인
+     * 회원 가입 -> 입력한 코드와 발송한 코드가 서로 같은지 확인
      * [GET]
      * @return 같은 값이면 true, 그렇지 않으면 false
      */
     public boolean checkVerificationCodeBeforeSignUp(PostEmailReq.sendVerificationEmail req) throws BaseException {
 
         // 일치하는 회원 정보가 있는 경우 -> UserController(createUser)의 예외처리와 중복
+        /*
         if(checkEmailByStatus(req)) {
             throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+        */
+
+        //이메일
+        if(!isRegexEmail(req.getEmail())) {
+            throw new BaseException(POST_USERS_INVALID_EMAIL);
         }
 
         // 인증 코드를 입력하지 않은 경우
