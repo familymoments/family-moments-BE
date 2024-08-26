@@ -437,9 +437,9 @@ public class UserController {
      * 유저 신고 API
      * [POST] /users/report
      */
-    @PostMapping("/users/report/{userId}")
-    public BaseResponse<String> reportUser(@PathVariable Long userId) {
-        userService.reportUser(userId);
+    @PostMapping("/users/report")
+    public BaseResponse<String> reportUser(@AuthenticationPrincipal @Parameter(hidden = true) User fromUser, @RequestBody GetUserIdReq req) {
+        userService.reportUser(fromUser, req.getUserId());
         return new BaseResponse<>("유저를 신고했습니다.");
     }
 
