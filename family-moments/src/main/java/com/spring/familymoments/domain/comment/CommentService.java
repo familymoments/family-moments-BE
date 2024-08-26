@@ -134,11 +134,6 @@ public class CommentService {
         Comment comment = commentWithUserRepository.findById(commentId)
                 .orElseThrow(() -> new BaseException(FIND_FAIL_COMMENT));
 
-        //누적 횟수 3회차
-        if(comment.getReported() == 2) {
-            commentWithUserRepository.delete(comment);
-        }
-
         //신고 사유 저장
         CommentReport reportedComment = CommentReport.createCommentReport(
                 fromUser,
@@ -148,10 +143,15 @@ public class CommentService {
         );
         commentReportRepository.save(reportedComment);
 
-        //신고 횟수 업데이트
-        comment.updateReported(comment.getReported() + 1);
-        commentWithUserRepository.save(comment);
-    }
+        //누적 횟수 3회차일 때 댓글 삭제
+        if(comment.getReported() == 2) {
+            commentWithUserRepository.delete(comment);
+        } else {
+            //신고 횟수 업데이트
+            comment.updateReported(comment.getReported() + 1);
+            commentWithUserRepository.save(comment);
+        }
 
+    }
 
 }
