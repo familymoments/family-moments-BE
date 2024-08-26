@@ -64,16 +64,25 @@ public enum BaseResponseStatus {
     FAILED_USERSS_UNATHORIZED(false, HttpStatus.BAD_REQUEST.value(), "권한이 없는 사용자입니다."),
     NOT_EQUAL_NEW_PASSWORD(false, HttpStatus.BAD_REQUEST.value(), "입력한 비밀번호와 일치하지 않습니다."),
     EXPIRED_AT_ERROR(false, 471, "탈퇴를 위해 가입했던 소셜 계정으로 재로그인 하세요"),
-    FIND_FAIL_USER(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 사용자입니다."),
-    MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
-    PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
-    PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
+    FAILED_USER_REPORT(false, HttpStatus.BAD_REQUEST.value(), "본인을 신고할 수 없습니다."),
+
+    /**
+     * 500 : Database, Server 오류
+     */
+    DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
+    SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
+
 
     FIND_FAIL_USER_ID(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 아이디입니다."),
     FIND_FAIL_USERNAME(false,HttpStatus.NOT_FOUND.value(),"가입되지 않은 회원입니다."),
     FIND_FAIL_USER_EMAIL(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 이메일입니다."),
     FIND_FAIL_USER_NAME_AND_EMAIL(false,HttpStatus.NOT_FOUND.value(), "일치하는 회원 정보가 없습니다."),
+    FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
 
+    FIND_FAIL_USER(false,HttpStatus.NOT_FOUND.value(),"존재하지 않는 사용자입니다."),
+    MODIFY_FAIL_USERNAME(false,HttpStatus.INTERNAL_SERVER_ERROR.value(),"유저네임 수정 실패"),
+    PASSWORD_ENCRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 암호화에 실패하였습니다."),
+    PASSWORD_DECRYPTION_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "비밀번호 복호화에 실패하였습니다."),
 
     /**
      * family
@@ -86,7 +95,6 @@ public enum BaseResponseStatus {
     ALREADY_INVITED_USER(false, HttpStatus.CONFLICT.value(), "이미 초대 요청을 받은 회원이 있습니다."),
     ALREADY_JOINED_FAMILY(false, HttpStatus.CONFLICT.value(), "이미 가입된 가족입니다."),
     FIND_FAIL_FAMILY_CREATION_DATE(false, HttpStatus.NOT_FOUND.value(), "가족 생성일을 찾을 수 없습니다."),
-    FAILED_TO_LEAVE(false, 409, "생성자 권한을 다른 사람에게 넘기고 탈퇴해야 합니다." ),
     CANNOT_EMISSION_SELF(false, 409, "본인은 강제 탈퇴할 수 없습니다." ),
     CANNOT_CHANGE_AUTHORITY_SELF(false, 409, "본인으로 권한을 변경할 수 없습니다." ),
 
@@ -129,15 +137,7 @@ public enum BaseResponseStatus {
      * alarm
      */
     FIND_FAIL_FCMTOKEN(false,HttpStatus.NOT_FOUND.value(),"해당 사용자의 FCM Token이 존재하지 않습니다."),
-    FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다."),
-
-
-    /**
-     * 500 : Database, Server 오류
-     */
-    DATABASE_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "데이터베이스 연결에 실패하였습니다."),
-    SERVER_ERROR(false, HttpStatus.INTERNAL_SERVER_ERROR.value(), "서버와의 연결에 실패하였습니다."),
-    ;
+    FIND_FAIL_ALARMSETTING(false,HttpStatus.NOT_FOUND.value(),"알림 설정 정보가 존재하지 않습니다.");
 
 
     private final boolean isSuccess;
