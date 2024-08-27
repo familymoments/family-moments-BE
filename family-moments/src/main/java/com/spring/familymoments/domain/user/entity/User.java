@@ -51,13 +51,7 @@ public class User extends BaseTime implements UserDetails {
     private String password;
 
     @Column(nullable = false, length = 20)
-    private String name;
-
-    @Column(nullable = false, length = 20)
     private String nickname;
-
-    @Column(nullable = false)
-    private LocalDateTime birthDate;
 
     @Column(columnDefinition = "TEXT")
     private String profileImg;
@@ -74,18 +68,6 @@ public class User extends BaseTime implements UserDetails {
     @ColumnDefault("0")
     private int reported;
 
-    @Builder
-    public User(String id, String uuid, String email, String password, String name, String nickname,
-                LocalDateTime birthDate, String profileImg, Status status){
-        this.id = id;
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.nickname = nickname;
-        this.birthDate = birthDate;
-        this.profileImg = profileImg;
-        this.status = status;
-    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
@@ -125,19 +107,8 @@ public class User extends BaseTime implements UserDetails {
      * 회원 정보 수정 API 관련 메소드
      */
     public void updateProfile(PatchProfileReqRes req) {
-        if(req.getName() != null) {
-            this.name = req.getName();
-        }
         if(req.getNickname() != null) {
             this.nickname = req.getNickname();
-        }
-        if(req.getBirthdate() != null) {
-            String strBirthDate = req.getBirthdate();
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-
-            LocalDateTime parsedBirthDate = null;
-            parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
-            this.birthDate = parsedBirthDate;
         }
         if(req.getProfileImg() != null) {
             this.profileImg = req.getProfileImg();

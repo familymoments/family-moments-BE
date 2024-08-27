@@ -15,13 +15,11 @@ public class PostEmailReq {
     @AllArgsConstructor
     @Data
     public static class sendVerificationEmail {
-        @NotBlank(message = "이름을 입력해주세요.")
-        @Schema(description = "회원 이름", example = "김철수")
-        private String name;
         @NotBlank(message = "인증 코드를 받으실 이메일을 입력해주세요.")
         @Schema(description = "이메일", example = "family@gmail.com")
         private String email;
         @Schema(description = "인증 코드", example = "여섯 자리 숫자로 이루어진 임의의 인증 코드")
         private String code;
     }
+
 }
