@@ -15,12 +15,12 @@ import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.utils.ValidationRegex.isRegexCode;
+import static com.spring.familymoments.utils.ValidationRegex.isRegexEmail;
 
 @Slf4j
 @Service
@@ -108,9 +108,55 @@ public class EmailService {
      * [GET]
      * @return 일치하는 회원 정보가 존재하면 true, 그렇지 않으면 false
      */
-    public boolean checkNameAndEmailByStatus(PostEmailReq.sendVerificationEmail req) {
-        Optional<User> user = userRepository.findByNameAndEmail(req.getName(), req.getEmail());
+    public boolean checkEmailByStatus(PostEmailReq.sendVerificationEmail req) {
+        Optional<User> user = userRepository.findByEmail(req.getEmail());
         return user.isPresent();
+    }
+
+    /**
+     * 회원 가입 -> 입력한 코드와 발송한 코드가 서로 같은지 확인
+     * [GET]
+     * @return 같은 값이면 true, 그렇지 않으면 false
+     */
+    public boolean checkVerificationCodeBeforeSignUp(PostEmailReq.sendVerificationEmail req) throws BaseException {
+
+        // 일치하는 회원 정보가 있는 경우 -> UserController(createUser)의 예외처리와 중복
+        /*
+        if(checkEmailByStatus(req)) {
+            throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+        */
+
+        //이메일
+        if(!isRegexEmail(req.getEmail())) {
+            throw new BaseException(POST_USERS_INVALID_EMAIL);
+        }
+
+        // 인증 코드를 입력하지 않은 경우
+        if(req.getCode().isEmpty()) {
+            throw new BaseException(EMPTY_VERIFICATION_CODE);
+        }
+
+        // 인증 코드 형식이 잘못된 경우
+        if(!isRegexCode(req.getCode())) {
+            throw new BaseException(INVALID_VERIFICATION_CODE);
+        }
+
+        // 유효 시간이 만료된 경우
+        if(!redisService.hasKey("VC("+ req.getEmail() + "):")) {
+            throw new BaseException(VERIFICATION_TIME_EXPIRED);
+        }
+
+        // randomVerificationCode = emailService.sendEmail(req.getName(), req.getEmail());
+        randomVerificationCode = redisService.getValues("VC("+ req.getEmail() + "):");
+
+        if(!Objects.equals(req.getCode(), randomVerificationCode)) {
+            return false;
+        } else {
+            redisService.setValues("VE(" + req.getEmail() + "):", randomVerificationCode);
+            return true;
+        }
+        // return Objects.equals(req.getCode(), randomVerificationCode);
     }
 
     /**
@@ -121,7 +167,7 @@ public class EmailService {
     public boolean checkVerificationCode(PostEmailReq.sendVerificationEmail req) throws BaseException {
 
         // 일치하는 회원 정보가 없는 경우
-        if(!checkNameAndEmailByStatus(req)) {
+        if(!checkEmailByStatus(req)) {
             throw new BaseException(FIND_FAIL_USER_EMAIL);
         }
 
