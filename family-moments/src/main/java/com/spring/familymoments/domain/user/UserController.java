@@ -65,11 +65,6 @@ public class UserController {
         if (!isRegexId(postUserReq.getId())) {
             return new BaseResponse<>(POST_USERS_INVALID_ID);
         }
-        // TODO: 아이디 중복 체크
-        if (userService.checkDuplicateIdByStatus(postUserReq.getId())) {
-            // log.info("[createUser]: 이미 존재하는 아이디입니다!");
-            return new BaseResponse<>(POST_USERS_EXISTS_ID);
-        }
         //비밀번호
         if (!isRegexPw(postUserReq.getPassword())) {
             return new BaseResponse<>(POST_USERS_INVALID_PW);
@@ -77,15 +72,6 @@ public class UserController {
         //이메일
         if (!isRegexEmail(postUserReq.getEmail())) {
             return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
-        }
-        // TODO: 이메일 중복 체크
-        if (userService.checkDuplicateEmailByStatus(postUserReq.getEmail())) {
-            // log.info("[createUser]: 이미 존재하는 이메일입니다!");
-            return new BaseResponse<>(POST_USERS_EXISTS_EMAIL);
-        }
-        //생년월일
-        if (!isRegexBirth(postUserReq.getStrBirthDate())) {
-            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
         if (!isRegexNickName(postUserReq.getNickname())) {
@@ -100,7 +86,7 @@ public class UserController {
 
         postUserReq.setProfileImg(fileUrl);
 
-        PostUserRes postUserRes = userService.createUser(postUserReq, profileImage);
+        PostUserRes postUserRes = userService.createUser(postUserReq);
         // log.info("[createUser]: PostUserRes 생성 완료!");
         return new BaseResponse<>("회원가입을 성공했습니다.");
     }
@@ -289,15 +275,6 @@ public class UserController {
         } else {
             String fileUrl = awsS3Service.uploadProfileImage(profileImg);
             patchProfileReqRes.setProfileImg(fileUrl);
-        }
-        if(patchProfileReqRes.getName() == null || patchProfileReqRes.getName().isEmpty()) { //이름 비어있으면
-            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
-        }
-        if(patchProfileReqRes.getBirthdate() == null || patchProfileReqRes.getBirthdate().isEmpty()) { //생년월일 비어있으면
-            return new BaseResponse<>(POST_USERS_EMPTY_BIRTH);
-        }
-        if(!isRegexBirth(patchProfileReqRes.getBirthdate())) { //생년월일 형식 다르면
-            return new BaseResponse<>(POST_USERS_INVALID_BIRTH);
         }
         if(patchProfileReqRes.getNickname() == null || patchProfileReqRes.getNickname().isEmpty()) { //닉네임 비어있으면
             return new BaseResponse<>(POST_USERS_EMPTY_NICKNAME);

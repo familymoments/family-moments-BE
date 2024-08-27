@@ -12,10 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @Schema(description = "회원 정보 조회 관련 Response")
 public class GetProfileRes {
-    @Schema(description = "이름", example = "김철수")
-    private String name;
-    @Schema(description = "생년월일", example = "20000101")
-    private String birthDate;
     @Schema(description = "회원이미지", example = "https://familymoments-image-bucket.s3.ap-northeast-2.amazonaws.com") //임의로 지정
     private String profileImg;
     @Schema(description = "닉네임", example = "영희좋아철수")

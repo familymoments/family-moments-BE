@@ -41,10 +41,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 import static com.spring.familymoments.domain.common.BaseEntity.Status.INACTIVE;
@@ -82,7 +79,18 @@ public class UserService {
      */
     // TODO: [중요] 로그인 API 구현 후 JWT Token 반환하는 부분 제거하기!
     @Transactional
-    public PostUserRes createUser(PostUserReq.joinUser postUserReq, MultipartFile profileImage) throws BaseException {
+    public PostUserRes createUser(PostUserReq.joinUser postUserReq) throws BaseException {
+
+        // TODO: 아이디 중복 체크
+        if (checkDuplicateIdByStatus(postUserReq.getId())) {
+            throw new BaseException(POST_USERS_EXISTS_ID);
+        }
+
+        // TODO: 이메일 중복 체크
+        if (checkDuplicateEmailByStatus(postUserReq.getEmail())) {
+            throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+
         // TODO: UUID 생성
         String uuid = UuidUtils.generateUUID();
 
@@ -95,24 +103,31 @@ public class UserService {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }*/
 
-        // TODO: BirthDate -> String에서 LocalDateTime으로 변환
-        String strBirthDate = postUserReq.getStrBirthDate();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        // 이메일 인증(/users/send-email)을 시도하지 않고 회원가입을 진행하려는 경우 예외 처리
+        if(redisService.getValues("VC(" + postUserReq.getEmail() + "):") == null) {
+            throw new BaseException(POST_USERS_FAILED_TO_VERIFY);
+        }
 
-        LocalDateTime parsedBirthDate = null;
-        parsedBirthDate = LocalDate.parse(strBirthDate, dateTimeFormatter).atStartOfDay();
+        // 이메일 인증(/users/verify-email)을 완료하지 않고 회원가입을 진행하려는 경우 예외 처리
+        String randomVerificationCode = redisService.getValues("VC(" + postUserReq.getEmail() + "):");
+        if(!Objects.equals(redisService.getValues("VE(" + postUserReq.getEmail() + "):"), randomVerificationCode)) {
+            throw new BaseException(POST_USERS_FAILED_TO_COMPLETE_VERIFY);
+        }
+
+        // 이메일 인증 완료 후 redis 에서 인증 코드 삭제
+        redisService.deleteValues("VC(" + postUserReq.getEmail() + "):");
+        redisService.deleteValues("VE(" + postUserReq.getEmail() + "):");
 
         User user = User.builder()
                 .id(postUserReq.getId())
                 .uuid(uuid)
                 .email(postUserReq.getEmail())
                 .password(passwordEncoder.encode(postUserReq.getPassword()))
-                .name(postUserReq.getName())
                 .nickname(postUserReq.getNickname())
-                .birthDate(parsedBirthDate)
                 .profileImg(postUserReq.getProfileImg())
                 .status(User.Status.ACTIVE)
                 .build();
+
         userRepository.save(user);
         alarmSettingService.createAlarmSetting(user);   // 알림 ON으로 설정(채팅알림, 업로드주기알림, 포스팅알림)
 
@@ -193,15 +208,11 @@ public class UserService {
             totalUpload = postWithUserRepository.countActivePostsByWriterAndFamily(user, family);
         }
 
-        String formatPattern = "yyyyMMdd"; //생년월일
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
-        String strBirth = user.getBirthDate().format(formatter);
-
         LocalDateTime targetDate = user.getCreatedAt(); //가입한 후 경과 일수
         LocalDateTime currentDate = LocalDateTime.now();
         Long duration = ChronoUnit.DAYS.between(targetDate, currentDate);
 
-        return new GetProfileRes(user.getName(), strBirth, user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
+        return new GetProfileRes(user.getProfileImg(), user.getNickname(), user.getEmail(), totalUpload, duration);
     }
     /**
      * 유저 5명 검색 API
@@ -283,11 +294,7 @@ public class UserService {
         user.updateProfile(patchProfileReqRes);
         User updatedUser = userRepository.save(user);
 
-        String formatPattern = "yyyyMMdd";
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(formatPattern);
-        String updateUserBirth = updatedUser.getBirthDate().format(formatter);
-
-        return new PatchProfileReqRes(updatedUser.getName(), updatedUser.getNickname(), updateUserBirth, updatedUser.getProfileImg());
+        return new PatchProfileReqRes(updatedUser.getNickname(), updatedUser.getProfileImg());
     }
     /**
      * 비밀번호 인증 API
