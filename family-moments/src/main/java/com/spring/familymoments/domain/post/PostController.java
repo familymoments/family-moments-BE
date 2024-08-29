@@ -103,13 +103,13 @@ public class PostController {
 
     /**
      * 게시글 삭제 API
-     * [DELETE] /posts?{postId}
+     * [DELETE] /posts/{postId}
      * @return BaseResponse<null>
      */
     @ResponseBody
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
-    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> deletePost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
         postService.deletePost(user, postId);
         return new BaseResponse<>(SUCCESS);
     }
