@@ -93,7 +93,6 @@ public class SocialUserService {
             Optional<User> existedU = socialUserRepository.findUserByEmailAndUserType(socialUserResponse.getEmail(), enumUserType);
 
             TokenDto tokenDto = null;
-            String strBirthDate = null;
 
             //기존회원 토큰발급 (회원가입 필요없음)
             if(existedU != null && existedU.isPresent() && existedU.get().getStatus() == User.Status.ACTIVE) {
@@ -101,21 +100,6 @@ public class SocialUserService {
                 tokenDto = setAuthenticationInSocial(existedU.get());
                 //familyId 반환
                 familyId = authService.login_familyId(existedU.get().getId()).getFamilyId();
-            }
-
-            //신규회원의 유저정보 중 Naver와 Kakao의 bithday + birthyear -> birthdate 형식 반영
-            if(socialUserResponse.getBirthday() != null && socialUserResponse.getBirthyear() != null) {
-                if(enumUserType.equals(UserType.NAVER)) {
-                    //naver birthdate : MM-dd
-                    String str = socialUserResponse.getBirthday().replace("-", "");
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(socialUserResponse.getBirthyear());
-                    sb.append(str);
-                    strBirthDate = sb.toString();
-                } else {
-                    //kakao birthdate : MMdd
-                    strBirthDate = socialUserResponse.getBirthyear() + socialUserResponse.getBirthday();
-                }
             }
 
             // FCM Token 저장
@@ -127,9 +111,7 @@ public class SocialUserService {
             return SocialLoginDto.of(
                     isExisted,
                     tokenDto,
-                    socialUserResponse.getName(),
                     socialUserResponse.getEmail(),
-                    strBirthDate,
                     socialUserResponse.getNickname(),
                     socialUserResponse.getPicture(),
                     familyId
@@ -158,17 +140,6 @@ public class SocialUserService {
         //아이디 중복 체크
         if (userService.checkDuplicateIdByStatus(userJoinRequest.getId())) {
             throw new BaseException(POST_USERS_EXISTS_ID);
-        }
-        //이름
-        if (userJoinRequest.getName().isEmpty()) {
-            throw new BaseException(POST_USERS_EMPTY_NAME);
-        }
-        //생년월일
-        if (userJoinRequest.getStrBirthDate().isEmpty()) {
-            throw new BaseException(POST_USERS_EMPTY_BIRTH);
-        }
-        if (!isRegexBirth(userJoinRequest.getStrBirthDate())) {
-            throw new BaseException(POST_USERS_INVALID_BIRTH);
         }
         //닉네임
         if (userJoinRequest.getNickname().isEmpty()) {
@@ -213,11 +184,6 @@ public class SocialUserService {
         //uuid 생성
         String uuid = UuidUtils.generateUUID();
 
-        //날짜 자료형 변환
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        LocalDateTime parsedBirthDate = null;
-        parsedBirthDate = LocalDate.parse(userJoinRequest.getStrBirthDate(), dateTimeFormatter).atStartOfDay();
-
         //user entity + socialInfo entity
         User user = userRepository.save(
                 User.builder()
@@ -225,9 +191,7 @@ public class SocialUserService {
                         .email(userJoinRequest.getEmail())
                         .password(passwordEncoder.encode(password))
                         .uuid(uuid)
-                        //.name(userJoinRequest.getName())
                         .nickname(userJoinRequest.getNickname())
-                        //.birthDate(parsedBirthDate)
                         .profileImg(userJoinRequest.getProfileImg())
                         .status(ACTIVE)
                         .build()

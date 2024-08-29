@@ -70,10 +70,7 @@ public class KakaoLoginServiceImpl implements SocialLoginService {
         KaKaoLoginResponse.KakaoLoginData.KakaoProfile kakaoProfile = kakaoLoginData.getProfile();
 
         return SocialUserResponse.builder()
-                .name(kakaoLoginData.getName())
                 .email(kakaoLoginData.getEmail())
-                .birthyear(kakaoLoginData.getBirthyear())
-                .birthday(kakaoLoginData.getBirthday())
                 .nickname(kakaoProfile.getNickname())
                 .picture(kakaoProfile.getProfile_image_url())
                 .build();
