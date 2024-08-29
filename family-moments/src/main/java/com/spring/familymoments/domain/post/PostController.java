@@ -134,7 +134,7 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping(params = {"familyId", "postId"})
-    @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
+    @Operation(summary = "게시글 조회(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId, postId);
         return new BaseResponse<>(singlePostRes);
