@@ -21,11 +21,8 @@ public class NaverLoginResponse {
     public static class Response {
         private String id;
         private String nickname;
-        private String name;
         private String email;
-        private String birthday;
         private String profile_image;
-        private String birthyear;
     }
 
 }
