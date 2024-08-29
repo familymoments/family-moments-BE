@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UserJoinResponse {
     private String id;
-    private String name;
-    private String strBirthDate;
     private String nickname;
     private String profileImg;
 }
