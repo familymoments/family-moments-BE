@@ -46,9 +46,7 @@ public class SocialUserController {
                 .body(
                         new BaseResponse<>(SocialLoginResponse.of(
                                 isExisted,
-                                isExisted ? null : socialLoginResponse.getName(),
                                 isExisted ? null : socialLoginResponse.getEmail(),
-                                isExisted ? null : socialLoginResponse.getStrBirthDate(),
                                 isExisted ? null : socialLoginResponse.getNickname(),
                                 isExisted ? null : socialLoginResponse.getPicture(),
                                 isExisted ? socialLoginResponse.getFamilyId() : null)

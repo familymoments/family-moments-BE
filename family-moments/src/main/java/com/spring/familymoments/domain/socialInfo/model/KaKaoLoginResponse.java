@@ -21,8 +21,6 @@ public class KaKaoLoginResponse {
         private String name;
         @Builder.Default
         private KakaoProfile profile = KakaoProfile.builder().build();
-        private String birthyear;
-        private String birthday;
         private String email;
 
         @Builder
