@@ -138,15 +138,15 @@ public class PostService {
 
         // 기존 이미지와 새로운 이미지를 하나의 필드로 병합
         List<String> editedImgs = Stream.concat(originImgs.stream(), newImgs.stream())
-                                        .collect(Collectors.toList());
+                .collect(Collectors.toList());
 
         // MongoDB에 수정된 이미지 및 내용 저장
         postDocumentRepository.findPostDocumentByEntityId(editedPostDocument.getEntityId())
                 .ifPresent(postDocument -> { // 일치하는 post document 가 있는 경우에만 수정
-            postDocument.updateContent(postEditReq.getContent());
-            postDocument.updateUrls(editedImgs);
-            postDocumentRepository.save(postDocument);
-        });
+                    postDocument.updateContent(postEditReq.getContent());
+                    postDocument.updateUrls(editedImgs);
+                    postDocumentRepository.save(postDocument);
+                });
 
         boolean isLoved = postLoveService.checkPostLoveByUser(editedPost.getPostId(), editedPost.getWriter().getUserId());
         boolean isWritten = editedPost.isWriter(user);
@@ -248,7 +248,7 @@ public class PostService {
         if(post == null || singlePostDocumentRes == null) {
             throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
-        
+
         // 로그인 유저의 post love 정보 받아오기
         Long userId = user.getUserId();
         boolean isLoved = postLoveService.checkPostLoveByUser(postId, userId);
@@ -495,26 +495,26 @@ public class PostService {
     }
     @Transactional
     public void reportPost(User fromUser, Long postId, ContentReportReq contentReportReq) {;
-       Post post = postRepository.findById(postId)
-               .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-       //신고 사유 저장
-       PostReport reportedPost = PostReport.createPostReport(
+        //신고 사유 저장
+        PostReport reportedPost = PostReport.createPostReport(
                 fromUser,
                 post,
                 ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
                 contentReportReq.getDetails()
-       );
-       postReportRepository.save(reportedPost);
+        );
+        postReportRepository.save(reportedPost);
 
-       //누적 횟수 3회차일 때 게시물 삭제
-       if(post.getReported() == 2) {
-           postRepository.delete(post);
-       } else {
-           //신고 횟수 업데이트
-           post.updateReported(post.getReported() + 1);
-           postRepository.save(post);
-       }
+        //누적 횟수 3회차일 때 게시물 삭제
+        if(post.getReported() == 2) {
+            postRepository.delete(post);
+        } else {
+            //신고 횟수 업데이트
+            post.updateReported(post.getReported() + 1);
+            postRepository.save(post);
+        }
 
     }
 
