@@ -56,7 +56,7 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_EMPTY_IMAGE);
         }
 
-        if(imgs.size() > 10) {
+        if(imgs.size() > 4) {
             return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
         }
 
@@ -86,7 +86,7 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
 
-        if(imgs.size() > 10) {
+        if(imgs.size() > 4) {
             return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
         }
 
