@@ -95,7 +95,8 @@ public class PostService {
                 .profileImg(result.getWriter().getProfileImg())
                 .content(docResult.getContent())
                 .imgs(docResult.getUrls())
-                .createdAt(result.getCreatedAt().toLocalDate())
+                //.createdAt(result.getCreatedAt().toLocalDate())
+                .createdAt(result.getCreatedAt())
                 .countLove(0).loved(false) // 새로 생성된 Post 이므로 default return
                 .written(true) // 새로 생성된 Post 이므로 default return
                 .build();
@@ -487,7 +488,8 @@ public class PostService {
                 .profileImg(profileImg)
                 .content(singlePostDocumentRes.getContent())
                 .imgs(singlePostDocumentRes.getUrls())
-                .createdAt(dateTime.toLocalDate())
+                //.createdAt(dateTime.toLocalDate())
+                .createdAt(dateTime)
                 .countLove(countLove)
                 .loved(isLoved)
                 .written(isWritten)
