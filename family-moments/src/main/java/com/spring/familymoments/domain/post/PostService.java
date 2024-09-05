@@ -123,24 +123,21 @@ public class PostService {
         PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        List<String> originalImgs = postEditReq.getUrls();
+        // 기존 이미지
+        List<String> originImgs = postEditReq.getUrls();
+        // 새로운 이미지
+        List<MultipartFile> newFiles = postEditReq.getImgs();
+        List<String> newImgs = new ArrayList<>();
 
         // image 업로드 (S3)
-        List<String> newImgs = new ArrayList<>();
-        int newImgCount = postEditReq.getImgs().size();
-
-        for(int i = 0 ; i < newImgCount ; i++){
+        for(MultipartFile img : newFiles) {
             String url = null;
-
-            if(!postEditReq.getImgs().get(i).isEmpty()) {
-                MultipartFile img = postEditReq.getImgs().get(i);
-                url = awsS3Service.uploadImage(img);
-                newImgs.add(url);
-            }
-
+            url = awsS3Service.uploadImage(img);
+            newImgs.add(url);
         }
 
-        List<String> editedImgs = Stream.concat(originalImgs.stream(), newImgs.stream())
+        // 기존 이미지와 새로운 이미지를 하나의 필드로 병합
+        List<String> editedImgs = Stream.concat(originImgs.stream(), newImgs.stream())
                                         .collect(Collectors.toList());
 
         // MongoDB에 수정된 이미지 및 내용 저장
