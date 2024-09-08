@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -40,6 +41,7 @@ public class PostService {
     private final FamilyRepository familyRepository;
     private final AwsS3Service awsS3Service;
 
+    private static final int MAX_IMAGE_SIZE = 4;
     private static final int POST_PAGES = 10;
     private static final int ALBUM_PAGES = 30;
 
@@ -53,7 +55,9 @@ public class PostService {
         if(!familyRepository.isFamilyMember(family, user))
             throw new BaseException(minnie_FAMILY_INVALID_USER);
 
-
+        if(postReq.getImgs().size() > MAX_IMAGE_SIZE) {
+            throw new BaseException(minnie_POSTS_FULL_IMAGE);
+        }
         // image 업로드
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
@@ -117,6 +121,10 @@ public class PostService {
 
         if(!Objects.equals(editedPost.getWriter().getUserId(), user.getUserId())) {
             throw new BaseException(minnie_POSTS_EDIT_INVALID_USER);
+        }
+
+        if(postEditReq.getImgs().size() > MAX_IMAGE_SIZE) {
+            throw new BaseException(minnie_POSTS_FULL_IMAGE);
         }
 
         // 수정할 Post Document 정보 불러오기

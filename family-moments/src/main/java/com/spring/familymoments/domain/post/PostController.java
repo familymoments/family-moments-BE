@@ -56,10 +56,6 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_EMPTY_IMAGE);
         }
 
-        if(imgs.size() > 4) {
-            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
-        }
-
         PostReq postReq = PostReq.builder()
                 .familyId(familyId)
                 .imgs(imgs)
@@ -84,10 +80,6 @@ public class PostController {
                                                 @RequestPart("imgs") List<MultipartFile> imgs) {
         if(postEditInfoReq == null && imgs.isEmpty()) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
-        }
-
-        if(imgs.size() > 4) {
-            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
         }
 
         PostEditReq postEditReq = PostEditReq.builder()
