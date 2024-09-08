@@ -115,6 +115,10 @@ public class PostService {
         Post editedPost = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
+        // 수정할 Post Document 정보 불러오기
+        PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+
         if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
             throw new BaseException(minnie_POSTS_NON_EXISTS_POST);
         }
@@ -126,10 +130,6 @@ public class PostService {
         if(postEditReq.getImgs().size() > MAX_IMAGE_SIZE) {
             throw new BaseException(minnie_POSTS_FULL_IMAGE);
         }
-
-        // 수정할 Post Document 정보 불러오기
-        PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
-                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         // 기존 이미지
         List<String> originImgs = postEditReq.getUrls();
@@ -182,7 +182,7 @@ public class PostService {
         Post deletedPost = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        // 수정할 Post Document 정보 불러오기
+        // 삭제할 Post Document 정보 불러오기
         PostDocument deletedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
