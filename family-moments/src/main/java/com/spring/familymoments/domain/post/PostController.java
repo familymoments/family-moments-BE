@@ -56,10 +56,6 @@ public class PostController {
             return new BaseResponse<>(minnie_POSTS_EMPTY_IMAGE);
         }
 
-        if(imgs.size() > 10) {
-            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
-        }
-
         PostReq postReq = PostReq.builder()
                 .familyId(familyId)
                 .imgs(imgs)
@@ -80,35 +76,32 @@ public class PostController {
     @Operation(summary = "게시글 수정", description = "게시글을 수정합니다.")
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @PathVariable long postId,
-                                                @RequestPart(name = "postInfo", required = false) PostInfoReq postInfoReq,
+                                                @RequestPart(name = "postInfo", required = false) PostEditInfoReq postEditInfoReq,
                                                 @RequestPart("imgs") List<MultipartFile> imgs) {
-        if(postInfoReq == null && imgs.isEmpty()) {
+        if(postEditInfoReq == null && imgs.isEmpty()) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
 
-        if(imgs.size() > 10) {
-            return new BaseResponse<>(minnie_POSTS_FULL_IMAGE);
-        }
-
-        PostReq postReq = PostReq.builder()
-                .content((postInfoReq != null) ? postInfoReq.getContent() : null)
+        PostEditReq postEditReq = PostEditReq.builder()
+                .urls(postEditInfoReq != null ? postEditInfoReq.getUrls() : null)
                 .imgs(imgs)
+                .content((postEditInfoReq != null) ? postEditInfoReq.getContent() : null)
                 .build();
 
-        SinglePostRes singlePostRes = postService.editPost(user, postId, postReq);
+        SinglePostRes singlePostRes = postService.editPost(user, postId, postEditReq);
         return new BaseResponse<>(singlePostRes);
 
     }
 
     /**
      * 게시글 삭제 API
-     * [DELETE] /posts?{postId}
+     * [DELETE] /posts/{postId}
      * @return BaseResponse<null>
      */
     @ResponseBody
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
-    public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
+    public BaseResponse<SinglePostRes> deletePost(@AuthenticationPrincipal @Parameter(hidden = true) User user, @PathVariable long postId) {
         postService.deletePost(user, postId);
         return new BaseResponse<>(SUCCESS);
     }
@@ -133,7 +126,7 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping(params = {"familyId", "postId"})
-    @Operation(summary = "게시글 수정(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
+    @Operation(summary = "게시글 조회(with paging)", description = "커서 이전의 게시물 10건을 조회합니다.")
     public BaseResponse<List<SinglePostRes>> getNextPosts(@AuthenticationPrincipal @Parameter(hidden = true) User user, @RequestParam("familyId") long familyId, @RequestParam("postId") long postId) {
         List<SinglePostRes> singlePostRes = postService.getPosts(user, familyId, postId);
         return new BaseResponse<>(singlePostRes);

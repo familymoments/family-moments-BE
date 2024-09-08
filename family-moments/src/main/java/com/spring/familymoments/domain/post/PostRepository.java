@@ -1,10 +1,7 @@
 package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.domain.common.BaseEntity;
-import com.spring.familymoments.domain.family.entity.Family;
 import com.spring.familymoments.domain.post.entity.Post;
-import com.spring.familymoments.domain.post.model.MultiPostRes;
-import com.spring.familymoments.domain.post.model.SinglePostRes;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
