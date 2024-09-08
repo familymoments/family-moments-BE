@@ -1,7 +1,6 @@
 package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.config.BaseException;
-import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -44,6 +43,8 @@ public class PostService {
     private static final int MAX_IMAGE_SIZE = 4;
     private static final int POST_PAGES = 10;
     private static final int ALBUM_PAGES = 30;
+    private static final String ORIGIN_PREFIX = "fm-origin/";
+    private static final String THUMBNAIL_PREFIX = "thumbnails/";
 
     @Transactional
     public SinglePostRes createPost(User user, PostReq postReq) {
@@ -182,6 +183,23 @@ public class PostService {
 
         if(!deletedPost.getWriter().getUserId().equals(user.getUserId())) {
             throw new BaseException(minnie_POSTS_DELETE_INVALID_USER);
+        }
+
+        // 'THUMBNAIL_PREFIX' 기준으로 URL 문자열 분리
+        for(String url: deletedPostDocument.getUrls()) {
+            int indexOfThumbnailPrefix = url.indexOf(THUMBNAIL_PREFIX);
+
+            // 분리된 문자열에서 파일 이름 추출 후 양쪽 폴더에서 이미지 객체 삭제
+            if (indexOfThumbnailPrefix != -1) {
+                String thumbnail = url.substring(indexOfThumbnailPrefix);
+                String fileName = thumbnail.substring(thumbnail.lastIndexOf('/') + 1);
+                String origin = ORIGIN_PREFIX + fileName;
+
+                awsS3Service.deleteImage(thumbnail);
+                awsS3Service.deleteImage(origin);
+            } else {
+                throw new BaseException(DELETE_FAIL_S3);
+            }
         }
 
         postRepository.delete(deletedPost);
