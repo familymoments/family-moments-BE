@@ -32,7 +32,7 @@ public class SinglePostRes {
     @JsonIgnore
     private LocalDateTime createdAtLocalDateTime;
     @Schema(description = "게시글 생성일", example = "yyyy-MM-dd")
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
     @Schema(description = "게시글의 좋아요 개수", example = "2")
     private int countLove;
     @Schema(description = "나의 좋아요 여부", example = "true or false")
@@ -46,7 +46,8 @@ public class SinglePostRes {
         this.profileImg = profileImg;
         this.content = content;
         this.imgs = Arrays.asList(imgs.split(","));
-        this.createdAt = createdAt.toLocalDate();
+        // this.createdAt = createdAt.toLocalDate();
+        this.createdAt = createdAt;
         this.countLove = countLove;
         this.loved = status == BaseEntity.Status.ACTIVE;
         this.written = false;
