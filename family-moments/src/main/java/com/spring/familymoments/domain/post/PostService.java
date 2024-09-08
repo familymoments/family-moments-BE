@@ -69,12 +69,6 @@ public class PostService {
 
         Post result = postRepository.save(params);
 
-        // 저장에 실패하는 경우 error 처리
-        if(result == null) {
-            throw new BaseException(minnie_POST_SAVE_FAIL);
-        }
-
-
         // '최근 게시물 업로드 시각' 현재 시각으로 업데이트
         family.updateLatestUploadAt();
 
@@ -87,12 +81,7 @@ public class PostService {
 
         PostDocument docResult = postDocumentRepository.save(docParams);
 
-        // 저장에 실패하는 경우 error 처리
-        if(docResult == null) {
-            throw new BaseException(minnie_POST_SAVE_FAIL);
-        }
-
-        // postId로 연관된 테이블을 다시 검색하지 않음
+        // 새로 생성된 Post
         SinglePostRes singlePostRes = SinglePostRes.builder()
                 .postId(result.getPostId())
                 .writer(result.getWriter().getNickname())
