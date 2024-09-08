@@ -1,6 +1,7 @@
 package com.spring.familymoments.domain.post;
 
 import com.spring.familymoments.config.BaseException;
+import com.spring.familymoments.config.BaseResponse;
 import com.spring.familymoments.domain.awsS3.AwsS3Service;
 import com.spring.familymoments.domain.common.BaseEntity;
 import com.spring.familymoments.domain.family.FamilyRepository;
@@ -24,6 +25,8 @@ import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.spring.familymoments.config.BaseResponseStatus.*;
 
@@ -38,6 +41,7 @@ public class PostService {
     private final FamilyRepository familyRepository;
     private final AwsS3Service awsS3Service;
 
+    private static final int MAX_IMAGE_SIZE = 4;
     private static final int POST_PAGES = 10;
     private static final int ALBUM_PAGES = 30;
 
@@ -51,7 +55,9 @@ public class PostService {
         if(!familyRepository.isFamilyMember(family, user))
             throw new BaseException(minnie_FAMILY_INVALID_USER);
 
-
+        if(postReq.getImgs().size() > MAX_IMAGE_SIZE) {
+            throw new BaseException(minnie_POSTS_FULL_IMAGE);
+        }
         // image 업로드
         List<String> urls = awsS3Service.uploadImages(postReq.getImgs());
 
@@ -62,12 +68,6 @@ public class PostService {
                 .build();
 
         Post result = postRepository.save(params);
-
-        // 저장에 실패하는 경우 error 처리
-        if(result == null) {
-            throw new BaseException(minnie_POST_SAVE_FAIL);
-        }
-
 
         // '최근 게시물 업로드 시각' 현재 시각으로 업데이트
         family.updateLatestUploadAt();
@@ -81,19 +81,15 @@ public class PostService {
 
         PostDocument docResult = postDocumentRepository.save(docParams);
 
-        // 저장에 실패하는 경우 error 처리
-        if(docResult == null) {
-            throw new BaseException(minnie_POST_SAVE_FAIL);
-        }
-
-        // postId로 연관된 테이블을 다시 검색하지 않음
+        // 새로 생성된 Post
         SinglePostRes singlePostRes = SinglePostRes.builder()
                 .postId(result.getPostId())
                 .writer(result.getWriter().getNickname())
                 .profileImg(result.getWriter().getProfileImg())
                 .content(docResult.getContent())
                 .imgs(docResult.getUrls())
-                .createdAt(result.getCreatedAt().toLocalDate())
+                //.createdAt(result.getCreatedAt().toLocalDate())
+                .createdAt(result.getCreatedAt())
                 .countLove(0).loved(false) // 새로 생성된 Post 이므로 default return
                 .written(true) // 새로 생성된 Post 이므로 default return
                 .build();
@@ -104,9 +100,13 @@ public class PostService {
 
     // post update
     @Transactional
-    public SinglePostRes editPost(User user, long postId, PostReq postReq) {
+    public SinglePostRes editPost(User user, long postId, PostEditReq postEditReq) {
         // 수정할 Post 정보 불러오기
         Post editedPost = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+
+        // 수정할 Post Document 정보 불러오기
+        PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
         if(editedPost.getStatus() == BaseEntity.Status.INACTIVE) {
@@ -117,47 +117,40 @@ public class PostService {
             throw new BaseException(minnie_POSTS_EDIT_INVALID_USER);
         }
 
-        // 수정할 Post Document 정보 불러오기
-        PostDocument editedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
-                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+        if(postEditReq.getImgs().size() > MAX_IMAGE_SIZE) {
+            throw new BaseException(minnie_POSTS_FULL_IMAGE);
+        }
 
-        // SinglePostRes singlePostRes = getPost(user.getUserId(), postId);
-
-        // int currentImgCount = editedPostDocument.getUrls().size();
-
-        // for(int i = 0 ; i < currentImgCount ; i++) {
-        //     String url = editedPostDocument.getUrls().get(i);
-        //     awsS3Service.deleteImage(url);
-        // }
+        // 기존 이미지
+        List<String> originImgs = postEditReq.getUrls();
+        // 새로운 이미지
+        List<MultipartFile> newFiles = postEditReq.getImgs();
+        List<String> newImgs = new ArrayList<>();
 
         // image 업로드 (S3)
-        int newImgCount = postReq.getImgs().size();
-
-        ArrayList<String> editedImgs = new ArrayList<>();
-        for(int i = 0 ; i < newImgCount ; i++) {
+        for(MultipartFile img : newFiles) {
             String url = null;
-
-            if(postReq.getImgs().get(i) != null) {
-                MultipartFile img = postReq.getImgs().get(i);
-                url = awsS3Service.uploadImage(img);
-                editedImgs.add(url);
-            }
-
+            url = awsS3Service.uploadImage(img);
+            newImgs.add(url);
         }
+
+        // 기존 이미지와 새로운 이미지를 하나의 필드로 병합
+        List<String> editedImgs = Stream.concat(originImgs.stream(), newImgs.stream())
+                .collect(Collectors.toList());
 
         // MongoDB에 수정된 이미지 및 내용 저장
         postDocumentRepository.findPostDocumentByEntityId(editedPostDocument.getEntityId())
                 .ifPresent(postDocument -> { // 일치하는 post document 가 있는 경우에만 수정
-            postDocument.updateContent(postReq.getContent());
-            postDocument.updateUrls(editedImgs);
-            postDocumentRepository.save(postDocument);
-        });
+                    postDocument.updateContent(postEditReq.getContent());
+                    postDocument.updateUrls(editedImgs);
+                    postDocumentRepository.save(postDocument);
+                });
 
         boolean isLoved = postLoveService.checkPostLoveByUser(editedPost.getPostId(), editedPost.getWriter().getUserId());
         boolean isWritten = editedPost.isWriter(user);
 
         SinglePostDocumentRes singlePostDocumentRes = SinglePostDocumentRes.builder()
-                .content(postReq.getContent())
+                .content(postEditReq.getContent())
                 .urls(editedImgs)
                 .build();
 
@@ -179,7 +172,7 @@ public class PostService {
         Post deletedPost = postRepository.findById(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-        // 수정할 Post Document 정보 불러오기
+        // 삭제할 Post Document 정보 불러오기
         PostDocument deletedPostDocument = postDocumentRepository.findPostDocumentByEntityId(postId)
                 .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
@@ -253,7 +246,7 @@ public class PostService {
         if(post == null || singlePostDocumentRes == null) {
             throw new BaseException(minnie_POSTS_INVALID_POST_ID);
         }
-        
+
         // 로그인 유저의 post love 정보 받아오기
         Long userId = user.getUserId();
         boolean isLoved = postLoveService.checkPostLoveByUser(postId, userId);
@@ -492,7 +485,8 @@ public class PostService {
                 .profileImg(profileImg)
                 .content(singlePostDocumentRes.getContent())
                 .imgs(singlePostDocumentRes.getUrls())
-                .createdAt(dateTime.toLocalDate())
+                //.createdAt(dateTime.toLocalDate())
+                .createdAt(dateTime)
                 .countLove(countLove)
                 .loved(isLoved)
                 .written(isWritten)
@@ -500,26 +494,26 @@ public class PostService {
     }
     @Transactional
     public void reportPost(User fromUser, Long postId, ContentReportReq contentReportReq) {;
-       Post post = postRepository.findById(postId)
-               .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new BaseException(minnie_POSTS_NON_EXISTS_POST));
 
-       //신고 사유 저장
-       PostReport reportedPost = PostReport.createPostReport(
+        //신고 사유 저장
+        PostReport reportedPost = PostReport.createPostReport(
                 fromUser,
                 post,
                 ReportReason.getEnumTypeFromStringReportReason(contentReportReq.getReportReason()),
                 contentReportReq.getDetails()
-       );
-       postReportRepository.save(reportedPost);
+        );
+        postReportRepository.save(reportedPost);
 
-       //누적 횟수 3회차일 때 게시물 삭제
-       if(post.getReported() == 2) {
-           postRepository.delete(post);
-       } else {
-           //신고 횟수 업데이트
-           post.updateReported(post.getReported() + 1);
-           postRepository.save(post);
-       }
+        //누적 횟수 3회차일 때 게시물 삭제
+        if(post.getReported() == 2) {
+            postRepository.delete(post);
+        } else {
+            //신고 횟수 업데이트
+            post.updateReported(post.getReported() + 1);
+            postRepository.save(post);
+        }
 
     }
 
