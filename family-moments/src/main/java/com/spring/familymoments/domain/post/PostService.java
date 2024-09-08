@@ -189,17 +189,18 @@ public class PostService {
         for(String url: deletedPostDocument.getUrls()) {
             int indexOfThumbnailPrefix = url.indexOf(THUMBNAIL_PREFIX);
 
-            // 분리된 문자열에서 파일 이름 추출 후 양쪽 폴더에서 이미지 객체 삭제
-            if (indexOfThumbnailPrefix != -1) {
-                String thumbnail = url.substring(indexOfThumbnailPrefix);
-                String fileName = thumbnail.substring(thumbnail.lastIndexOf('/') + 1);
-                String origin = ORIGIN_PREFIX + fileName;
-
-                awsS3Service.deleteImage(thumbnail);
-                awsS3Service.deleteImage(origin);
-            } else {
+            // 'THUMBNAIL_PREFIX'가 URL 문자열에 없는 경우
+            if (indexOfThumbnailPrefix == -1) {
                 throw new BaseException(DELETE_FAIL_S3);
             }
+
+            // 분리된 문자열에서 파일 이름 추출 후 양쪽 폴더에서 이미지 객체 삭제
+            String thumbnail = url.substring(indexOfThumbnailPrefix);
+            String fileName = thumbnail.substring(thumbnail.lastIndexOf('/') + 1);
+            String origin = ORIGIN_PREFIX + fileName;
+
+            awsS3Service.deleteImage(thumbnail);
+            awsS3Service.deleteImage(origin);
         }
 
         postRepository.delete(deletedPost);
