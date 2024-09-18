@@ -77,15 +77,15 @@ public class PostController {
     public BaseResponse<SinglePostRes> editPost(@AuthenticationPrincipal @Parameter(hidden = true) User user,
                                                 @PathVariable long postId,
                                                 @RequestPart(name = "postInfo", required = false) PostEditInfoReq postEditInfoReq,
-                                                @RequestPart("imgs") List<MultipartFile> imgs) {
-        if(postEditInfoReq == null && imgs.isEmpty()) {
+                                                @RequestPart(name = "newImgs", required = false) List<MultipartFile> newImgs) {
+        if(postEditInfoReq == null) {
             return new BaseResponse<>(minnie_POSTS_EMPTY_UPDATE);
         }
 
         PostEditReq postEditReq = PostEditReq.builder()
-                .urls(postEditInfoReq != null ? postEditInfoReq.getUrls() : null)
-                .imgs(imgs)
-                .content((postEditInfoReq != null) ? postEditInfoReq.getContent() : null)
+                .urls(postEditInfoReq.getUrls())
+                .newImgs(newImgs)
+                .content(postEditInfoReq.getContent())
                 .build();
 
         SinglePostRes singlePostRes = postService.editPost(user, postId, postEditReq);
