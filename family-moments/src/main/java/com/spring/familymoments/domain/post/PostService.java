@@ -117,21 +117,23 @@ public class PostService {
             throw new BaseException(minnie_POSTS_EDIT_INVALID_USER);
         }
 
-        if(postEditReq.getImgs().size() > MAX_IMAGE_SIZE) {
+        // 기존 이미지
+        List<String> originImgs = postEditReq.getUrls();
+        // 새로운 이미지: 이미지를 추가하지 않고도 수정이 되도록 허용
+        List<MultipartFile> newFiles = postEditReq.getNewImgs();
+        List<String> newImgs = new ArrayList<>();
+
+        if(originImgs.size() + postEditReq.getNewImgs().size() > MAX_IMAGE_SIZE) {
             throw new BaseException(minnie_POSTS_FULL_IMAGE);
         }
 
-        // 기존 이미지
-        List<String> originImgs = postEditReq.getUrls();
-        // 새로운 이미지
-        List<MultipartFile> newFiles = postEditReq.getImgs();
-        List<String> newImgs = new ArrayList<>();
-
-        // image 업로드 (S3)
+        // S3에 새로운 이미지 업로드
         for(MultipartFile img : newFiles) {
-            String url = null;
-            url = awsS3Service.uploadImage(img);
-            newImgs.add(url);
+            if(img.getSize() > 0) {
+                String url = null;
+                url = awsS3Service.uploadImage(img);
+                newImgs.add(url);
+            }
         }
 
         // 기존 이미지와 새로운 이미지를 하나의 필드로 병합
