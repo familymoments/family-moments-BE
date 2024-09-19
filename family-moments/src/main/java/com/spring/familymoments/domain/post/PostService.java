@@ -123,6 +123,7 @@ public class PostService {
         List<MultipartFile> newFiles = postEditReq.getNewImgs();
         List<String> newImgs = new ArrayList<>();
 
+        // 새로운 이미지를 추가하지 않고도 수정이 되도록 허용
         if(postEditReq.getNewImgs() != null) {
             if (originImgs.size() + postEditReq.getNewImgs().size() > MAX_IMAGE_SIZE) {
                 throw new BaseException(minnie_POSTS_FULL_IMAGE);
