@@ -123,16 +123,18 @@ public class PostService {
         List<MultipartFile> newFiles = postEditReq.getNewImgs();
         List<String> newImgs = new ArrayList<>();
 
-        if(originImgs.size() + postEditReq.getNewImgs().size() > MAX_IMAGE_SIZE) {
-            throw new BaseException(minnie_POSTS_FULL_IMAGE);
-        }
+        if(postEditReq.getNewImgs() != null) {
+            if (originImgs.size() + postEditReq.getNewImgs().size() > MAX_IMAGE_SIZE) {
+                throw new BaseException(minnie_POSTS_FULL_IMAGE);
+            }
 
-        // S3에 새로운 이미지 업로드
-        for(MultipartFile img : newFiles) {
-            if(img.getSize() > 0) {
-                String url = null;
-                url = awsS3Service.uploadImage(img);
-                newImgs.add(url);
+            // S3에 새로운 이미지 업로드
+            for(MultipartFile img : newFiles) {
+                if(img.getSize() > 0) {
+                    String url = null;
+                    url = awsS3Service.uploadImage(img);
+                    newImgs.add(url);
+                }
             }
         }
 
